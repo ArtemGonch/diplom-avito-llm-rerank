@@ -3,7 +3,8 @@
 
 project:
   name: diplom-avito-llm-rerank
-  repo: avito/
+  repo: https://github.com/ArtemGonch/diplom-avito-llm-rerank
+  local_path: avito/
   conda_env: diplom_avito
   owner: team
   updated: "2026-06-23"
