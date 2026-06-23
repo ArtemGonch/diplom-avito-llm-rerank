@@ -1,0 +1,34 @@
+{
+  "generated": "2026-06-23T19:07:59.020989+00:00",
+  "plots": [
+    "plots/exp3rt_training_loss_rating_only.png",
+    "plots/exp3rt_training_curves_paper_full.png",
+    "plots/exp3rt_rating_val_rmse_paper_full.png",
+    "plots/exp3rt_metrics_vs_paper.png",
+    "plots/exp3rt_metrics_delta_vs_paper.png"
+  ],
+  "metrics_sources": {
+    "rating_only": "results/exp3rt_snapshots/rating_only_qwen_2026-06-17/comparison_vs_paper.json",
+    "paper_full": "results/current/metrics/exp3rt_paper_full_test_metrics.json"
+  },
+  "logs": {
+    "rating_only": "logs/exp3rt_rating_train.log",
+    "paper_full": "logs/exp3rt_paper_full_train.log"
+  },
+  "paper_reference": {
+    "rmse": 0.6508,
+    "mae": 0.4297
+  },
+  "ours_expected_rating": {
+    "rating_only": {
+      "rmse": 0.5906244608702312,
+      "mae": 0.3430629464300082,
+      "n": 11743
+    },
+    "paper_full": {
+      "rmse": 0.5623525560873235,
+      "mae": 0.34963453484013024,
+      "n": 11743
+    }
+  }
+}

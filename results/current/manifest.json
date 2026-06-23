@@ -15,6 +15,17 @@
     "max_prob_mae": 0.3137,
     "n": 11743
   },
+  "exp3rt_amazon_rating_only": {
+    "expected_rmse": 0.5906,
+    "expected_mae": 0.3431,
+    "n": 11743
+  },
+  "exp3rt_paper_reference": {
+    "rmse": 0.6508,
+    "mae": 0.4297,
+    "source": "SIGIR 2025 Table 2, Amazon-Book Total"
+  },
+  "exp3rt_plots": "plots/exp3rt_plots_manifest.json",
   "experiments_registry": "experiments/registry.yaml",
   "team_docs": "docs/TEAM_PROJECT.md"
 }
