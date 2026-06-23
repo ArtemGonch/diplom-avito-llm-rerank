@@ -117,6 +117,8 @@ def stage_train(cfg: dict, train_stage_name: str, init_model: str | None = None)
 
 
 def stage_test(cfg: dict) -> Path:
+    import os
+
     from models.exp3rt.test import run_inference
     rating_dir = _output_dir(cfg, "rating")
     merged = rating_dir / "merged"
@@ -127,14 +129,21 @@ def stage_test(cfg: dict) -> Path:
     data_root = ROOT / cfg["paths"]["data_root"] / ds
     test_file = cfg["stages"]["rating"]["test"]
     out = rating_dir / f"predictions_{cfg['inference']['test_split'].replace('.json', '')}.json"
+    infer = cfg["inference"]
+    train = cfg.get("train", {})
+    default_max_len = int(train.get("cutoff_len", 1200)) + int(infer.get("max_tokens", 512)) + 256
     icfg = {
         "dataset": ds,
         "test_data_path": str(data_root / test_file),
         "model_path": str(merged),
         "output_path": str(out),
-        "seed": cfg["inference"]["seed"],
-        "max_tokens": cfg["inference"]["max_tokens"],
-        "tensor_parallel_size": cfg["inference"]["tensor_parallel_size"],
+        "seed": infer["seed"],
+        "max_tokens": infer["max_tokens"],
+        "tensor_parallel_size": int(os.environ.get("EXP3RT_TP", infer["tensor_parallel_size"])),
+        "max_model_len": int(os.environ.get("EXP3RT_MAX_MODEL_LEN", infer.get("max_model_len", default_max_len))),
+        "gpu_memory_utilization": float(
+            os.environ.get("EXP3RT_GPU_MEM_UTIL", infer.get("gpu_memory_utilization", 0.85))
+        ),
     }
     return run_inference(icfg)
 

@@ -7,6 +7,14 @@
     "position_base_ndcg@10": 0.9001,
     "delta_ndcg@10": 0.0416
   },
+  "exp3rt_amazon_paper_full": {
+    "path": "metrics/exp3rt_paper_full_test_metrics.json",
+    "expected_rmse": 0.5624,
+    "expected_mae": 0.3496,
+    "max_prob_rmse": 0.6084,
+    "max_prob_mae": 0.3137,
+    "n": 11743
+  },
   "experiments_registry": "experiments/registry.yaml",
   "team_docs": "docs/TEAM_PROJECT.md"
 }

@@ -69,6 +69,12 @@ def main() -> None:
         lines.append(
             f"| {r['method']} | {r['rmse']:.4f} | {r['mae']:.4f} | {r.get('n', '—')} |"
         )
+    is_paper_full = "paper_full" in str(METRICS_PATH)
+    ours_protocol = (
+        "Qwen2.5-7B, 4-stage SFT (pref→user→item→rating), cutoff 1200, vLLM test TP=2"
+        if is_paper_full
+        else "Qwen2.5-7B, rating stage only (profiles prebuilt), 1 epoch, cutoff 1024"
+    )
     lines.extend(
         [
             "",
@@ -86,7 +92,7 @@ def main() -> None:
             "## Protocol notes",
             "",
             "- **Paper:** Llama-3-8B, 3-stage SFT, cutoff 1200, up to 10 epochs, vLLM test",
-            "- **Ours:** Qwen2.5-7B, rating stage only (profiles prebuilt), 1 epoch, cutoff 1024",
+            f"- **Ours:** {ours_protocol}",
             "- Metric: RMSE/MAE on full `rating_bias/test.json` (11,743 rows)",
         ]
     )

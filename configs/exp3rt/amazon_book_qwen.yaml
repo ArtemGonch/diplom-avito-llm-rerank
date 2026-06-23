@@ -38,6 +38,8 @@ train:
 inference:
   seed: 425
   max_tokens: 512
+  max_model_len: 1792
+  gpu_memory_utilization: 0.85
   tensor_parallel_size: 2
   test_split: test.json
 

@@ -59,12 +59,11 @@ experiments:
     dataset: amazon_book
     config: configs/exp3rt/amazon_book_qwen_paper_full.yaml
     script: scripts/exp3rt/finish_paper_full_test.sh
-    status: running
-    stage: merge+test
-    gpu: 5,6
-    log: logs/finish_paper_full_test_nohup.log
+    status: done
     metrics: checkpoints/exp3rt/amazon_book_qwen_paper_full/amazon-book_rating_r128_alpha32_seed425/metrics.json
-    notes: "4-stage pref→user→item→rating; merge via merge_rating_adapter.py + vLLM test"
+    results: results/current/metrics/exp3rt_paper_full_test_metrics.json
+    log: logs/exp3rt_paper_full_test.log
+    notes: "4-stage Qwen; expected RMSE 0.562 MAE 0.350 vs paper 0.651/0.430"
 
   exp3rt_avito_heuristic:
     method: Exp3RT-style

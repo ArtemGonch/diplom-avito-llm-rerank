@@ -1,6 +1,6 @@
 # UR4Rec MovieLens-1M: ours vs paper (DLCM backbone)
 
-Generated: 2026-06-17T09:39:11.309453+00:00
+Generated: 2026-06-23T15:09:46.279305+00:00
 
 | Model | Metric | Ours (beat_base) | Paper | Δ |
 |-------|--------|------------------|-------|---|
