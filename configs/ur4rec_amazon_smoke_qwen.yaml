@@ -1,0 +1,59 @@
+# Amazon-Books 5-core smoke (UR4Rec paper Table 1)
+dataset:
+  name: amazon-books
+  data_dir: data/amazon-books
+  min_rating: 4.0
+  max_reviews: 800000
+  history_len: 10
+  num_candidates: 20
+  num_negatives_cl: 5
+  train_ratio: 0.8
+  val_ratio: 0.1
+  max_train_users: 200
+  max_val_users: 50
+  max_test_users: 50
+  knowledge_items_only_in_samples: true
+
+llm:
+  backend: qwen
+  use_template_generator: false
+  load_in_4bit: true
+  max_new_tokens: 128
+  batch_size: 4
+  knowledge_max_items: 250
+  knowledge_max_users: 300
+  temperature: 0.1
+  checkpoint_every: 25
+  knowledge_dir: data/amazon-books/knowledge_qwen25
+
+encoder:
+  model_name: bert-base-uncased
+  max_length: 128
+  freeze: true
+
+retriever:
+  num_proxies: 8
+  num_layers: 2
+  dropout: 0.1
+  pretrain_epochs: 1
+  pretrain_lr: 1.0e-4
+  pretrain_batch_size: 64
+  alpha_cf: 1.0
+  temperature: 0.05
+
+backbone:
+  name: dlcm
+  hidden_dim: 768
+  train_epochs: 1
+  train_lr: 1.0e-4
+  train_batch_size: 32
+
+joint:
+  epochs: 1
+  lr: 1.0e-4
+  batch_size: 32
+
+seed: 42
+device: cuda
+gpu_id: 0
+output_dir: checkpoints/ur4rec_amazon_smoke_qwen

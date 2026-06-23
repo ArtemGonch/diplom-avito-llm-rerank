@@ -1,0 +1,83 @@
+# Exp3RT paper-faithful Amazon-Books + tuned to beat SIGIR 2025 Table 2
+# Sequential 4-stage SFT (preference → user → item → rating), chained merged weights.
+# Paper ref: Kim et al. arXiv:2408.06276 — cutoff 1200, micro_batch 4, up to 10 epochs.
+
+project:
+  name: exp3rt
+  dataset: amazon-book
+
+paths:
+  data_root: data/exp3rt
+  output_root: checkpoints/exp3rt/amazon_book_qwen_paper_full
+  paper_repo: papers/exp3rt/assets/github_repo
+
+model:
+  base_model: Qwen/Qwen2.5-7B-Instruct
+  backend: qwen
+
+train:
+  seed: 425
+  batch_size: 32
+  micro_batch_size: 4
+  num_epochs: 3
+  learning_rate: 2.0e-4
+  cutoff_len: 1200
+  gradient_checkpointing: true
+  max_train_samples: null
+  max_eval_samples: null
+  dataloader_num_workers: 4
+  lora_r: 128
+  lora_alpha: 32
+  lora_dropout: 0.1
+  rmse_patience: 2
+  eval_patience: 5
+  group_by_length: true
+  preference_learning_rate: 5.0e-4
+  profile_learning_rate: 5.0e-4
+
+inference:
+  seed: 425
+  max_tokens: 512
+  tensor_parallel_size: 2
+  test_split: test.json
+
+stages:
+  preference:
+    enabled: true
+    train: preference_extraction/preference_train.json
+    valid: preference_extraction/preference_valid.json
+    train_overrides:
+      num_epochs: 3
+      lora_alpha: 16
+      micro_batch_size: 8
+  user:
+    enabled: true
+    train: user_profile/user_train.json
+    valid: user_profile/user_valid.json
+    train_overrides:
+      num_epochs: 3
+      lora_alpha: 16
+      micro_batch_size: 8
+  item:
+    enabled: true
+    train: item_profile/item_train.json
+    valid: item_profile/item_valid.json
+    train_overrides:
+      num_epochs: 3
+      lora_alpha: 16
+      micro_batch_size: 8
+  rating:
+    enabled: true
+    train: rating_bias/train.json
+    valid: rating_bias/valid.json
+    test: rating_bias/test.json
+    train_overrides:
+      num_epochs: 5
+      lora_alpha: 32
+      learning_rate: 2.0e-4
+      micro_batch_size: 8
+      rmse_patience: 3
+      max_eval_samples: null
+
+# Targets (paper Amazon-Books Total): RMSE 0.6508, MAE 0.4297
+# Baseline beat (rating-only Qwen 1ep): RMSE 0.5906 expected / 0.6314 max_prob

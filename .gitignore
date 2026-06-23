@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.ipynb_checkpoints/
+
+# Env / secrets
+.env
+.env.*
+*.pem
+credentials.json
+
+# Large artifacts (download or train locally)
+checkpoints/
+data/
+logs/
+*.log
+wandb/
+.cache/
+.vllm/
+
+# Optional: keep small metric snapshots under results/current/metrics/
+# Uncomment to ignore all results:
+# results/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Conda
+.conda/
+
+# Huge model caches
+models/
+hf_cache/

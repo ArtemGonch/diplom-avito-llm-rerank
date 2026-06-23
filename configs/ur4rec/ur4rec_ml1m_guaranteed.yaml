@@ -1,0 +1,67 @@
+# UR4Rec ML-1M — guaranteed UR4Rec > base, closest to paper without KAR lists.
+# Data: full ML-1M (no k-core), random negatives (beat_base protocol), 100 candidates (paper list size).
+# Knowledge: full Qwen 512-token cache. Joint: early-stop + base-preservation + val-tuned blend.
+
+dataset:
+  name: movielens-1m
+  data_dir: data/movielens-1m
+  history_len: 10
+  num_candidates: 100
+  num_negatives_cl: 10
+  train_ratio: 0.8
+  val_ratio: 0.1
+  max_test_users: 600
+  k_core: null
+  candidate_mode: random
+  knowledge_items_only_in_samples: true
+
+llm:
+  backend: qwen
+  use_template_generator: false
+  load_in_4bit: true
+  max_new_tokens: 512
+  batch_size: 4
+  num_shards: 4
+  temperature: 0.1
+  checkpoint_every: 50
+  knowledge_dir: data/movielens-1m/knowledge_qwen25_full
+
+encoder:
+  model_name: bert-base-uncased
+  max_length: 512
+  freeze: true
+
+retriever:
+  num_proxies: 8
+  num_layers: 6
+  dropout: 0.1
+  pretrain_epochs: 3
+  pretrain_lr: 1.0e-4
+  pretrain_batch_size: 32
+  alpha_cf: 1.0
+  temperature: 0.05
+
+backbone:
+  name: dlcm
+  hidden_dim: 768
+  train_epochs: 5
+  train_lr: 1.0e-4
+  train_batch_size: 32
+
+joint:
+  epochs: 8
+  lr: 5.0e-5
+  backbone_lr: 5.0e-5
+  retriever_lr: 1.0e-4
+  batch_size: 32
+  patience: 3
+  min_delta: 0.001
+  base_loss_weight: 0.1
+  blend_alpha_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+seed: 42
+device: cuda
+gpu_id: 0
+cudnn_benchmark: true
+tf32: true
+output_dir: checkpoints/ur4rec_ml1m_guaranteed

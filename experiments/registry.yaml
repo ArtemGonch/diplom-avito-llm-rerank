@@ -1,0 +1,91 @@
+# Shared experiment registry — single source of truth for the team.
+# Update status after each run; link metrics under results/current/.
+
+project:
+  name: diplom-avito-llm-rerank
+  repo: avito/
+  conda_env: diplom_avito
+  owner: team
+  updated: "2026-06-23"
+
+datasets:
+  ml1m:
+    path: data/movielens-1m
+    task: rerank
+    metrics: [ndcg@5, ndcg@10, map@10]
+  amazon_book:
+    path: data/exp3rt/amazon-book
+    task: rating_prediction
+    metrics: [rmse, mae]
+  avito_auto:
+    path: .
+    files: [items_with_attrs.parquet, users_with_history.parquet]
+    task: serp_rerank
+    metrics: [ndcg@5, ndcg@10, map@10]
+
+experiments:
+  ur4rec_ml1m_beat_base:
+    method: UR4Rec
+    dataset: ml1m
+    config: configs/ur4rec/ur4rec_ml1m_beat_base.yaml
+    script: scripts/ur4rec/run_beat_baseline.sh
+    status: done
+    metrics: checkpoints/ur4rec_ml1m_beat_base/metrics_test.json
+    notes: "UR4Rec > base; random 50 cand, 128 tok knowledge"
+
+  ur4rec_ml1m_guaranteed:
+    method: UR4Rec
+    dataset: ml1m
+    config: configs/ur4rec/ur4rec_ml1m_guaranteed.yaml
+    script: scripts/ur4rec/run_guaranteed.sh
+    status: running
+    stage: pretrain_e2
+    gpu: 6
+    log: logs/guaranteed_master.log
+    metrics: checkpoints/ur4rec_ml1m_guaranteed/metrics_test.json
+    notes: "pretrain ~59% e2/3; then joint+eval (~1-2d total)"
+
+  exp3rt_amazon_rating_only:
+    method: Exp3RT
+    dataset: amazon_book
+    config: configs/exp3rt/amazon_book_qwen.yaml
+    status: done
+    metrics: checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425/metrics.json
+    notes: "Rating stage only; beats paper Total on test (shortcut)"
+
+  exp3rt_amazon_paper_full:
+    method: Exp3RT
+    dataset: amazon_book
+    config: configs/exp3rt/amazon_book_qwen_paper_full.yaml
+    script: scripts/exp3rt/finish_paper_full_test.sh
+    status: running
+    stage: merge+test
+    gpu: 5,6
+    log: logs/finish_paper_full_test_nohup.log
+    metrics: checkpoints/exp3rt/amazon_book_qwen_paper_full/amazon-book_rating_r128_alpha32_seed425/metrics.json
+    notes: "4-stage pref→user→item→rating; merge via merge_rating_adapter.py + vLLM test"
+
+  exp3rt_avito_heuristic:
+    method: Exp3RT-style
+    dataset: avito_auto
+    config: configs/exp3rt/exp3rt_avito_full.yaml
+    script: scripts/exp3rt/run_avito_eval.sh
+    status: done
+    metrics: results/current/metrics/exp3rt_avito_full.json
+    notes: "200 test SERPs; NDCG@10 0.942 vs position 0.900"
+
+  ur4rec_avito_smoke:
+    method: UR4Rec
+    dataset: avito_auto
+    config: configs/ur4rec/ur4rec_avito_smoke_qwen.yaml
+    status: done
+    metrics: checkpoints/ur4rec_avito_smoke_qwen/metrics_test.json
+
+paper_targets:
+  ur4rec_ml1m:
+    source: "UR4Rec Table 6, DLCM backbone"
+    ndcg@10: {base: 0.359, ur4rec: 0.678}
+  exp3rt_amazon:
+    source: "Exp3RT SIGIR 2025 Table 2 Total"
+    rmse: 0.6508
+    mae: 0.4297

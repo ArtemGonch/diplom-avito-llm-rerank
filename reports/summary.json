@@ -1,0 +1,24 @@
+{
+  "items_rows": 44736,
+  "items_cols": 36,
+  "unique_serp": 2000,
+  "unique_item_id": 41592,
+  "unique_sellers_in_items": 1784,
+  "serp_size_mean": 22.368,
+  "serp_size_max": 435,
+  "users_rows": 2028,
+  "unique_users_history": 274,
+  "contact_date_min": "2026-02-24",
+  "contact_date_max": "2026-05-24",
+  "overlap_user_id": 274,
+  "overlap_item_id": 0,
+  "blocks": {
+    "items": 24738,
+    "extra-reg": 10592,
+    "extra-candidates-extra_regions": 9406
+  },
+  "categories": {
+    "Transport.UsedCars": 43676,
+    "Transport.NewCars": 1060
+  }
+}

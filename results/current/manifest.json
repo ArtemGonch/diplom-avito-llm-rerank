@@ -1,0 +1,12 @@
+{
+  "generated": "2026-06-23",
+  "avito_exp3rt_full": {
+    "path": "metrics/exp3rt_avito_full.json",
+    "n_serps": 200,
+    "exp3rt_style_ndcg@10": 0.9417,
+    "position_base_ndcg@10": 0.9001,
+    "delta_ndcg@10": 0.0416
+  },
+  "experiments_registry": "experiments/registry.yaml",
+  "team_docs": "docs/TEAM_PROJECT.md"
+}

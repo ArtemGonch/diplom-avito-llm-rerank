@@ -1,0 +1,53 @@
+# UR4Rec reproduction — MovieLens-1M (paper §4)
+dataset:
+  name: movielens-1m
+  data_dir: data/movielens-1m
+  history_len: 10          # DLCM/PRM/SetRank backbones
+  num_candidates: 100
+  num_negatives_cl: 10       # pretrain negatives M
+  train_ratio: 0.8
+  val_ratio: 0.1
+
+llm:
+  backend: qwen
+  use_template_generator: false
+  model_name: meta-llama/Llama-2-7b-chat-hf
+  load_in_4bit: true
+  max_new_tokens: 512
+  temperature: 0.1
+  checkpoint_every: 100
+  knowledge_dir: data/movielens-1m/knowledge_qwen25
+
+encoder:
+  model_name: bert-base-uncased
+  max_length: 256
+  freeze: true
+
+retriever:
+  num_proxies: 8             # K for DLCM/PRM/SetRank (16 for GRU4Rec/SASRec)
+  num_layers: 6              # BERT-init blocks; paper uses BERT-base (~12 layers)
+  dropout: 0.1
+  pretrain_epochs: 3
+  pretrain_lr: 1.0e-4
+  pretrain_batch_size: 32
+  alpha_cf: 1.0              # L_pretrain = L_CL + alpha * L_CF
+  temperature: 0.05
+
+backbone:
+  name: dlcm                 # listwise GRU reranker (DLCM-style)
+  hidden_dim: 768
+  train_epochs: 5
+  train_lr: 1.0e-4
+  train_batch_size: 32
+
+joint:
+  epochs: 5
+  lr: 1.0e-4
+  batch_size: 32
+
+seed: 42
+device: cuda
+gpu_id: 0
+cudnn_benchmark: true
+tf32: true
+output_dir: checkpoints/ur4rec_ml1m
