@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diploma Context"
+  short_description: "Load and verify the thesis project context"
+  default_prompt: "Use $diplom-context to understand the current thesis project before working on my request."

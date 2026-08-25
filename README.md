@@ -2,6 +2,8 @@
 
 Общий репозиторий команды: **UR4Rec + Exp3RT + Avito Auto** (LLM rerank / rating).
 
+Новый агент начинает с корневого [`AGENTS.md`](AGENTS.md), затем читает [`docs/START_HERE.md`](docs/START_HERE.md). Для глубокого onboarding доступен repo-skill `$diplom-context`.
+
 | Документ | Описание |
 |----------|----------|
 | [docs/START_HERE.md](docs/START_HERE.md) | актуальная точка входа: идея диплома, код, протоколы, результаты и ограничения |
@@ -15,6 +17,7 @@ conda activate diplom_avito
 pip install -r requirements.txt -r requirements-exp3rt.txt
 
 bash scripts/status_runs.sh          # статус GPU и прогонов
+python scripts/check_project_docs.py # целостность docs/registry/manifest
 ```
 
 В git лежат два исходных Avito parquet snapshot (`items_with_attrs.parquet`, `users_with_history.parquet`). Скачиваемые benchmark datasets, generated knowledge, checkpoints, logs и model caches исключены через `.gitignore`. Небольшие проверенные метрики публикуются в `results/current/metrics/`; полные `checkpoints/*/metrics*.json` остаются локальными.

@@ -8,6 +8,8 @@
 
 ```text
 avito/
+├── AGENTS.md                    # автоматический bootstrap нового Codex
+├── .agents/skills/diplom-context/ # task-aware onboarding workflow
 ├── experiments/registry.yaml    # ← статус всех прогонов (обновляем вместе)
 ├── configs/{ur4rec,exp3rt}/      # воспроизводимые конфиги
 ├── scripts/                     # entrypoints (run_*.sh)

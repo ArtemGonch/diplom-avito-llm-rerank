@@ -2,6 +2,8 @@
 
 Обновлено: **2026-08-25**. Этот файл — краткий текущий контекст проекта. Он не заменяет статьи, код и реестр экспериментов, а задаёт правильный порядок чтения и отделяет валидные результаты от legacy.
 
+Новый Codex получает корневой `AGENTS.md` автоматически. Для полного onboarding следует использовать repo-skill `$diplom-context`; если skills недоступны, выполнить `bash scripts/project_context.sh` и следовать маршрутам чтения ниже.
+
 ## Суть диплома
 
 Тема: **LLM в ранжировании выдачи объявлений**. Исследуется cost-aware многостадийный pipeline `retrieval → rank/LTR → rerank`, где LLM не ранжирует весь каталог online, а offline строит знания/профили/память, которые использует дешёвый candidate-aware reranker.
@@ -105,6 +107,8 @@ Generic stages: `prepare`, `train`, `test`, `eval`, `all`; train tasks: `prefere
 | Путь | Назначение |
 |---|---|
 | `scripts/status_runs.sh` | GPU/process/log summary; доступ к GPU из sandbox может быть ограничен |
+| `scripts/project_context.sh` | read-only snapshot Git, registry, active logs и рекомендуемых документов для нового агента |
+| `scripts/check_project_docs.py` | проверка onboarding-файлов, Markdown links, YAML, registry paths и manifest |
 | `scripts/snapshot_experiment_results.py` | перенос небольших метрик/логов в `results/current/` |
 | `scripts/generate_eda_report.py`, `notebooks/01_eda_avito_data.ipynb` | EDA локальных Avito parquet |
 | `reports/` | HTML/JSON EDA outputs |
@@ -118,12 +122,18 @@ Generic stages: `prepare`, `train`, `test`, `eval`, `all`; train tasks: `prefere
 source /home/artem-gon/miniconda3/etc/profile.d/conda.sh
 conda activate diplom_avito
 
+# Контекст текущего checkout/run для новой сессии
+bash scripts/project_context.sh
+
 # Быстрый offline correctness smoke без HF download/GPU
 python scripts/ur4rec/run_ur4rec.py \
   --config configs/ur4rec/ur4rec_correctness_smoke.yaml --stage all
 
 # Тесты regression guards
 python -m unittest -q tests/test_correctness_guards.py
+
+# Согласованность документации и experiment artifacts
+python scripts/check_project_docs.py
 
 # Текущий полный corrected run
 KNOWLEDGE_GPUS=2,4,5,6 TRAIN_GPU=2 \
