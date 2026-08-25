@@ -1,6 +1,6 @@
 # Задание 26.06: датасет, типология rerank-методов и новая статья
 
-Дата аудита: 2026-08-25. Исполнитель: Артём.
+Дата аудита: 2026-08-25. Исполнитель: Артём. Актуализация после code review: corrected-v3 запущен от `knowledge`; финальных UR4Rec метрик ещё нет.
 
 ## Короткий вывод
 
@@ -222,12 +222,12 @@ Raw purchase history длинна, шумна и часто не соответ�
 | Задача | Артефакт | Фактический статус после аудита |
 |---|---|---|
 | Общий формат проекта | `README.md`, `docs/TEAM_PROJECT.md`, `experiments/registry.yaml` | сделано; часть статусов в handoff устарела |
-| Два прогона | UR4Rec ML-1M, Exp3RT Amazon checkpoints/results | веса есть; Exp3RT test есть; UR4Rec требуется повторить после fixes |
+| Два прогона | UR4Rec ML-1M, Exp3RT Amazon checkpoints/results | Exp3RT test готов; UR4Rec corrected-v3 запущен, прежние веса legacy |
 | Выбрать метод preferences для Auto | `docs/avito_preferences.md`, Avito heuristic | направление верно, старый результат содержал leakage |
 | +1 алгоритм | `docs/llm4rerank_vs_ur4rec_exp3rt.md`, C-UR4Rec design | концепт сделан, LLM4Rerank не воспроизведён |
 | Calibration | `docs/paper_improvements_backlog.md` | только backlog, реализации нет |
 | Ограничение числа LLM requests | offline generation, cached knowledge | частично; строгой cost table нет |
-| Ограниченный контекст | profiles/proxies | реализовано концептуально; UR4Rec memory была вырождена |
+| Ограниченный контекст | profiles/proxies | token memory и proxies исправлены; эффект проверит corrected-v3 |
 | References | docs и presentation | сделано, здесь добавлены primary links |
 | Idempotency | backlog | тестов повторяемости пока нет |
 | Классификация датасетов | этот документ | сделано |
@@ -246,15 +246,20 @@ Raw purchase history длинна, шумна и часто не соответ�
 5. Self-attention projection weights UR4Rec теперь действительно инициализируются из BERT вместе с FFN/norm.
 6. Общий NDCG сохраняет graded labels; на бинарных датасетах поведение не изменилось.
 7. Avito heuristic больше не читает `contacts_daily` или `clicks_daily`; добавлены correctness tests.
+8. Knowledge cache v2 проверяет generator/model/tokens/shards и флаг полноты, поддерживает resumable shard checkpoints и явный merge.
+9. ML-1M corrected-v3 использует temporal-per-user targets; user embeddings validation/test больше не остаются необученными из-за user-wise split.
+10. Static user profile строится по train history и не включает validation/test targets.
+11. Frozen BERT работает в `eval()`, повторяющиеся тексты кодируются батчами и кэшируются; для offline smoke добавлен deterministic hashing encoder.
+12. Contrastive negatives исключают известные positives; конфигурация retriever едина между pretrain/joint/eval.
 
 ### Открытые блокеры перед сильным экспериментальным claim
 
-1. Все существующие UR4Rec weights/metrics получены со старой memory semantics и частично испорченным knowledge cache: нужен полный rerun от `knowledge`.
-2. ML-1M current split/candidate generation надо привести к опубликованному protocol; название `paper_exact` сейчас сильнее фактической гарантии.
+1. UR4Rec corrected-v3 запущен 2026-08-25 от `knowledge`; до успешных `merge → backbone → pretrain → joint → eval` и появления test JSON все прежние weights/metrics остаются legacy.
+2. Corrected-v3 исправляет split через temporal-per-user targets, но использует random top-100. Для paper-like claim нужен отдельный temporal MF/BPR candidate protocol; названия прежних `paper_exact` configs сильнее фактической гарантии.
 3. Avito UR4Rec создаёт internal user по SERP и не использует `users_with_history` как реальную последовательность поведения.
 4. Full Avito query отсутствует, поэтому C-UR4Rec нельзя корректно оценить на текущем extract.
 5. Exp3RT generic `--stage all` не гарантирует chaining всех adapters так, как shell paper-full pipeline; merge после train должен явно брать best checkpoint.
-6. `AGENT_HANDOFF.md` и часть таблиц описывают промежуточный июньский статус, а не текущее состояние.
+6. `AGENT_HANDOFF.md` содержит полезную хронологию, но остаётся архивом; текущий вход — `START_HERE.md`, registry и узкие reproduction-документы.
 
 ## Что можно утверждать на защите уже сейчас
 
@@ -264,7 +269,7 @@ Raw purchase history длинна, шумна и часто не соответ�
 - Leakage-free pseudo-profile heuristic улучшает graded NDCG@10 относительно position baseline на `0.0288`; это предварительный offline результат с явными ограничениями.
 - Amazon-C4 User Purchase History — выбранный внешний proxy для следующего персонализированного product-search эксперимента.
 
-Нельзя утверждать до повторного прогона: «UR4Rec воспроизведён paper-exact», «Avito NDCG@10 = 0.9417», «C-UR4Rec доказан экспериментально».
+Нельзя утверждать до завершения corrected-v3: «UR4Rec воспроизведён paper-exact» или «UR4Rec превосходит backbone». Также нельзя утверждать: «Avito NDCG@10 = 0.9417», «C-UR4Rec доказан экспериментально».
 
 ## Основные источники
 

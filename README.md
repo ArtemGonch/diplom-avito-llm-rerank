@@ -4,6 +4,7 @@
 
 | Документ | Описание |
 |----------|----------|
+| [docs/START_HERE.md](docs/START_HERE.md) | актуальная точка входа: идея диплома, код, протоколы, результаты и ограничения |
 | [docs/TEAM_PROJECT.md](docs/TEAM_PROJECT.md) | формат проекта, команды, статус прогонов |
 | [experiments/registry.yaml](experiments/registry.yaml) | реестр экспериментов (single source of truth) |
 | [docs/avito_preferences.md](docs/avito_preferences.md) | преференсы на Авто, C-UR4Rec |
@@ -16,7 +17,7 @@ pip install -r requirements.txt -r requirements-exp3rt.txt
 bash scripts/status_runs.sh          # статус GPU и прогонов
 ```
 
-**Данные и чекпоинты не в git** — см. `.gitignore`. Метрики: `results/current/metrics/`, `checkpoints/*/metrics*.json` (локально).
+В git лежат два исходных Avito parquet snapshot (`items_with_attrs.parquet`, `users_with_history.parquet`). Скачиваемые benchmark datasets, generated knowledge, checkpoints, logs и model caches исключены через `.gitignore`. Небольшие проверенные метрики публикуются в `results/current/metrics/`; полные `checkpoints/*/metrics*.json` остаются локальными.
 
 ---
 
@@ -101,18 +102,18 @@ items.sample(5)[["serp_x", "title", "price", "brand", "block_pos"]]
 
 ## UR4Rec: LLM-профили (§3.1)
 
-По умолчанию **`use_template_generator: false`** — офлайн **Qwen2.5-7B-Instruct** или **DeepSeek-R1-Distill-Qwen-7B** (4-bit на V100). Llama2 в статье, но на HF нужен отдельный approve.
+По умолчанию **`use_template_generator: false`** — офлайн **Qwen2.5-7B-Instruct** или **DeepSeek-R1-Distill-Qwen-7B** в 4-bit. Llama2 использован в статье, но на Hugging Face нужен отдельный доступ.
 
 ```bash
 pip install -r requirements.txt
 
 # Qwen (рекомендуется):
-CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
-  --config configs/ur4rec_smoke_qwen.yaml --stage knowledge
+CUDA_VISIBLE_DEVICES=0 python scripts/ur4rec/run_ur4rec.py \
+  --config configs/ur4rec/ur4rec_smoke_qwen.yaml --stage knowledge
 
 # DeepSeek R1-Distill:
-CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
-  --config configs/ur4rec_smoke_deepseek.yaml --stage knowledge
+CUDA_VISIBLE_DEVICES=0 python scripts/ur4rec/run_ur4rec.py \
+  --config configs/ur4rec/ur4rec_smoke_deepseek.yaml --stage knowledge
 # затем --stage all
 ```
 
@@ -130,15 +131,15 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
 conda activate diplom_avito
 cd /home/artem-gon/MIPT/DIPLOM/avito
 
-CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
-  --config configs/ur4rec_avito_smoke.yaml \
+CUDA_VISIBLE_DEVICES=0 python scripts/ur4rec/run_ur4rec.py \
+  --config configs/ur4rec/ur4rec_avito_smoke.yaml \
   --stage all \
   2>&1 | tee logs/ur4rec_avito_smoke.log
 ```
 
 Результат: `checkpoints/ur4rec_avito_smoke/metrics_test.json` (NDCG@K, MAP@K: base vs UR4Rec).
 
-> Статус 2026-08-25: старые UR4Rec checkpoints построены до исправления memory cross-attention и HF left-padding generation; для сильного claim требуется полный rerun. Подробности: [аудит задания 26.06](docs/task_2026-06-26_artem.md).
+> Статус 2026-08-25: старые UR4Rec checkpoints построены до correctness fixes и считаются legacy. Исправленный ML-1M `corrected-v3` запущен от `knowledge`; до появления `checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json` численного claim нет. Подробности: [актуальная точка входа](docs/START_HERE.md) и [аудит задания 26.06](docs/task_2026-06-26_artem.md).
 
 ### Leakage-free Exp3RT-style baseline
 

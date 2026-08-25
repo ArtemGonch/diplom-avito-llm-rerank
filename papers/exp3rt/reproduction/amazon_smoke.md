@@ -1,5 +1,7 @@
 # Exp3RT Amazon-Books smoke log
 
+> Historical initial smoke. The blockers below were later resolved by the local Qwen port: rating-only and chained paper-full test are complete. See `docs/exp3rt_reproduction.md` and `results/current/metrics/exp3rt_paper_full_test_metrics.json`.
+
 **Date:** 2026-06-16  
 **Script:** `scripts/exp3rt_repo_smoke.py`  
 **Repo:** `papers/exp3rt/assets/github_repo/` (clone of [jieyong99/EXP3RT](https://github.com/jieyong99/EXP3RT))

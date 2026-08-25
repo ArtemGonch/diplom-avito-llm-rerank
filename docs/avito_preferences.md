@@ -35,7 +35,7 @@ Score        ← heuristic или LLM 1–5 fit
 **Иdea:** LLM генерирует item/user knowledge JSON → BERT encoder → retriever → DLCM.
 
 **Плюсы:** хорошо масштабируется на много полей объявления; retriever отбирает нужное под кандидата.  
-**Минусы:** дорого (offline LLM на все items/users); на smoke Avito UR4Rec ≈ base без query-conditioning.
+**Минусы:** дорого (offline LLM на все items/users); старый Avito smoke относится к legacy-коду. Текущий loader строит internal user по SERP и пока не превращает `users_with_history` в temporal sequence, поэтому corrected Avito claim отсутствует.
 
 ### 3. Full Exp3RT 4-stage SFT (как в paper)
 
@@ -79,6 +79,6 @@ Rerank:   DLCM(item, user, e_aug) with gate
 
 **План ablation:** base DLCM → +UR4Rec → +query → +gate → full C-UR4Rec на Avito SERP с unified top-K sampling.
 
-См. также `docs/AGENT_HANDOFF.md` §9.
+См. также [актуальную точку входа](START_HERE.md) и [backlog улучшений](paper_improvements_backlog.md).
 
 Актуальная классификация датасетов и полный аудит: [task_2026-06-26_artem.md](task_2026-06-26_artem.md).

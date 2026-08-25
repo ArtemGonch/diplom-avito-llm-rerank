@@ -1,5 +1,7 @@
 # Exp3RT — talk outline (~20–25 min)
 
+> Archive of the pre-training talk plan. Reproduction status on slide 8 is outdated; use `docs/START_HERE.md` and `docs/exp3rt_reproduction.md` for current claims.
+
 **Audience:** MIPT seminar / Avito diploma committee  
 **Speaker:** Goncharov Artem, M05-513v · supervisor Roman Budylin  
 **Paper:** Kim et al., SIGIR 2025 · slides 8–9 of literature review

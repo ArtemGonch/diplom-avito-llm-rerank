@@ -6,11 +6,31 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "=== GPU ==="
-nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader 2>/dev/null || true
+if gpu_status=$(nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader 2>/dev/null); then
+  printf '%s\n' "$gpu_status"
+else
+  echo "(GPU status unavailable in current namespace)"
+fi
 echo ""
 
 echo "=== Processes ==="
-ps aux | grep -E 'run_ur4rec|run_exp3rt|run_guaranteed' | grep -v grep || echo "(none)"
+ps aux | grep -E 'run_ur4rec|run_exp3rt|run_guaranteed' | grep -v grep || echo "(none visible in current namespace)"
+echo ""
+
+echo "=== UR4Rec corrected-v3 ==="
+if [ -f checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json ]; then
+  cat checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
+elif [ -f logs/ur4rec_corrected_v3/master.log ]; then
+  tail -8 logs/ur4rec_corrected_v3/master.log
+  for shard_log in logs/ur4rec_corrected_v3/knowledge_shard*.log; do
+    [ -f "$shard_log" ] || continue
+    progress=$(tr '\r' '\n' < "$shard_log" | grep -E 'llm-(items|users)' | tail -1 || true)
+    progress=${progress%%The following generation flags*}
+    [ -n "$progress" ] && printf '%s: %s\n' "$(basename "$shard_log")" "$progress"
+  done
+else
+  echo "no log"
+fi
 echo ""
 
 echo "=== UR4Rec guaranteed ==="

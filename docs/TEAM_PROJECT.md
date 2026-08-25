@@ -1,6 +1,6 @@
 # Общий рабочий проект: LLM rerank (UR4Rec + Exp3RT + Avito)
 
-> **Актуальный аудит (2026-08-25):** [задание 26.06, состояние кода и валидность метрик](task_2026-06-26_artem.md). Часть прежних статусов ниже была исторической и обновлена после аудита.
+> **Начинать здесь:** [START_HERE.md](START_HERE.md). Подробный аудит задания 26.06, состояния кода и валидности метрик: [task_2026-06-26_artem.md](task_2026-06-26_artem.md).
 
 ## Формат для команды
 
@@ -18,13 +18,14 @@ avito/
 │   └── manifest.json
 ├── logs/                        # master + train логи
 └── docs/
+    ├── START_HERE.md            # актуальная точка входа для человека/агента
     ├── TEAM_PROJECT.md          # этот файл
     └── avito_preferences.md     # преференсы на Авто + C-UR4Rec
 ```
 
 ### Правила
 
-1. **Один эксперiment = одна строка** в `experiments/registry.yaml` (`status`: planned | running | done | failed).
+1. **Один эксперимент = одна запись** в `experiments/registry.yaml` (`status`: planned | running | done | failed).
 2. **Метрики только из JSON** в `checkpoints/` или `results/current/metrics/` — не из val во время train.
 3. **После test** — `python scripts/snapshot_experiment_results.py` и обновить registry.
 4. **Не коммитить** `.parquet` >10MB без LFS; пути в README.
@@ -38,8 +39,9 @@ cd ~/MIPT/DIPLOM/avito
 # Статус прогонов
 bash scripts/status_runs.sh
 
-# UR4Rec ML-1M (guaranteed)
-tail -f logs/guaranteed_master.log
+# Текущий UR4Rec corrected-v3
+tail -f logs/ur4rec_corrected_v3/master.log
+tail -f logs/ur4rec_corrected_v3/knowledge_shard0.log
 
 # Exp3RT Amazon paper-full → test без ожидания 5 эпох
 bash scripts/exp3rt/finish_paper_full_test.sh
@@ -52,7 +54,7 @@ bash scripts/exp3rt/run_avito_eval.sh
 
 | # | Метод | Датасет | Статус | Куда смотреть |
 |---|--------|---------|--------|----------------|
-| 1 | UR4Rec | MovieLens-1M | legacy artifacts ✓; **полный rerun обязателен после correctness fixes** | `checkpoints/ur4rec_ml1m_*` |
+| 1 | UR4Rec | MovieLens-1M | corrected-v3 **running** (`knowledge`); прежние artifacts legacy | `logs/ur4rec_corrected_v3/`, затем `checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json` |
 | 2 | Exp3RT | Amazon-Books | `rating_only` ✓, `paper_full` test ✓ | `checkpoints/exp3rt/amazon_book_qwen_*` |
 
 ## Avito (transfer)

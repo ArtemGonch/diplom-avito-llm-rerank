@@ -1,8 +1,10 @@
 # Exp3RT Avito adaptation — pseudo-reviews MVP
 
+> **LEGACY / INVALID FOR CLAIMS.** The metrics below predate the 2026-08-25 leakage audit: the heuristic used target/post-exposure features and NDCG binarised dense labels. Use `results/current/metrics/exp3rt_avito_full_leakage_free.json` and `docs/avito_preferences.md` instead (graded NDCG@10 `0.3413` vs position `0.3126`).
+
 **Date:** 2026-06-16  
-**Script:** `scripts/exp3rt_avito_attribute_rerank.py`  
-**Config:** `configs/exp3rt_avito_smoke.yaml`
+**Historical wrapper:** `scripts/exp3rt_avito_attribute_rerank.py`
+**Current implementation/config:** `scripts/exp3rt/exp3rt_avito_attribute_rerank.py`, `configs/exp3rt/exp3rt_avito_full.yaml`
 
 ## Problem
 

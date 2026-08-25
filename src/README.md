@@ -23,5 +23,7 @@ Configs and scripts mirror the same split:
 
 Checkpoints:
 
-- `checkpoints/ur4rec/`
+- `checkpoints/ur4rec_<experiment_id>/`
 - `checkpoints/exp3rt/`
+
+Current project map and validity rules: `docs/START_HERE.md`.

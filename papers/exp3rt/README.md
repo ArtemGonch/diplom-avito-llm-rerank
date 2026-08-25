@@ -1,5 +1,7 @@
 # Exp3RT — paper workspace
 
+> Literature notes are preserved here, but reproduction notes dated 2026-06-16 are historical. Current code/status/results: [`docs/START_HERE.md`](../../docs/START_HERE.md), [`docs/exp3rt_reproduction.md`](../../docs/exp3rt_reproduction.md), and `results/current/manifest.json`.
+
 **Paper:** Kim et al., *Review-driven Personalized Preference Reasoning with Large Language Models for Recommendation* (SIGIR 2025)  
 **arXiv:** https://arxiv.org/abs/2408.06276  
 **Code:** https://github.com/jieyong99/EXP3RT  

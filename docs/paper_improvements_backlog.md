@@ -19,7 +19,7 @@ Priority: items that close the **Avito gap** (search query, no reviews, latency,
 
 ## UR4Rec → C-UR4Rec (diploma contribution)
 
-From [AGENT_HANDOFF.md §9](AGENT_HANDOFF.md):
+Current framing: [START_HERE.md](START_HERE.md) and [avito_preferences.md](avito_preferences.md):
 
 - [ ] **Multi-aspect user memory** — K aspect vectors (price, brand, geo) instead of one concat `e_u^aggr`.
 - [ ] **Candidate–context conditioned retrieval** — query = concat(h_cand, e_query, e_category).

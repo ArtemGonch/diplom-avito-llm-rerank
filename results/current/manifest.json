@@ -1,5 +1,13 @@
 {
   "generated": "2026-08-25",
+  "ur4rec_ml1m_corrected_v3": {
+    "status": "running",
+    "stage": "knowledge",
+    "config": "configs/ur4rec/ur4rec_ml1m_corrected_v3.yaml",
+    "log": "logs/ur4rec_corrected_v3/master.log",
+    "metrics": "checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json",
+    "protocol": "temporal per-user, random top-100, leakage-free cache v2; not paper-exact"
+  },
   "avito_exp3rt_full_leakage_free": {
     "path": "metrics/exp3rt_avito_full_leakage_free.json",
     "n_serps": 200,
@@ -37,5 +45,6 @@
   },
   "exp3rt_plots": "plots/exp3rt_plots_manifest.json",
   "experiments_registry": "experiments/registry.yaml",
+  "project_entrypoint": "docs/START_HERE.md",
   "team_docs": "docs/TEAM_PROJECT.md"
 }

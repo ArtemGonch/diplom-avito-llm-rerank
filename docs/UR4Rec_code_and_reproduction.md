@@ -1,244 +1,185 @@
-# UR4Rec: где код и как воспроизводить
+# UR4Rec: реализация и воспроизведение
 
-> **Статус 2026-08-25:** в локальной реализации исправлены Eq. 5 memory tokens, Figure 3(c) mask, BERT self-attention initialization и HF left-padding generation. Все более ранние UR4Rec checkpoints относятся к legacy-семантике; начинать повторный прогон со stage `knowledge`. См. [аудит](task_2026-06-26_artem.md).
+Обновлено: **2026-08-25**. Текущий основной эксперимент — `ur4rec_ml1m_corrected_v3`; это исправленный rerun, **не paper-exact reproduction**.
 
-**Статья:** Zhang et al., *Enhancing Reranking for Recommendation with LLMs through User Preference Retrieval* (COLING 2025)  
-**PDF:** https://aclanthology.org/2025.coling-main.45/
+Статья: Zhang et al., [*Enhancing Reranking for Recommendation with LLMs through User Preference Retrieval*](https://aclanthology.org/2025.coling-main.45/) (COLING 2025). Официального репозитория статьи не найдено, поэтому код в этом проекте — самостоятельная реализация по paper с компактным DLCM-style backbone.
 
----
+## Что реализовано
 
-## Главный вывод
+```text
+offline Qwen knowledge
+  ├─ user preference text
+  └─ knowledge text для items истории
+          │
+          ▼
+Frozen BERT mean pooling → memory [user + history items]
+          │
+candidate ID embeddings + K learned proxies
+          │
+          ▼
+6-layer retriever: self-attention → cross-attention(memory) → FFN
+          │
+          ▼
+per-candidate augmentation → DLCM-style GRU listwise reranker
+```
 
-**Официального публичного репозитория UR4Rec на GitHub / Gitee нет.**
+Код:
 
-В PDF и на ACL Anthology **нет** ссылки вида «Code available at …». Поиск по GitHub (`UR4Rec`, `user preference retrieval`, авторы RUC) не даёт репозитория с этой статьёй.
-
-**Практический путь:** воспроизведение = **KAR (базовая линия) + свой модуль Retriever** по §3 paper.
-
----
-
-## Что есть в экосистеме (близкий код)
-
-### 1. KAR — прямой предшественник (главный baseline в Table 2)
-
-UR4Rec явно строится поверх идеи KAR: LLM offline → augment vectors → reranker, но **добавляет retriever** вместо «тащить весь preference».
-
-| | |
+| Компонент | Путь |
 |---|---|
-| **Paper** | Xi et al., arXiv:2306.10933, RecSys 2023 |
-| **GitHub** | https://github.com/YunjiaXi/Open-World-Knowledge-Augmented-Recommendation |
-| **Gitee (MindSpore)** | https://gitee.com/mindspore/models/tree/master/research/recommend/KAR |
+| Runner и stages | `scripts/ur4rec/run_ur4rec.py` |
+| Текущий 4-GPU orchestrator | `scripts/ur4rec/run_corrected_v3.sh` |
+| Dataset protocols | `src/data/ml1m.py`, `amazon_books.py`, `steam.py`, `avito.py` |
+| DLCM-style backbone | `src/models/ur4rec/backbone.py` |
+| Retriever | `src/models/ur4rec/retriever.py` |
+| Figure 3 masks | `src/models/ur4rec/masks.py` |
+| Losses | `src/models/ur4rec/losses.py` |
+| Frozen encoder | `src/models/ur4rec/text_encoder.py` |
+| LLM prompts/generation/cache | `src/common/llm/` |
+| Correctness tests | `tests/test_correctness_guards.py` |
 
-**Структура KAR (PyTorch repo):**
+`src/ur4rec/` оставлен только как re-export compatibility layer. Корневой `scripts/run_ur4rec.py` — compatibility wrapper; новый код и команды должны использовать `scripts/ur4rec/run_ur4rec.py`.
 
-```text
-preprocess_amz.py
-generate_data_and_prompt.py    # промпты для LLM (код генерации knowledge не выложен)
-data/knowledge/                # готовые .klg (user + item knowledge)
-RS/
-  run_ctr.py
-  run_rerank.py                  # ← rerank pipeline, ближе всего к UR4Rec stage 3
-```
+## Stages и артефакты
 
-KAR уже даёт: MovieLens-1M / Amazon-Books, offline knowledge, `run_rerank.py`.  
-**Не хватает:** proxy embeddings, cross-attention retriever, CL + Preference-Item Matching (§3.2).
+| Stage | Что делает | Выход corrected-v3 |
+|---|---|---|
+| `knowledge` | Qwen генерирует item knowledge и user preference; один worker пишет свой shard | `data/movielens-1m/knowledge_qwen25_corrected_v3/shards/shard_N/` |
+| `merge_knowledge` | проверяет полноту shards и собирает cache v2 | `users.json`, `items.json`, `meta.json` |
+| `backbone` | обучает base DLCM-style reranker с listwise CE | `checkpoints/ur4rec_ml1m_corrected_v3/backbone.pt` |
+| `pretrain` | обучает retriever на `L_CL + α·L_CF` | `retriever_pretrain.pt` |
+| `joint` | совместно обучает backbone и retriever, early stopping по val NDCG@10 | `ur4rec_joint.pt`, `ur4rec_joint_meta.pt` |
+| `finish_joint` | восстанавливает только val-подбор blend alpha после сохранённого joint checkpoint | `ur4rec_joint_meta.pt` |
+| `eval` | test base, pure UR4Rec и val-selected blend | `metrics_test.json` |
 
----
+`--stage all` выполняет `knowledge → backbone → pretrain → joint → eval` в одном процессе. При sharded generation сначала запускать несколько `knowledge` workers, затем `merge_knowledge`; это делает `run_corrected_v3.sh`.
 
-### 2. Backbone rerankers из paper
+## Corrected-v3 protocol
 
-| Backbone | Год | Код / данные |
-|----------|-----|----------------|
-| **PRM** | RecSys 2019 | https://github.com/zyhfjx2019/drr (из README hf4Academic/PRM) |
-| **DLCM** | SIGIR 2018 | часто внутри rank2rec / drr |
-| **SetRank** | SIGIR 2020 | отдельные реализации на GitHub |
-| **SASRec** | ICDM 2018 | https://github.com/kang205/SASRec |
-| **GRU4Rec** | ICLR 2016 | много форков |
+Конфиг: `configs/ur4rec/ur4rec_ml1m_corrected_v3.yaml`.
 
-Датасет rerank (PRM): https://github.com/rank2rec/rerank
+| Параметр | Значение |
+|---|---|
+| Dataset | MovieLens-1M, positive rating threshold из loader, 5-core |
+| Split | один chronological train/val/test target на каждого подходящего пользователя |
+| History | последние 10 событий строго до соответствующего target |
+| Candidates | 100: target + 99 unseen random negatives |
+| LLM | Qwen2.5-7B-Instruct, 4-bit, greedy, max 512 new tokens, batch 4 |
+| Knowledge workers | 4 deterministic hash shards |
+| Encoder | frozen `bert-base-uncased`, max length 512, batch 64 |
+| Retriever | 8 proxies, 6 layers, 12 heads, hidden 768 |
+| Backbone | local DLCM-style GRU, hidden 768, 5 epochs |
+| Retriever pretrain | 3 epochs, 10 negatives, lr `1e-4` |
+| Joint | до 8 epochs, patience 3, pure UR4Rec `blend_alpha_grid: [1.0]` |
 
----
+Temporal-per-user split нужен потому, что user embeddings на validation/test должны быть обучены. В старом user-wise split validation/test users не встречались в train и их embeddings оставались случайными.
 
-### 3. Датасеты из UR4Rec (Appendix C)
+Random top-100 выбран как честный первоначальный corrected protocol. Он ещё не повторяет paper candidate generator: для temporal MF/BPR top-100 требуется обучать candidate model только на событиях до temporal cutoff. Legacy `mf_topk` работает с user-wise split и не превращает текущий run в paper-exact.
 
-| Dataset | Ссылка в paper | Скачать в репо |
-|---------|----------------|----------------|
-| MovieLens-1M | https://grouplens.org/datasets/movielens/1m/ | `data/movielens-1m/` |
-| Amazon-Books 5-core | https://nijianmo.github.io/amazon/index.html | `data/amazon-books/` |
-| Steam | https://github.com/kang205/SASRec | `data/steam/` |
+## Критические correctness invariants
 
-```bash
-python scripts/download_ur4rec_datasets.py --datasets all
-# или по одному: movielens-1m amazon-books steam
-```
+### Memory и attention
 
-Split: **8:1:1**, k-core, rerank **top-100** candidates.
+- BERT возвращает отдельные векторы `[user preference, item knowledge 1, …, item knowledge H]` формы `[H+1, 768]`.
+- Cross-attention получает несколько key/value tokens. Legacy flatten в один token делал softmax attention константой `1` и фактически отключал retrieval.
+- В Figure 3(c) proxies видят весь список, а разные item tokens не видят друг друга; diagonal item self-attention разрешён.
+- Self-attention projections, FFN и layer norms копируются из BERT; cross-attention инициализируется случайно.
 
----
+### Knowledge generation и cache v2
 
-## Архитектура UR4Rec (что писать самим)
+- HF decoder работает с left padding, а generated continuation срезается по общей padded input width.
+- `meta.json` фиксирует cache version, generator, model, `max_new_tokens`, число shards и `complete`.
+- Незавершённый cache не считается hit. Каждый shard можно продолжить после остановки; root становится complete только после успешного merge.
+- User profile для temporal protocol строится по самой ранней train sample history, поэтому статический profile не видит val/test target.
+- `KnowledgeStore` и frozen BERT используют in-memory caches, а BERT texts заранее прогреваются батчами.
 
-По paper, 3 фазы (Algorithm 1, Appendix A):
+### Losses и evaluation
 
-```text
-Phase 1 (offline, no LLM finetune)
-  Llama2-Chat → user preference text su
-  Llama2-Chat → item knowledge per history item
-  Frozen BERT Encoder → eu, eik, e_u^aggr = concat
+- Backbone и joint используют listwise softmax cross-entropy с одним relevant item на ML-1M list.
+- Retriever pretrain использует InfoNCE по max cosine similarity proxies и preference-item matching BCE.
+- Negatives не включают известные positive items пользователя.
+- Test JSON содержит base, pure UR4Rec (`alpha=1`) и selected blend. В corrected-v3 grid содержит только `1.0`, чтобы fallback на base не выдавался за улучшение UR4Rec.
+- Общий NDCG сохраняет graded labels; для ML-1M labels бинарные.
 
-Phase 2 (pretrain retriever)
-  K proxy embeddings P
-  Cross-attention: candidate item = query, Z = LLM knowledge
-  Loss: L_CL (InfoNCE/SimCSE-style) + α · L_CF (preference-item matching)
+## Запуск
 
-Phase 3 (joint train)
-  e_aug = Agg(Retriever([P; h_i], e_u^aggr))
-  Concat e_aug to backbone reranker input
-  L_train = L_RS (MAP/NDCG loss)
-```
-
-**Гиперпараметры (§4.4):**
-
-- LLM: Llama2-Chat  
-- Retriever: BERT-base 110M, proxies K=8 (DLCM/PRM/SetRank) или 16 (GRU/SASRec)  
-- history len: 10 / 150  
-- candidates: 100, negatives in pretrain: 10  
-- AdamW, lr 1e-4 / 1e-3, batch 32, dim 768  
-
----
-
-## План воспроизведения для диплома / Avito
-
-### Вариант A — «как в paper» (ML-1M / Amazon)
-
-1. Клонировать **KAR**, прогнать `run_rerank` baseline.  
-2. Реализовать `ur4rec/retriever.py` (Transformer + proxies + mask Fig.3c).  
-3. Подключить к PRM или SASRec (проще SASRec — один репо).  
-4. Сравнить с KAR и +Llama2-aug на NDCG@5/10.
-
-### Вариант B — «UR4Rec-идея на Avito parquet» (ваши данные)
-
-1. **Offline:** LLM summaries по `title` + `description_short` + user history из `users_with_history`.  
-2. **Retriever:** тот же BERT + cross-attention, candidate = `item_id` в SERP.  
-3. **Backbone:** LightGBM top-20 → UR4Rec-style augment → rerank (или обучить маленький PRM/DLCM на SERP).  
-4. Метрики: NDCG@K по `serp_is_positive` / clicks (если есть labels в items).
-
-### Вариант C — запросить код у авторов
-
-- Haobo Zhang: zhanghb@ruc.edu.cn  
-- Zhicheng Dou: dou@ruc.edu.cn  
-- Qiannan Zhu: zhuqiannan@bnu.edu.cn  
-
-Имеет смысл написать коротко: reproduction for thesis, Avito Auto vertical.
-
----
-
-## Что положить в репо `DIPLOM/avito` (следующий шаг)
-
-```text
-avito/
-  external/
-    Open-World-Knowledge-Augmented-Recommendation/   # git submodule KAR
-    SASRec/                                        # optional
-  src/ur4rec/
-    retriever.py
-    train_pretrain.py
-    train_joint.py
-  configs/ur4rec_ml1m.yaml
-  docs/UR4Rec_code_and_reproduction.md   # этот файл
-```
-
----
-
-## LLM для профилей (§3.1)
-
-### Модели (выбор в конфиге `llm.backend`)
-
-| backend | HF model | Примечание |
-|---------|----------|------------|
-| `qwen` | `Qwen/Qwen2.5-7B-Instruct` | **рекомендуется**, открыта, 7B, V100 4bit |
-| `qwen3` | `Qwen/Qwen3-8B` | новее, нужен `trust_remote_code` |
-| `deepseek` | `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B` | R1-distill 7B, открыта |
-| `deepseek-chat` | `deepseek-ai/deepseek-llm-7b-chat` | классический DeepSeek-Chat 7B |
-| `llama2` | `meta-llama/Llama-2-7b-chat-hf` | как в статье, **нужен approve на HF** |
-
-Конфиги:
-
-- `configs/ur4rec_smoke_qwen.yaml`
-- `configs/ur4rec_smoke_deepseek.yaml`
-- `configs/ur4rec_avito_smoke_qwen.yaml`
-
-Промпты те же, что в UR4Rec §3.1; меняется только генератор текста.
-
-## Llama2-Chat для профилей (§3.1, как в статье)
-
-**В статье:** `su = LLM(pu)`, `si = LLM(pi)` через **Llama2-Chat** (не шаблоны).
-
-В репозитории: `src/ur4rec/llm/llama2_generator.py`, промпты — `src/ur4rec/llm/prompts.py` (§3.1.1 / §3.1.2).
-
-### Подготовка
-
-1. Доступ к [meta-llama/Llama-2-7b-chat-hf](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) на HuggingFace.
-2. `export HF_TOKEN=...` или `huggingface-cli login`
-3. `pip install -r requirements.txt` (добавлены `bitsandbytes`, `accelerate`)
-4. Удалить старый кэш-шаблоны, если были:
-   ```bash
-   rm -rf data/movielens-1m/knowledge data/avito/knowledge
-   ```
-
-### Запуск (сначала только knowledge)
+### Correctness smoke без GPU/Hugging Face
 
 ```bash
-# Qwen smoke (~30–60 min on V100: caps + batch_size=4 + max_new_tokens=128):
-CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
-  --config configs/ur4rec_smoke_qwen.yaml --stage knowledge
-
-Полный прогон ML-1M (тысячи фильмов из сэмплов — часы): в конфиге убери
-`llm.knowledge_max_items` / `knowledge_max_users`, подними `max_new_tokens`.
-
-# DeepSeek R1-Distill:
-CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
-  --config configs/ur4rec_smoke_deepseek.yaml --stage knowledge
+conda activate diplom_avito
+python scripts/ur4rec/run_ur4rec.py \
+  --config configs/ur4rec/ur4rec_correctness_smoke.yaml \
+  --stage all
+python -m unittest -q tests/test_correctness_guards.py
 ```
 
-Кэш: `data/movielens-1m/knowledge_llama2/` (`users.json`, `items.json`, `meta.json` с `"generator": "llama2"`).
+Smoke использует deterministic template generator и hashing encoder. Это тест plumbing/invariants, не эксперимент для дипломной таблицы.
 
-Полный ML-1M: `configs/ur4rec_ml1m.yaml` — **долго** (~6k пользователей + ~4k фильмов).
-
-Отладка без LLM (не для статьи): в yaml `use_template_generator: true`.
-
----
-
-## GPU на сервере (локальный repro)
-
-На машине разработки: **4× Tesla V100-PCIE-32GB** (`nvidia-smi -L`).
-
-В `configs/ur4rec_*.yaml`:
-
-```yaml
-device: cuda
-gpu_id: 0          # логический индекс после CUDA_VISIBLE_DEVICES
-cudnn_benchmark: true
-tf32: true
-```
-
-Запуск на второй карте:
+### Corrected-v3
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 python scripts/run_ur4rec.py --config configs/ur4rec_smoke.yaml --stage all
-# или
-python scripts/run_ur4rec.py --config configs/ur4rec_smoke.yaml --gpu-id 2 --stage backbone
+conda activate diplom_avito
+KNOWLEDGE_GPUS=2,4,5,6 TRAIN_GPU=2 \
+  bash scripts/ur4rec/run_corrected_v3.sh
 ```
 
-В логе должно быть: `Device: cuda:0 Tesla V100-PCIE-32GB ...`
+На запуске 2026-08-25 `knowledge` распределён по физическим GPU `2,4,5,6`; обучение после merge идёт на GPU `2`. Список свободных GPU всегда проверять заново: он не является свойством репозитория.
 
----
+Логи:
 
-## Ссылки одной строкой
+```bash
+tail -f logs/ur4rec_corrected_v3/master.log
+tail -f logs/ur4rec_corrected_v3/knowledge_shard0.log
+tail -f logs/ur4rec_corrected_v3/merge.log
+tail -f logs/ur4rec_corrected_v3/train.log
+```
 
-| Ресурс | URL |
-|--------|-----|
-| UR4Rec paper | https://aclanthology.org/2025.coling-main.45/ |
-| KAR code | https://github.com/YunjiaXi/Open-World-Knowledge-Augmented-Recommendation |
-| PRM code | https://github.com/zyhfjx2019/drr |
-| SASRec | https://github.com/kang205/SASRec |
+На стадии `knowledge` `master.log` содержит orchestration events, а живой progress bar находится в `knowledge_shard*.log`. Сообщение Transformers о неиспользуемых generation flags при greedy decoding не означает падение; ориентироваться на рост progress и exit status shard.
+
+Финальный результат появится в:
+
+```text
+checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
+```
+
+После завершения нужно сменить registry `running → done` или `failed`, проверить test JSON, сделать snapshot и только затем обновлять численные claims в документах.
+
+## Другие конфиги
+
+| Config | Назначение | Статус |
+|---|---|---|
+| `ur4rec_correctness_smoke.yaml` | быстрый offline invariant test | current, не для quality claim |
+| `ur4rec_ml1m_corrected_v3.yaml` | основной corrected ML-1M run | current, running |
+| `ur4rec_ml1m_beat_base.yaml` | 50-candidate отладочный run | legacy |
+| `ur4rec_ml1m_guaranteed.yaml` | blend мог выбрать pure base | legacy |
+| `ur4rec_ml1m_full.yaml`, `paper_v2`, `paper_exact` | прежние попытки приблизить paper protocol | названия не гарантируют paper exactness |
+| `ur4rec_*_smoke_qwen.yaml` | Qwen smoke на ML-1M/Amazon/Steam/Avito | старые caches/metrics невалидны после fixes |
+
+## Датасеты
+
+Loader поддерживает MovieLens-1M, Amazon Books, Steam и Avito. Download helper:
+
+```bash
+python scripts/ur4rec/download_ur4rec_datasets.py --datasets all
+```
+
+Большие datasets, generated knowledge и weights не входят в git. Пути задаются YAML-конфигами.
+
+Avito имеет отдельное ограничение: текущий loader строит sample по SERP и internal user id, а `users_with_history.parquet` не превращён в leakage-free temporal history для UR4Rec. Результаты старого Avito smoke — legacy; актуальный безопасный baseline описан в `docs/avito_preferences.md`.
+
+## Границы утверждений
+
+Можно утверждать:
+
+- реализован полный исследовательский pipeline offline knowledge → retriever pretrain → joint listwise rerank → test;
+- correctness bugs memory/mask/generation/cache/split исправлены и покрыты regression tests;
+- corrected-v3 использует temporal targets и честный pure-UR4Rec output.
+
+Пока нельзя утверждать:
+
+- что локальная реализация численно воспроизводит Table 6 paper;
+- что corrected-v3 завершён или превосходит backbone до появления `metrics_test.json`;
+- что random candidate protocol paper-exact;
+- что C-UR4Rec реализован или подтверждён на Avito.
+
+Для актуального статуса и списка валидных чисел начинать с `docs/START_HERE.md` и `experiments/registry.yaml`.

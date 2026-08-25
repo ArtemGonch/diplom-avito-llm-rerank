@@ -1,5 +1,7 @@
 # Baseline comparison: Exp3RT vs UR4Rec vs DLCM
 
+> **ARCHIVE (2026-06-16).** UR4Rec rows predate correctness fixes, and the Avito heuristic rows contain the leakage/evaluation defects documented in `docs/task_2026-06-26_artem.md`. Do not quote this table. Current validated results are in `results/current/manifest.json`; corrected UR4Rec is still running.
+
 **Date:** 2026-06-16  
 **Protocol reference:** UR4Rec paper Appendix C — NDCG@5/10, MAP@10; 8:1:1 user split (ML-1M) or SERP split (Avito).
 

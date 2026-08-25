@@ -22,14 +22,16 @@ avito/
 │   ├── ur4rec/
 │   └── exp3rt/
 ├── checkpoints/
-│   ├── ur4rec/
+│   ├── ur4rec_ml1m_*/
 │   └── exp3rt/
-└── data/exp3rt/         # symlink → papers/exp3rt/assets/github_repo/data
+├── data/exp3rt/         # symlink → papers/exp3rt/assets/github_repo/data
+└── papers/exp3rt/assets/github_repo/  # upstream git submodule
 ```
 
 ## Setup
 
 ```bash
+git submodule update --init --recursive
 conda activate diplom_avito
 pip install -r requirements-exp3rt.txt
 ```
@@ -79,5 +81,7 @@ bash scripts/exp3rt/run_paper_full.sh
 - LoRA + merged model: `checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425/merged`
 - Predictions: `.../predictions_test.json`
 - RMSE/MAE: `.../metrics.json`
+
+Актуальный агрегированный test snapshot: `results/current/metrics/exp3rt_paper_full_test_metrics.json` — expected RMSE `0.5624`, expected MAE `0.3496`, `n=11743`.
 
 Compare with paper Table 2 (Amazon-Books rating / rerank).

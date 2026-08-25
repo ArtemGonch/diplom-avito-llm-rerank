@@ -12,10 +12,11 @@ Stages (Algorithm 1):
 Usage:
   conda activate diplom_avito
   pip install -r requirements.txt
-  python scripts/run_ur4rec.py --config configs/ur4rec_ml1m.yaml --stage all
+  python scripts/ur4rec/run_ur4rec.py --config configs/ur4rec/ur4rec_ml1m.yaml --stage all
 
 GPU (configs: device, gpu_id):
-  CUDA_VISIBLE_DEVICES=1 python scripts/run_ur4rec.py --config configs/ur4rec_smoke.yaml --stage all
+  CUDA_VISIBLE_DEVICES=1 python scripts/ur4rec/run_ur4rec.py \
+    --config configs/ur4rec/ur4rec_smoke.yaml --stage all
 """
 
 from __future__ import annotations

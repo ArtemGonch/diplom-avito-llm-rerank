@@ -30,7 +30,11 @@ experiments:
     dataset: ml1m
     config: configs/ur4rec/ur4rec_ml1m_corrected_v3.yaml
     script: scripts/ur4rec/run_corrected_v3.sh
-    status: planned
+    status: running
+    stage: knowledge
+    started: "2026-08-25T12:17:51+03:00"
+    knowledge_gpus: [2, 4, 5, 6]
+    train_gpu: 2
     metrics: checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
     log: logs/ur4rec_corrected_v3/master.log
     notes: "Corrected rerun: temporal per-user split, random top-100, leakage-free Qwen cache v2, token memory; not paper-exact"
