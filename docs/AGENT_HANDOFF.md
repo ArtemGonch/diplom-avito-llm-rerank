@@ -1,5 +1,7 @@
 # Полная история проекта диплома: LLM в ранжировании (Avito)
 
+> **Важно, 2026-08-25:** это исторический handoff, поэтому отдельные статусы и метрики ниже устарели. Перед использованием прочитать [актуальный аудит задания 26.06](task_2026-06-26_artem.md): legacy Avito `0.9417` невалиден, а UR4Rec требует полного rerun после correctness fixes.
+
 > **Назначение файла:** передать контекст новому агенту / новой сессии Cursor на другой машине.  
 > **Как использовать:** `@docs/AGENT_HANDOFF.md` в первом сообщении + конкретная задача.  
 > **Репозиторий:** `/home/artem-gon/MIPT/DIPLOM/avito`  
@@ -307,7 +309,7 @@ Joint: e_aug = Agg(Retriever([P; h_t], e_u^aggr))
 
 ### Ключевые поля items
 
-- `serp_x`, `item_id`, `user_id` (продавец)
+- `serp_x`, `item_id`, `user_id` (постоянен внутри SERP и пересекается с history; интерпретируем как пользователя поиска, schema contract не дан)
 - `block`, `block_pos` — позиция в выдаче
 - `query_infm_logical_category` (UsedCars / NewCars), `query_loc`
 - `title`, `description_short`, `brand`, `model_name`, `price`, `mileage_km`

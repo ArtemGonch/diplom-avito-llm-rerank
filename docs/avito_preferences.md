@@ -26,7 +26,7 @@ Score        ← heuristic или LLM 1–5 fit
 ```
 
 **Плюсы:** работает offline, объяснимо, уже есть скрипт `exp3rt_avito_attribute_rerank.py`.  
-**Минусы:** нет pairwise reasoning; слабый сигнал если у seller нет history.
+**Минусы:** нет pairwise reasoning; слабый сигнал если у пользователя нет history.
 
 **Реализация:** `build_user_pseudo_profile()` + `heuristic_scores()` / LLM mode.
 
@@ -45,7 +45,7 @@ Score        ← heuristic или LLM 1–5 fit
 
 ## Рекомендация для диплома
 
-**Краткосрочно (эксперименты сейчас):** Exp3RT-style **pseudo-profiles + attribute rerank** — быстро, interpretable, beat position baseline на smoke.
+**Краткосрочно (эксперименты сейчас):** Exp3RT-style **pseudo-profiles + attribute rerank** — быстро и interpretable. После удаления label leakage full-test graded NDCG@10 = `0.3413` против position baseline `0.3126`; это предварительный offline signal, а не causal uplift.
 
 **Среднесрочно (собственный вклад):** **C-UR4Rec** — UR4Rec + контекст SERP (см. ниже).
 
@@ -80,3 +80,5 @@ Rerank:   DLCM(item, user, e_aug) with gate
 **План ablation:** base DLCM → +UR4Rec → +query → +gate → full C-UR4Rec на Avito SERP с unified top-K sampling.
 
 См. также `docs/AGENT_HANDOFF.md` §9.
+
+Актуальная классификация датасетов и полный аудит: [task_2026-06-26_artem.md](task_2026-06-26_artem.md).

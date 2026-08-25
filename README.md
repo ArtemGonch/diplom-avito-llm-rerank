@@ -31,7 +31,7 @@ bash scripts/status_runs.sh          # статус GPU и прогонов
 
 ### `items_with_attrs` — ключевые поля
 
-- **Идентификаторы:** `serp_x` (сессия выдачи, ~2000 уникальных), `item_id`, `user_id` (продавец)
+- **Идентификаторы:** `serp_x` (сессия выдачи, ~2000 уникальных), `item_id`, `user_id`. Поле постоянно внутри SERP и соединяется со всеми 274 history users, поэтому в проекте интерпретируется как пользователь поиска; исходный schema contract нужно подтвердить.
 - **Позиция:** `block` (`items` / `extra-reg` / `extra-candidates-extra_regions`), `block_pos`
 - **Запрос:** `query_infm_logical_category` (UsedCars / NewCars), `query_loc`
 - **Объявление:** `price`, `title`, `description_short`, `brand`, `model_name`, `mileage_km`, …
@@ -124,7 +124,7 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
 
 Одна выдача = `serp_x`, метки — **`contacts_daily`** (или `clicks_daily` в конфиге).  
 `serp_is_positive` везде `True`, для ранжирования не используется.  
-`users_with_history` подключается к текстам сессий; **`item_id` между файлами не пересекаются** — история контактов не даёт label на объявления в SERP.
+**`item_id` между файлами не пересекаются** — история контактов не даёт label на объявления в SERP. Текущая UR4Rec Avito-ветка строит профиль из category SERP и пока **не использует** `users_with_history` как последовательность; это открытая задача аудита.
 
 ```bash
 conda activate diplom_avito
@@ -137,6 +137,16 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_ur4rec.py \
 ```
 
 Результат: `checkpoints/ur4rec_avito_smoke/metrics_test.json` (NDCG@K, MAP@K: base vs UR4Rec).
+
+> Статус 2026-08-25: старые UR4Rec checkpoints построены до исправления memory cross-attention и HF left-padding generation; для сильного claim требуется полный rerun. Подробности: [аудит задания 26.06](docs/task_2026-06-26_artem.md).
+
+### Leakage-free Exp3RT-style baseline
+
+```bash
+bash scripts/exp3rt/run_avito_eval.sh
+```
+
+Честный full-test результат (200 SERP, graded contacts): NDCG@10 `0.3413` против position baseline `0.3126`. Legacy `0.9417` использовал target/post-exposure признаки и не должен цитироваться.
 
 ---
 

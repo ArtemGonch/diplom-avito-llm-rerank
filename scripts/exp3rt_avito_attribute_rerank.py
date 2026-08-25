@@ -28,11 +28,11 @@ from ur4rec.data.avito import AvitoSERP  # noqa: E402
 from ur4rec.metrics import evaluate_batch  # noqa: E402
 
 
-def build_user_pseudo_profile(users: pd.DataFrame | None, seller_user_id: int | None) -> str:
+def build_user_pseudo_profile(users: pd.DataFrame | None, user_id: int | None) -> str:
     """Pseudo user profile from contact history (Exp3RT stage-2 analogue)."""
-    if users is None or seller_user_id is None:
+    if users is None or user_id is None:
         return "The user has no recorded contact history on Avito."
-    hist = users[users["user_id"] == seller_user_id]
+    hist = users[users["user_id"] == user_id]
     if hist.empty:
         return "The user has no recorded contact history on Avito."
     brands = Counter(str(b) for b in hist["brand"].dropna() if str(b).strip())
@@ -70,13 +70,13 @@ def heuristic_scores(
     query: str,
     rows: pd.DataFrame,
     users: pd.DataFrame | None,
-    seller_id: int | None,
+    user_id: int | None,
 ) -> np.ndarray:
     """Score candidates by brand/price/query overlap with pseudo profile."""
     prof_lower = profile.lower()
     brand_counts: Counter[str] = Counter()
-    if users is not None and seller_id is not None:
-        hist = users[users["user_id"] == seller_id]
+    if users is not None and user_id is not None:
+        hist = users[users["user_id"] == user_id]
         brand_counts = Counter(str(b).lower() for b in hist["brand"].dropna())
 
     scores = []
@@ -95,8 +95,9 @@ def heuristic_scores(
         qtoks = set(re.findall(r"[a-zа-я0-9]+", query.lower()))
         itoks = set(re.findall(r"[a-zа-я0-9]+", title + " " + brand + " " + model))
         s += 0.3 * len(qtoks & itoks)
-        s += 0.001 * float(row.get("contacts_daily") or 0)
-        s += 0.0005 * float(row.get("clicks_daily") or 0)
+        # contacts_daily is the evaluation target and clicks_daily is a
+        # post-exposure behavioural signal.  Neither is a legal rank-time
+        # feature in this offline experiment.
         if price > 0 and "price" in prof_lower:
             s -= 0.000001 * abs(price - _median_price_from_profile(profile))
         scores.append(s)
@@ -154,19 +155,19 @@ def run_eval(
             continue
         grp = grp.copy()
         grp["_idx"] = grp["item_id"].map(lambda x: data.item2idx[int(x)])
-        labels = (data._labels_for_group(grp) > 0).astype(float)
-        seller = None
+        labels = data._labels_for_group(grp).astype(float)
+        user_id = None
         if "user_id" in grp.columns:
             uvals = grp["user_id"].dropna()
             if len(uvals):
-                seller = int(uvals.iloc[0])
-        profile = build_user_pseudo_profile(data.users, seller)
+                user_id = int(uvals.iloc[0])
+        profile = build_user_pseudo_profile(data.users, user_id)
         query = data.serp_query_text(serp_x)
 
         if mode == "llm" and gen is not None:
             sc = llm_score_batch(profile, query, grp, gen)
         else:
-            sc = heuristic_scores(profile, query, grp, data.users, seller)
+            sc = heuristic_scores(profile, query, grp, data.users, user_id)
 
         scores_h.append(sc)
         scores_p.append(position_baseline_scores(grp))
@@ -177,6 +178,17 @@ def run_eval(
 
     return {
         "n_serps": n,
+        "evaluation": {
+            "relevance": f"graded normalised {data.label_field}_daily",
+            "rank_time_features": [
+                "history brand",
+                "history model",
+                "history median price",
+                "query text",
+                "listing title/brand/model/price",
+            ],
+            "excluded_post_exposure_features": ["contacts_daily", "clicks_daily"],
+        },
         "exp3rt_style": evaluate_batch(scores_h, labels_list),
         "position_base": evaluate_batch(scores_p, labels_list),
     }

@@ -7,8 +7,8 @@ cd "$ROOT"
 mkdir -p results/current/metrics logs
 
 CONFIG="${1:-configs/exp3rt/exp3rt_avito_full.yaml}"
-OUT="results/current/metrics/exp3rt_avito_full.json"
-LOG="logs/exp3rt_avito_full.log"
+OUT="results/current/metrics/exp3rt_avito_full_leakage_free.json"
+LOG="logs/exp3rt_avito_full_leakage_free.log"
 GPU="${AVITO_GPU:-7}"
 
 source ~/miniconda3/etc/profile.d/conda.sh

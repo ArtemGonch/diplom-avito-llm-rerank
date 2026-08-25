@@ -91,6 +91,12 @@ def load_config(path: Path) -> dict:
 
 
 SequentialData = MovieLens1M | AmazonBooks | SteamReviews
+KNOWLEDGE_CACHE_VERSION = 2
+
+
+def _rooted_path(value: str | Path) -> Path:
+    path = Path(value)
+    return path if path.is_absolute() else ROOT / path
 
 
 def _all_catalog_item_ids(data: SequentialData | MovieLens1M) -> list[int]:
@@ -119,9 +125,10 @@ def _item_knowledge_prompt(data: SequentialData | MovieLens1M, iid: int) -> str:
 
 
 def _user_preference_prompt(data: SequentialData | MovieLens1M, uid: int, hist_len: int) -> str:
-    seq = data.user_items[uid]
+    # The last item is the held-out target in the legacy one-sample protocol.
+    seq = data.user_items[uid][-(hist_len + 1) : -1]
     titles, attrs = [], []
-    for iid in seq[-hist_len:]:
+    for iid in seq:
         t, a = data.item_meta(iid) if not isinstance(data, MovieLens1M) else data.movie_meta(iid)
         titles.append(t)
         attrs.append(a)
@@ -130,6 +137,26 @@ def _user_preference_prompt(data: SequentialData | MovieLens1M, uid: int, hist_l
     if isinstance(data, AmazonBooks):
         return build_user_preference_prompt_amazon(uid, titles, attrs)
     return build_user_preference_prompt_steam(uid, titles, attrs)
+
+
+def _user_preference_prompt_for_sample(
+    data: SequentialData | MovieLens1M,
+    sample: RerankSample,
+) -> str:
+    titles, attrs = [], []
+    for iid in sample.history_item_ids:
+        title, item_attrs = (
+            data.movie_meta(iid)
+            if isinstance(data, MovieLens1M)
+            else data.item_meta(iid)
+        )
+        titles.append(title)
+        attrs.append(item_attrs)
+    if isinstance(data, MovieLens1M):
+        return build_user_preference_prompt_ml1m(sample.user_id, titles, attrs)
+    if isinstance(data, AmazonBooks):
+        return build_user_preference_prompt_amazon(sample.user_id, titles, attrs)
+    return build_user_preference_prompt_steam(sample.user_id, titles, attrs)
 
 
 def build_knowledge(
@@ -143,32 +170,50 @@ def build_knowledge(
     if shard_id < 0 or shard_id >= num_shards:
         raise ValueError(f"shard_id={shard_id} out of range for num_shards={num_shards}")
 
-    store = KnowledgeStore(Path(llm_cfg["knowledge_dir"]))
-    users, items = store.load()
-    seed_users, seed_items = dict(users), dict(items)
-    if num_shards > 1:
-        shard_root = store.root / "shards" / f"shard_{shard_id}"
-        for name, target in (("users.json", users), ("items.json", items)):
-            path = shard_root / name
-            if path.exists():
-                target.update(json.loads(path.read_text(encoding="utf-8")))
+    store = KnowledgeStore(_rooted_path(llm_cfg["knowledge_dir"]))
     want_gen = (
         "template"
         if llm_cfg.get("use_template_generator")
         else llm_cfg.get("backend", "qwen")
     )
-    meta_path = store.root / "meta.json"
-    cached_meta = store.meta().get("generator")
-    if num_shards == 1 and users and items and cached_meta == want_gen:
-        print(f"Knowledge cache hit ({cached_meta}):", store.root)
+    from ur4rec.llm.hf_chat_generator import resolve_model_id
+
+    meta = {
+        "cache_version": KNOWLEDGE_CACHE_VERSION,
+        "generator": want_gen,
+        "model_name": resolve_model_id(llm_cfg),
+        "max_new_tokens": int(llm_cfg.get("max_new_tokens", 512)),
+        "num_shards": num_shards,
+    }
+    cached_meta = store.meta()
+    root_valid = all(cached_meta.get(k) == v for k, v in meta.items())
+    users, items = store.load() if root_valid else ({}, {})
+    seed_users, seed_items = dict(users), dict(items)
+    if root_valid and cached_meta.get("complete") is True:
+        print(f"Knowledge cache hit ({want_gen}, v{KNOWLEDGE_CACHE_VERSION}):", store.root)
         return store
-    if num_shards == 1 and users and items:
-        reason = (
-            "legacy cache without meta.json (old templates)"
-            if not meta_path.exists()
-            else f"generator '{cached_meta}' != '{want_gen}'"
-        )
-        print(f"Knowledge cache ignored ({reason}). Regenerating -> {store.root}")
+    if num_shards > 1:
+        shard_root = store.root / "shards" / f"shard_{shard_id}"
+        shard_meta_path = shard_root / "meta.json"
+        shard_valid = False
+        if shard_meta_path.exists():
+            shard_meta = json.loads(shard_meta_path.read_text(encoding="utf-8"))
+            shard_valid = all(shard_meta.get(k) == v for k, v in meta.items())
+        if shard_valid:
+            for name, target in (("users.json", users), ("items.json", items)):
+                path = shard_root / name
+                if path.exists():
+                    target.update(json.loads(path.read_text(encoding="utf-8")))
+        elif any(shard_root.glob("*.json")):
+            print(f"Ignoring incompatible knowledge shard cache: {shard_root}")
+    if not root_valid and (store.users_path.exists() or store.items_path.exists()):
+        print(f"Knowledge cache metadata mismatch. Regenerating -> {store.root}")
+
+    if num_shards == 1:
+        # A crash leaves a resumable cache marked incomplete. Only the final
+        # save below flips this marker, so a partial cache is never mistaken
+        # for a completed knowledge stage.
+        store.save(users, items, meta={**meta, "complete": False})
 
     gen = create_knowledge_generator(cfg)
     print(f"Generating offline knowledge with {want_gen} (UR4Rec §3.1)")
@@ -176,14 +221,15 @@ def build_knowledge(
         print(f"Knowledge shard {shard_id + 1}/{num_shards} -> {store.root / 'shards' / f'shard_{shard_id}'}")
     users, items = users or {}, items or {}
     hist_len = cfg["dataset"]["history_len"]
-    from ur4rec.llm.hf_chat_generator import resolve_model_id
-
-    meta = {
-        "generator": want_gen,
-        "model_name": resolve_model_id(llm_cfg),
-    }
     checkpoint = (
-        ShardKnowledgeWriter(store, shard_id, num_shards, seed_users, seed_items)
+        ShardKnowledgeWriter(
+            store,
+            shard_id,
+            num_shards,
+            seed_users,
+            seed_items,
+            meta,
+        )
         if num_shards > 1
         else store
     )
@@ -291,9 +337,13 @@ def build_knowledge(
             )
         else:
             movie_ids = _all_catalog_item_ids(data)
-        user_ids = sorted(data.user_items.keys())
-        if samples and cfg["dataset"].get("knowledge_items_only_in_samples", True):
-            user_ids = sorted({s.user_id for s in samples})
+        sample_by_user: dict[int, RerankSample] = {}
+        if samples:
+            # samples arrive train -> val -> test; retain the earliest profile
+            # so a static cached user profile never sees validation/test targets.
+            for sample in samples:
+                sample_by_user.setdefault(sample.user_id, sample)
+        user_ids = sorted(sample_by_user or data.user_items)
         movie_ids, user_ids = cap_knowledge_ids(
             movie_ids, user_ids, llm_cfg,
             sample_item_ids=sample_item_ids, sample_user_ids=sample_user_ids,
@@ -341,7 +391,12 @@ def build_knowledge(
             key = str(uid)
             if key in users or not job_belongs_to_shard(key, shard_id, num_shards):
                 continue
-            user_jobs.append((key, _user_preference_prompt(data, uid, hist_len)))
+            prompt = (
+                _user_preference_prompt_for_sample(data, sample_by_user[uid])
+                if uid in sample_by_user
+                else _user_preference_prompt(data, uid, hist_len)
+            )
+            user_jobs.append((key, prompt))
         llm_generate_loop(
             gen,
             user_jobs,
@@ -361,7 +416,7 @@ def build_knowledge(
             f"{store.root / 'shards' / f'shard_{shard_id}'}"
         )
     else:
-        store.save(users, items, meta=meta)
+        store.save(users, items, meta={**meta, "complete": True})
     return store
 
 
@@ -379,11 +434,14 @@ def stage_merge_knowledge(cfg: dict) -> None:
     from ur4rec.llm.hf_chat_generator import resolve_model_id
 
     meta = {
+        "cache_version": KNOWLEDGE_CACHE_VERSION,
         "generator": want_gen,
         "model_name": resolve_model_id(llm_cfg),
+        "max_new_tokens": int(llm_cfg.get("max_new_tokens", 512)),
         "num_shards": num_shards,
+        "complete": True,
     }
-    knowledge_dir = Path(llm_cfg["knowledge_dir"])
+    knowledge_dir = _rooted_path(llm_cfg["knowledge_dir"])
     n_items, n_users = merge_knowledge_shards(knowledge_dir, num_shards, meta=meta)
     print(f"Merged knowledge -> {knowledge_dir}: {n_items} items, {n_users} users")
 
@@ -449,6 +507,22 @@ def load_data_and_samples(cfg: dict, root: Path):
         test_u = test_u[: ds["max_test_users"]]
 
     cand_mode = ds.get("candidate_mode", "random")
+    if isinstance(data, MovieLens1M) and ds.get("split_mode") == "temporal_per_user":
+        train_s, val_s, test_s = data.build_temporal_rerank_splits(
+            hl,
+            nc,
+            ds["train_ratio"],
+            ds["val_ratio"],
+            cfg["seed"],
+            candidate_mode=cand_mode,
+        )
+        if ds.get("max_train_users"):
+            train_s = train_s[: ds["max_train_users"]]
+        if ds.get("max_val_users"):
+            val_s = val_s[: ds["max_val_users"]]
+        if ds.get("max_test_users"):
+            test_s = test_s[: ds["max_test_users"]]
+        return data, train_s, val_s, test_s
     if isinstance(data, MovieLens1M) and cand_mode == "mf_topk":
         mf_cfg = ds.get("mf", {})
         mf_device = "cuda" if torch.cuda.is_available() and cfg.get("device") == "cuda" else "cpu"
@@ -503,9 +577,8 @@ def user_preference_text(
     if key in users:
         return users[key]
     if isinstance(data, (MovieLens1M, AmazonBooks, SteamReviews)):
-        seq = data.user_items.get(sample.user_id, [])
         titles, genres = [], []
-        for mid in seq[-history_len:]:
+        for mid in sample.history_item_ids[-history_len:]:
             if isinstance(data, MovieLens1M):
                 t, g = data.movie_meta(mid)
             else:
@@ -543,12 +616,56 @@ def encode_user_aggr(
     return encoder.aggregate_preference(eu, know)
 
 
+def warm_text_encoder_cache(
+    encoder: FrozenTextEncoder,
+    store: KnowledgeStore,
+    samples: list[RerankSample],
+    data: MovieLens1M | AvitoSERP | AmazonBooks | SteamReviews,
+    history_len: int,
+    device: torch.device,
+    batch_size: int,
+) -> None:
+    """Encode all repeated user/history texts once, in efficient BERT batches."""
+    users, items = store.load()
+    texts: list[str] = []
+    for sample in samples:
+        texts.append(
+            user_preference_text(data, users, sample, history_len)
+        )
+        texts.extend(
+            item_knowledge_text(data, items, iid)
+            for iid in sample.history_item_ids[-history_len:]
+        )
+    unique = list(dict.fromkeys(texts))
+    size = max(1, int(batch_size))
+    print(f"BERT knowledge cache: {len(unique)} unique texts (batch={size})")
+    for start in tqdm(range(0, len(unique), size), desc="bert-knowledge"):
+        encoder.encode(unique[start : start + size], device)
+
+
 def make_dlcm_backbone(
     data: MovieLens1M | AvitoSERP, cfg: dict, device: torch.device, use_aug: bool = False
 ) -> DLCMReranker:
     model = DLCMReranker(data.num_items, cfg["backbone"]["hidden_dim"], use_aug=use_aug).to(device)
     model.resize_users(data.num_users + 1)
     return model
+
+
+def make_retriever(cfg: dict, device: torch.device) -> UR4RecRetriever:
+    """Build one consistently configured retriever in every pipeline stage."""
+    h = int(cfg["backbone"]["hidden_dim"])
+    hist = int(cfg["dataset"]["history_len"])
+    rcfg = cfg["retriever"]
+    return UR4RecRetriever(
+        hidden_size=h,
+        num_proxies=int(rcfg["num_proxies"]),
+        num_layers=int(rcfg["num_layers"]),
+        num_heads=int(rcfg.get("num_heads", 12)),
+        dropout=float(rcfg.get("dropout", 0.1)),
+        bert_name=cfg["encoder"]["model_name"],
+        init_from_bert=not bool(cfg["encoder"].get("use_hashing_encoder", False)),
+        aggr_dim=h * (1 + hist),
+    ).to(device)
 
 
 def load_dlcm_backbone(
@@ -604,19 +721,13 @@ def stage_pretrain(
     device: torch.device,
     out: Path,
 ) -> UR4RecRetriever:
-    h = cfg["backbone"]["hidden_dim"]
     hist = cfg["dataset"]["history_len"]
-    aggr_dim = h * (1 + hist)
-    retriever = UR4RecRetriever(
-        hidden_size=h,
-        num_proxies=cfg["retriever"]["num_proxies"],
-        num_layers=cfg["retriever"]["num_layers"],
-        aggr_dim=aggr_dim,
-    ).to(device)
+    retriever = make_retriever(cfg, device)
     opt = torch.optim.AdamW(retriever.parameters(), lr=cfg["retriever"]["pretrain_lr"])
     M = cfg["dataset"]["num_negatives_cl"]
     alpha = cfg["retriever"]["alpha_cf"]
     tau = cfg["retriever"]["temperature"]
+    backbone.eval()
 
     for epoch in range(cfg["retriever"]["pretrain_epochs"]):
         retriever.train()
@@ -634,31 +745,34 @@ def stage_pretrain(
                 h_pos = backbone.item_hidden(torch.tensor([pos_id], device=device))
             e_pos = retriever.forward_item_only(h_pos)
 
-            negs = []
             if isinstance(data, AvitoSERP):
                 all_items = data.all_item_indices()
             elif isinstance(data, MovieLens1M):
                 all_items = data.movies["movieId"].astype(int).values
             else:
                 all_items = data.items.index.values
-            seen = set(s.history_item_ids + [pos_id])
+            seen = (
+                set(s.history_item_ids + [pos_id])
+                if isinstance(data, AvitoSERP)
+                else set(data.user_items.get(s.user_id, []))
+            )
             pool = [i for i in all_items if i not in seen]
             rng.shuffle(pool)
-            for nid in pool[:M]:
-                negs.append(
-                    retriever.forward_item_only(
-                        backbone.item_hidden(torch.tensor([nid], device=device))
-                    )
-                )
-            neg_t = torch.cat(negs, dim=0).unsqueeze(0)  # [1, M, D]
+            neg_ids = torch.tensor(pool[:M], device=device)
+            with torch.no_grad():
+                h_neg = backbone.item_hidden(neg_ids)
+            neg_t = retriever.forward_item_only(h_neg).unsqueeze(0)  # [1, M, D]
             l_cl = info_nce_loss(proxy_pref, e_pos, neg_t, tau)
 
-            h_cand = backbone.item_hidden(torch.tensor(s.candidate_item_ids, device=device))
-            logits_cf = []
-            for j in range(h_cand.size(0)):
-                hj = h_cand[j : j + 1].unsqueeze(0)
-                logits_cf.append(retriever.forward_joint(hj, e_aggr, mode="pim"))
-            logits_cf = torch.cat(logits_cf, dim=0)
+            with torch.no_grad():
+                h_cand = backbone.item_hidden(
+                    torch.tensor(s.candidate_item_ids, device=device)
+                )
+            logits_cf = retriever.forward_joint(
+                h_cand.unsqueeze(1),
+                e_aggr.expand(h_cand.size(0), -1, -1),
+                mode="pim",
+            )
             labels_cf = torch.tensor(
                 [float(x) for x in s.labels], device=device, dtype=torch.float32
             )
@@ -709,10 +823,8 @@ def _ur4rec_scores_for_sample(
     aug = _retriever_augmentations(retriever, h_items, e_aggr)
     base_sc = backbone(item_t, user_t, aug=torch.zeros_like(aug)).squeeze(0)
     if blend_alpha <= 0.0:
-        saved_aug = backbone.use_aug
-        backbone.use_aug = False
-        sc = backbone(item_t, user_t).squeeze(0)
-        backbone.use_aug = saved_aug
+        # Base = zero augmentation; do not toggle use_aug (GRU input stays 3×hidden).
+        sc = base_sc
     elif blend_alpha >= 1.0:
         sc = backbone(item_t, user_t, aug=aug).squeeze(0)
     else:
@@ -834,6 +946,34 @@ def stage_joint(
     torch.save({"blend_alpha": blend_alpha}, out / "ur4rec_joint_meta.pt")
 
 
+def stage_finish_joint(
+    cfg: dict,
+    data: MovieLens1M | AvitoSERP,
+    store: KnowledgeStore,
+    encoder: FrozenTextEncoder,
+    val_s: list,
+    device: torch.device,
+    out: Path,
+) -> None:
+    """Resume after joint crash: tune blend_alpha from saved ur4rec_joint.pt."""
+    ckpt_path = out / "ur4rec_joint.pt"
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Missing joint checkpoint: {ckpt_path}")
+
+    backbone = load_dlcm_backbone(data, cfg, device, out / "backbone.pt", use_aug=False)
+    backbone.expand_for_augmentation()
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
+    backbone.load_state_dict(ckpt["backbone"])
+
+    retriever = make_retriever(cfg, device)
+    retriever.load_state_dict(ckpt["retriever"])
+
+    blend_alpha = tune_ur4rec_blend_alpha(
+        cfg, store, encoder, backbone, retriever, val_s, device, data
+    )
+    torch.save({"blend_alpha": blend_alpha}, out / "ur4rec_joint_meta.pt")
+
+
 def evaluate_backbone(model: DLCMReranker, samples: list[RerankSample], device: torch.device) -> dict:
     model.eval()
     scores_list, labels_list = [], []
@@ -879,7 +1019,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=ROOT / "configs/ur4rec/ur4rec_ml1m.yaml")
     parser.add_argument(
         "--stage",
-        choices=["knowledge", "merge_knowledge", "backbone", "pretrain", "joint", "eval", "all"],
+        choices=["knowledge", "merge_knowledge", "backbone", "pretrain", "joint", "finish_joint", "eval", "all"],
         default="all",
     )
     parser.add_argument(
@@ -943,15 +1083,40 @@ def main() -> None:
     store = (
         build_knowledge(cfg, data, train_s + val_s + test_s)
         if "knowledge" in stages
-        else KnowledgeStore(Path(cfg["llm"]["knowledge_dir"]))
+        else KnowledgeStore(_rooted_path(cfg["llm"]["knowledge_dir"]))
     )
 
-    needs_encoder = bool(set(stages) & {"backbone", "pretrain", "joint", "eval"})
+    needs_encoder = bool(
+        set(stages) & {"pretrain", "joint", "finish_joint", "eval"}
+    )
     encoder = None
     if needs_encoder:
         encoder = FrozenTextEncoder(
-            cfg["encoder"]["model_name"], cfg["encoder"]["max_length"]
+            cfg["encoder"]["model_name"],
+            cfg["encoder"]["max_length"],
+            use_hashing_encoder=bool(
+                cfg["encoder"].get("use_hashing_encoder", False)
+            ),
+            hashing_hidden_size=int(cfg["backbone"]["hidden_dim"]),
         ).to(device)
+        encoder_samples: list[RerankSample] = []
+        if "pretrain" in stages:
+            encoder_samples.extend(train_s)
+        if "joint" in stages:
+            encoder_samples.extend(train_s + val_s)
+        if "finish_joint" in stages:
+            encoder_samples.extend(val_s)
+        if "eval" in stages:
+            encoder_samples.extend(test_s)
+        warm_text_encoder_cache(
+            encoder,
+            store,
+            encoder_samples,
+            data,
+            cfg["dataset"]["history_len"],
+            device,
+            cfg["encoder"].get("batch_size", 64),
+        )
 
     backbone = None
     retriever = None
@@ -967,28 +1132,19 @@ def main() -> None:
 
     if "joint" in stages:
         backbone = backbone or load_dlcm_backbone(data, cfg, device, out / "backbone.pt", use_aug=False)
-        hist = cfg["dataset"]["history_len"]
-        aggr_dim = cfg["backbone"]["hidden_dim"] * (1 + hist)
-        retriever = retriever or UR4RecRetriever(
-            num_proxies=cfg["retriever"]["num_proxies"],
-            num_layers=cfg["retriever"]["num_layers"],
-            aggr_dim=aggr_dim,
-        ).to(device)
+        retriever = retriever or make_retriever(cfg, device)
         retriever.load_state_dict(torch.load(out / "retriever_pretrain.pt", map_location=device, weights_only=True))
         stage_joint(cfg, data, store, encoder, backbone, retriever, train_s, val_s, device, out)
+
+    if "finish_joint" in stages:
+        stage_finish_joint(cfg, data, store, encoder, val_s, device, out)
 
     if "eval" in stages:
         base_backbone = load_dlcm_backbone(data, cfg, device, out / "backbone.pt", use_aug=False)
         ckpt = torch.load(out / "ur4rec_joint.pt", map_location=device, weights_only=True)
         backbone = make_dlcm_backbone(data, cfg, device, use_aug=True)
         backbone.load_state_dict(ckpt["backbone"])
-        hist = cfg["dataset"]["history_len"]
-        aggr_dim = cfg["backbone"]["hidden_dim"] * (1 + hist)
-        retriever = UR4RecRetriever(
-            num_proxies=cfg["retriever"]["num_proxies"],
-            num_layers=cfg["retriever"]["num_layers"],
-            aggr_dim=aggr_dim,
-        ).to(device)
+        retriever = make_retriever(cfg, device)
         retriever.load_state_dict(ckpt["retriever"])
         meta_path = out / "ur4rec_joint_meta.pt"
         blend_alpha = 1.0

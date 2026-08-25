@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Почему высокий NDCG может быть ошибкой</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+  <p class="kicker">LESSON 0001 · 7 MINUTES</p>
+  <h1>Почему NDCG 0.94 может ничего не доказывать</h1>
+  <p class="claim">Метрика отвечает только на тот эксперимент, который ей дали. Утечка делает число высоким, но не делает ranker полезным.</p>
+
+  <h2>Реальный пример из диплома</h2>
+  <p>Avito heuristic ранжировал объявления по profile и attributes, но также прибавлял текущие <code>contacts_daily</code> и <code>clicks_daily</code>. Первый сигнал — target, второй возникает после показа и коррелирует с target. Модель фактически подсматривала ответ.</p>
+  <pre>Невалидно: score = f(history, query, item, contacts, clicks)
+Валиднее:  score = f(history, query, item attributes)</pre>
+
+  <p>Вторая ошибка была в evaluation: любой <code>contacts_daily &gt; 0</code> превращался в relevance 1. В данных 91.3% строк имеют ненулевой contact, поэтому почти все перестановки выглядят хорошими. Graded NDCG должен различать слабый и сильный контактный сигнал.</p>
+
+  <h2>Что изменилось</h2>
+  <table>
+    <thead><tr><th>Версия</th><th>Heuristic</th><th>Position</th><th>Смысл</th></tr></thead>
+    <tbody>
+      <tr><td>legacy binary + leakage</td><td>0.9417</td><td>0.9001</td><td>не использовать</td></tr>
+      <tr><td>graded + leakage-free</td><td>0.3413</td><td>0.3126</td><td>предварительный offline signal</td></tr>
+    </tbody>
+  </table>
+
+  <div class="quiz">
+    <h2>Проверка извлечения</h2>
+    <p>Какой score допустим до показа?</p>
+    <pre>A: f(history, query, item attributes)
+B: f(history, query, item attributes, clicks)</pre>
+    <button type="button" onclick="answer(true)">Вариант A</button>
+    <button type="button" onclick="answer(false)">Вариант B</button>
+    <p id="feedback" class="feedback" aria-live="polite"></p>
+  </div>
+
+  <h2>Закрепление</h2>
+  <p>Не подглядывая в таблицу, назови пять ворот из <a href="../reference/experiment-validity-checklist.html">checklist валидности</a>. Затем примени их к одному UR4Rec-прогону.</p>
+
+  <p class="caption">Первичный источник для расширенной оценки: <a href="https://arxiv.org/abs/2411.00331">Beyond Utility</a>. Задавай агенту вопросы по любому неясному шагу.</p>
+</main>
+<script>
+function answer(correct) {
+  document.getElementById('feedback').textContent = correct
+    ? 'Верно: history, query и item attributes доступны до показа.'
+    : 'Попробуй ещё раз: clicks появляются только после exposure.';
+}
+</script>
+</body>
+</html>

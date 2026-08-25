@@ -1,11 +1,21 @@
 {
-  "generated": "2026-06-23",
-  "avito_exp3rt_full": {
+  "generated": "2026-08-25",
+  "avito_exp3rt_full_leakage_free": {
+    "path": "metrics/exp3rt_avito_full_leakage_free.json",
+    "n_serps": 200,
+    "relevance": "graded normalised contacts_daily",
+    "exp3rt_style_ndcg@10": 0.3413,
+    "position_base_ndcg@10": 0.3126,
+    "delta_ndcg@10": 0.0288
+  },
+  "avito_exp3rt_full_legacy_invalid": {
     "path": "metrics/exp3rt_avito_full.json",
     "n_serps": 200,
     "exp3rt_style_ndcg@10": 0.9417,
     "position_base_ndcg@10": 0.9001,
-    "delta_ndcg@10": 0.0416
+    "delta_ndcg@10": 0.0416,
+    "valid": false,
+    "reason": "target contacts_daily and post-exposure clicks_daily were score features; NDCG binarised dense labels"
   },
   "exp3rt_amazon_paper_full": {
     "path": "metrics/exp3rt_paper_full_test_metrics.json",

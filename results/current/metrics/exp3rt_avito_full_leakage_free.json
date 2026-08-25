@@ -1,0 +1,35 @@
+{
+  "mode": "heuristic",
+  "split": "test",
+  "n_serps": 200,
+  "evaluation": {
+    "relevance": "graded normalised contacts_daily",
+    "rank_time_features": [
+      "history brand",
+      "history model",
+      "history median price",
+      "query text",
+      "listing title/brand/model/price"
+    ],
+    "excluded_post_exposure_features": [
+      "contacts_daily",
+      "clicks_daily"
+    ]
+  },
+  "exp3rt_style": {
+    "ndcg@1": 0.13990774110781273,
+    "map@1": 0.925,
+    "ndcg@5": 0.2393763420154711,
+    "map@5": 0.8655000000000002,
+    "ndcg@10": 0.34133833779521394,
+    "map@10": 0.8610818562610228
+  },
+  "position_base": {
+    "ndcg@1": 0.12167632871248973,
+    "map@1": 0.915,
+    "ndcg@5": 0.2091582597908495,
+    "map@5": 0.8467333333333333,
+    "ndcg@10": 0.31256126410447593,
+    "map@10": 0.8387408179012346
+  }
+}

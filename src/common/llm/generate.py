@@ -31,6 +31,12 @@ class TemplateKnowledgeGenerator:
     def generate_item_knowledge(self, prompt: str) -> str:
         return f"[template-only, not Llama2] {prompt[:200]}..."
 
+    def generate_user_preference_batch(self, prompts: list[str]) -> list[str]:
+        return [self.generate_user_preference(prompt) for prompt in prompts]
+
+    def generate_item_knowledge_batch(self, prompts: list[str]) -> list[str]:
+        return [self.generate_item_knowledge(prompt) for prompt in prompts]
+
 
 def create_knowledge_generator(cfg: dict) -> KnowledgeGenerator:
     llm = cfg.get("llm", {})
@@ -48,6 +54,7 @@ class KnowledgeStore:
         self.root.mkdir(parents=True, exist_ok=True)
         self.users_path = self.root / "users.json"
         self.items_path = self.root / "items.json"
+        self._cache: tuple[dict[str, str], dict[str, str]] | None = None
 
     def save(
         self,
@@ -65,6 +72,7 @@ class KnowledgeStore:
             (self.root / "meta.json").write_text(
                 json.dumps(meta, indent=2), encoding="utf-8"
             )
+        self._cache = (dict(users), dict(items))
 
     def meta(self) -> dict:
         p = self.root / "meta.json"
@@ -73,6 +81,9 @@ class KnowledgeStore:
         return json.loads(p.read_text(encoding="utf-8"))
 
     def load(self) -> tuple[dict[str, str], dict[str, str]]:
+        if self._cache is not None:
+            users, items = self._cache
+            return dict(users), dict(items)
         users = (
             json.loads(self.users_path.read_text(encoding="utf-8"))
             if self.users_path.exists()
@@ -83,7 +94,8 @@ class KnowledgeStore:
             if self.items_path.exists()
             else {}
         )
-        return users, items
+        self._cache = (users, items)
+        return dict(users), dict(items)
 
     def save_partial(self, users: dict[str, str], items: dict[str, str]) -> None:
         """Checkpoint during long Llama2 runs."""
@@ -104,6 +116,7 @@ class ShardKnowledgeWriter:
         num_shards: int,
         seed_users: dict[str, str],
         seed_items: dict[str, str],
+        meta: dict,
     ):
         self._job_belongs = job_belongs_to_shard
         self.store = store
@@ -111,6 +124,7 @@ class ShardKnowledgeWriter:
         self.num_shards = num_shards
         self.seed_users = seed_users
         self.seed_items = seed_items
+        self.meta = dict(meta)
         self.shard_root = shard_knowledge_dir(store.root, shard_id)
         self.shard_root.mkdir(parents=True, exist_ok=True)
 
@@ -130,6 +144,15 @@ class ShardKnowledgeWriter:
         return su, si
 
     def save_partial(self, users: dict[str, str], items: dict[str, str]) -> None:
+        self._save(users, items, complete=False)
+
+    def _save(
+        self,
+        users: dict[str, str],
+        items: dict[str, str],
+        *,
+        complete: bool,
+    ) -> None:
         su, si = self._shard_slice(users, items)
         self.shard_root.joinpath("users.json").write_text(
             json.dumps(su, ensure_ascii=False, indent=0), encoding="utf-8"
@@ -137,9 +160,13 @@ class ShardKnowledgeWriter:
         self.shard_root.joinpath("items.json").write_text(
             json.dumps(si, ensure_ascii=False, indent=0), encoding="utf-8"
         )
+        self.shard_root.joinpath("meta.json").write_text(
+            json.dumps({**self.meta, "complete": complete}, indent=2),
+            encoding="utf-8",
+        )
 
     def save_final(self, users: dict[str, str], items: dict[str, str]) -> None:
-        self.save_partial(users, items)
+        self._save(users, items, complete=True)
 
 
 def merge_knowledge_shards(
@@ -149,13 +176,24 @@ def merge_knowledge_shards(
 ) -> tuple[int, int]:
     """Merge base + per-shard JSON into knowledge_dir/items.json and users.json."""
     store = KnowledgeStore(Path(knowledge_dir))
-    users, items = store.load()
+    root_meta = store.meta()
+    root_valid = meta is None or all(root_meta.get(k) == v for k, v in meta.items())
+    if meta is not None and root_valid and root_meta.get("complete") is True:
+        users, items = store.load()
+        return len(items), len(users)
+    users, items = store.load() if root_valid else ({}, {})
     for shard_id in range(num_shards):
         shard_root = shard_knowledge_dir(store.root, shard_id)
+        shard_meta_path = shard_root / "meta.json"
+        if not shard_meta_path.exists():
+            raise FileNotFoundError(f"Missing knowledge shard metadata: {shard_meta_path}")
+        shard_meta = json.loads(shard_meta_path.read_text(encoding="utf-8"))
+        if meta is not None and any(shard_meta.get(k) != v for k, v in meta.items()):
+            raise ValueError(f"Knowledge shard metadata mismatch: {shard_meta_path}")
         for name, target in (("users.json", users), ("items.json", items)):
             path = shard_root / name
             if not path.exists():
-                continue
+                raise FileNotFoundError(f"Missing knowledge shard: {path}")
             chunk = json.loads(path.read_text(encoding="utf-8"))
             overlap = set(target) & set(chunk)
             if overlap:

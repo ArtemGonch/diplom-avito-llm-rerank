@@ -14,11 +14,18 @@ def dcg_at_k(relevances: np.ndarray, k: int) -> float:
 
 
 def ndcg_at_k(y_true: np.ndarray, y_score: np.ndarray, k: int) -> float:
+    """NDCG@k with graded relevance.
+
+    Binary inputs retain the previous behaviour.  Continuous relevance signals,
+    such as normalised Avito contacts, are no longer collapsed to all-positive.
+    """
     order = np.argsort(-y_score)
-    rel_bin = (np.asarray(y_true) > 0).astype(np.float64)
-    rel = rel_bin[order]
+    rel_all = np.asarray(y_true, dtype=np.float64)
+    if np.any(rel_all < 0):
+        raise ValueError("NDCG relevance labels must be non-negative")
+    rel = rel_all[order]
     dcg = dcg_at_k(rel, k)
-    ideal = dcg_at_k(np.sort(rel_bin)[::-1], k)
+    ideal = dcg_at_k(np.sort(rel_all)[::-1], k)
     return dcg / ideal if ideal > 0 else 0.0
 
 

@@ -41,3 +41,11 @@ wandb/
 # Huge model caches
 models/
 hf_cache/
+
+# Source packages named data/models are code, not downloaded artifacts.
+!src/data/
+!src/data/**/*.py
+!src/models/
+!src/models/**/*.py
+!src/ur4rec/data/
+!src/ur4rec/data/**/*.py

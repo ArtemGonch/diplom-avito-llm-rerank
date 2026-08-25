@@ -1,5 +1,7 @@
 # Exp3RT reproduction (Qwen)
 
+> **Статус 2026-08-25:** rating-only и chained paper-full test завершены. Для полного pipeline использовать `scripts/exp3rt/run_paper_full.sh`: generic `--stage all --train-stages ...` обучает перечисленные задачи, но сам по себе не гарантирует последовательное наследование adapters.
+
 Paper: [Exp3RT SIGIR 2025](https://arxiv.org/abs/2408.06276)
 
 ## Layout
@@ -56,11 +58,10 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 python scripts/exp3rt/run_exp3rt.py \
   --config configs/exp3rt/amazon_book_qwen.yaml --stage all
 ```
 
-## Full 3-stage pipeline
+## Full staged pipeline
 
 ```bash
-python scripts/exp3rt/run_exp3rt.py --config configs/exp3rt/amazon_book_qwen.yaml --stage all \
-  --train-stages preference user item rating
+bash scripts/exp3rt/run_paper_full.sh
 ```
 
 ## Time estimates (8× A100 80GB)

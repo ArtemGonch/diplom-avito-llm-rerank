@@ -151,7 +151,7 @@ def build_summary(items: pd.DataFrame, users: pd.DataFrame) -> dict:
         "items_cols": int(len(items.columns)),
         "unique_serp": int(items["serp_x"].nunique()),
         "unique_item_id": int(items["item_id"].nunique()),
-        "unique_sellers_in_items": int(items["user_id"].nunique()),
+        "unique_users_in_items": int(items["user_id"].nunique()),
         "serp_size_mean": float(serp_sizes.mean()),
         "serp_size_max": int(serp_sizes.max()),
         "users_rows": int(len(users)),

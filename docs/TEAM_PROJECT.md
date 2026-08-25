@@ -1,5 +1,7 @@
 # Общий рабочий проект: LLM rerank (UR4Rec + Exp3RT + Avito)
 
+> **Актуальный аудит (2026-08-25):** [задание 26.06, состояние кода и валидность метрик](task_2026-06-26_artem.md). Часть прежних статусов ниже была исторической и обновлена после аудита.
+
 ## Формат для команды
 
 Единая структура — **реестр экспериментов + артефакты + доки**:
@@ -50,15 +52,15 @@ bash scripts/exp3rt/run_avito_eval.sh
 
 | # | Метод | Датасет | Статус | Куда смотреть |
 |---|--------|---------|--------|----------------|
-| 1 | UR4Rec | MovieLens-1M | `beat_base` ✓, `guaranteed` 🔄 pretrain e2 | `checkpoints/ur4rec_ml1m_*` |
-| 2 | Exp3RT | Amazon-Books | `rating_only` ✓, `paper_full` 🔄 merge+test | `checkpoints/exp3rt/amazon_book_qwen_*` |
+| 1 | UR4Rec | MovieLens-1M | legacy artifacts ✓; **полный rerun обязателен после correctness fixes** | `checkpoints/ur4rec_ml1m_*` |
+| 2 | Exp3RT | Amazon-Books | `rating_only` ✓, `paper_full` test ✓ | `checkpoints/exp3rt/amazon_book_qwen_*` |
 
 ## Avito (transfer)
 
 | Метод | Скрипт | Статус |
 |-------|--------|--------|
-| Exp3RT-style heuristic | `run_avito_eval.sh` | ✓ NDCG@10 0.942 |
-| UR4Rec smoke | `ur4rec_avito_smoke_qwen` | done |
+| Exp3RT-style heuristic | `run_avito_eval.sh` | ✓ leakage-free graded NDCG@10 **0.3413** vs position **0.3126** |
+| UR4Rec smoke | `ur4rec_avito_smoke_qwen` | legacy; rerun required |
 | C-UR4Rec (план) | — | design only |
 
 Подробнее: [avito_preferences.md](avito_preferences.md)

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checklist валидности rerank-эксперимента</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+  <p class="kicker">REFERENCE · DIPLOMA DEFENCE</p>
+  <h1>Можно ли верить росту NDCG?</h1>
+  <p class="claim">До сравнения моделей зафиксируй candidate set, доступные в rank-time признаки и смысл relevance label.</p>
+
+  <h2>Пять ворот</h2>
+  <table>
+    <thead><tr><th>Ворота</th><th>Контрольный вопрос</th><th>Красный флаг</th></tr></thead>
+    <tbody>
+      <tr><td>1. Candidates</td><td>Одинаков ли top-K у всех rerankers?</td><td>Positive принудительно добавлен только одному методу.</td></tr>
+      <tr><td>2. Features</td><td>Поле известно до показа?</td><td>Score использует click/contact текущего impression.</td></tr>
+      <tr><td>3. Labels</td><td>Сохраняет ли метрика градацию?</td><td>91% items превращены в одинаковый positive.</td></tr>
+      <tr><td>4. Split</td><td>Нет ли user/item/time leakage?</td><td>Будущее действие попало в profile.</td></tr>
+      <tr><td>5. Claim</td><td>Что именно доказывает offline delta?</td><td>NDCG объявлен причинным ростом contacts.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Минимальный отчёт</h2>
+  <pre>candidate generator + Recall@K
+split unit + time cutoff
+rank-time feature allowlist
+label definition + metric formula
+baseline + ablation + confidence interval
+latency/tokens + repeated-run stability</pre>
+
+  <p class="caption">Основано на локальном аудите и Beyond Utility. Вернуться к <a href="../lessons/0001-why-high-ndcg-can-be-wrong.html">уроку 0001</a>.</p>
+</main>
+</body>
+</html>

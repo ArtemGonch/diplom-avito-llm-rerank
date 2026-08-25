@@ -64,6 +64,14 @@ def _strip_response(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
+def _generated_continuations(
+    output_ids: torch.Tensor,
+    padded_prompt_width: int,
+) -> torch.Tensor:
+    """Remove the full padded prompt from decoder-only generation output."""
+    return output_ids[:, padded_prompt_width:]
+
+
 class HFChatKnowledgeGenerator:
     """Paper: su = LLM(pu), si = LLM(pi). Backend: Qwen / DeepSeek / Llama2 via HF."""
 
@@ -155,22 +163,25 @@ class HFChatKnowledgeGenerator:
             truncation=True,
             max_length=self.max_prompt_tokens,
         ).to(device)
-        input_lens = inputs["attention_mask"].sum(dim=1)
-        gen_kw = dict(
+        # Decoder-only generate() returns the entire *padded* input followed by
+        # new tokens.  With left padding, per-row attention lengths are smaller
+        # than the common input width and would leave prompt fragments behind.
+        padded_prompt_width = int(inputs["input_ids"].shape[1])
+        gen_kw: dict[str, Any] = dict(
             max_new_tokens=self.max_new_tokens,
             do_sample=self.temperature > 0,
-            temperature=max(self.temperature, 1e-5),
-            top_p=self.top_p,
             pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
         )
+        if self.temperature > 0:
+            gen_kw.update(temperature=self.temperature, top_p=self.top_p)
         with torch.no_grad():
             out = self.model.generate(**inputs, **gen_kw)
 
         results: list[str] = []
+        continuations = _generated_continuations(out, padded_prompt_width)
         for i in range(len(prompts)):
-            start = int(input_lens[i].item())
-            new_tokens = out[i, start:]
+            new_tokens = continuations[i]
             decoded = self.tokenizer.decode(new_tokens, skip_special_tokens=True)
             results.append(_strip_response(decoded))
         return results

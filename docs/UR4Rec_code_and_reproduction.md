@@ -1,5 +1,7 @@
 # UR4Rec: где код и как воспроизводить
 
+> **Статус 2026-08-25:** в локальной реализации исправлены Eq. 5 memory tokens, Figure 3(c) mask, BERT self-attention initialization и HF left-padding generation. Все более ранние UR4Rec checkpoints относятся к legacy-семантике; начинать повторный прогон со stage `knowledge`. См. [аудит](task_2026-06-26_artem.md).
+
 **Статья:** Zhang et al., *Enhancing Reranking for Recommendation with LLMs through User Preference Retrieval* (COLING 2025)  
 **PDF:** https://aclanthology.org/2025.coling-main.45/
 
