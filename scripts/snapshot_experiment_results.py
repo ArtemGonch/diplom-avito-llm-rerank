@@ -17,22 +17,22 @@ OUT = ROOT / "results" / "current"
 
 PAPER_DLCM_ML1M = {
     "base": {
-        "map@5": 0.253,
-        "map@10": 0.265,
-        "ndcg@5": 0.315,
-        "ndcg@10": 0.359,
+        "map@5": 0.235,
+        "map@10": 0.253,
+        "ndcg@5": 0.271,
+        "ndcg@10": 0.315,
         "map@1": 0.158,
         "ndcg@1": 0.158,
     },
     "ur4rec": {
-        "map@5": 0.601,
-        "map@10": 0.606,
-        "ndcg@5": 0.661,
-        "ndcg@10": 0.678,
-        "map@1": 0.348,
-        "ndcg@1": 0.348,
+        "map@5": 0.588,
+        "map@10": 0.601,
+        "ndcg@5": 0.631,
+        "ndcg@10": 0.661,
+        "map@1": 0.484,
+        "ndcg@1": 0.484,
     },
-    "source": "UR4Rec paper Appendix Table 6 (DLCM, MovieLens-1M)",
+    "source": "UR4Rec paper Tables 2 and 6 (DLCM, MovieLens-1M)",
 }
 
 METRIC_SOURCES = {
@@ -343,7 +343,7 @@ def main() -> None:
 
 ## Paper target (DLCM, ML-1M)
 
-- Base NDCG@10 ≈ 0.359 → UR4Rec ≈ 0.678 (Appendix Table 6)
+- Base NDCG@10 ≈ 0.315 → UR4Rec ≈ 0.661 (Appendix Table 6)
 - Full repro run: `configs/ur4rec/ur4rec_ml1m_full.yaml`
 """
     (OUT / "README.md").write_text(readme, encoding="utf-8")

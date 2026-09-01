@@ -1,0 +1,166 @@
+{
+  "claim_scope": "local diagnostic only; not Roma/team CatBoost",
+  "protocol": {
+    "version": 1,
+    "dataset": "items_with_attrs.parquet",
+    "dataset_sha256": "047e70586b12fae44dabaf03b09d3ffa7686e7059f8645b104a85ec7cd022103",
+    "split": "SERP-disjoint deterministic 80/10/10",
+    "split_seed": 42,
+    "candidate_set": "all rows of each fixed SERP; no resampling",
+    "relevance": "contacts_daily / max contacts_daily within SERP; train/eval label, never a feature",
+    "features": [
+      "block_pos",
+      "price",
+      "image_count",
+      "seller_is_private",
+      "price_percentile",
+      "price_diff_from_median",
+      "seconds_age",
+      "title_len",
+      "desc_len",
+      "mileage_km",
+      "imv",
+      "block",
+      "query_infm_logical_category",
+      "query_loc",
+      "brand",
+      "model_name",
+      "gearbox_text",
+      "fuel_text",
+      "body_type",
+      "drive_text",
+      "doors_text",
+      "year_text",
+      "rf_reg_text"
+    ],
+    "excluded_post_exposure_features": [
+      "clicks_daily",
+      "contacts_daily",
+      "has_tc_events",
+      "has_x_events",
+      "serp_is_positive"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "catboost_version": "1.2.10",
+    "model": {
+      "loss": "YetiRankPairwise",
+      "iterations_cap": 300,
+      "depth": 8,
+      "learning_rate": 0.05,
+      "early_stopping_rounds": 100,
+      "task_type": "GPU",
+      "gpu_fixed_iteration_budget": true
+    }
+  },
+  "counts": {
+    "train_serps": 1600,
+    "val_serps": 200,
+    "test_serps": 200,
+    "train_candidates": 35852,
+    "val_candidates": 4426,
+    "test_candidates": 4458
+  },
+  "best_iterations": {
+    "42": 299,
+    "43": 299,
+    "44": 299
+  },
+  "position_baseline_dev": {
+    "ndcg@5": 0.18692420774466875,
+    "map@5": 0.85795,
+    "ndcg@10": 0.3020233371397491,
+    "map@10": 0.8447843694885361
+  },
+  "position_baseline_test": {
+    "ndcg@5": 0.1938855329058457,
+    "map@5": 0.8689833333333332,
+    "ndcg@10": 0.3026703378363252,
+    "map@10": 0.8488007385361552
+  },
+  "catboost_by_seed_dev": {
+    "42": {
+      "ndcg@5": 0.5709266010868129,
+      "map@5": 0.8966666666666667,
+      "ndcg@10": 0.6500629479698041,
+      "map@10": 0.8808804012345678
+    },
+    "43": {
+      "ndcg@5": 0.5733701640775343,
+      "map@5": 0.8976,
+      "ndcg@10": 0.6520371764830349,
+      "map@10": 0.8804423059964727
+    },
+    "44": {
+      "ndcg@5": 0.5763462756965089,
+      "map@5": 0.8977166666666666,
+      "ndcg@10": 0.6542463806553122,
+      "map@10": 0.8791825837742505
+    }
+  },
+  "catboost_by_seed_test": {
+    "42": {
+      "ndcg@5": 0.5875341364030633,
+      "map@5": 0.9008666666666667,
+      "ndcg@10": 0.6607910145050137,
+      "map@10": 0.8842115433673469
+    },
+    "43": {
+      "ndcg@5": 0.5858799337492994,
+      "map@5": 0.90315,
+      "ndcg@10": 0.6544433772680252,
+      "map@10": 0.8830658257747543
+    },
+    "44": {
+      "ndcg@5": 0.5872032219202832,
+      "map@5": 0.9046666666666667,
+      "ndcg@10": 0.6576963965124902,
+      "map@10": 0.8832250165343914
+    }
+  },
+  "catboost_stability_test": {
+    "map@10": {
+      "mean": 0.8835007952254976,
+      "std": 0.0005067593875763571
+    },
+    "map@5": {
+      "mean": 0.9028944444444443,
+      "std": 0.0015618325735027895
+    },
+    "ndcg@10": {
+      "mean": 0.6576435960951763,
+      "std": 0.0025916809906766617
+    },
+    "ndcg@5": {
+      "mean": 0.586872430690882,
+      "std": 0.0007146858204910691
+    }
+  },
+  "catboost_ensemble_dev": {
+    "ndcg@5": 0.5770476976078308,
+    "map@5": 0.8955500000000001,
+    "ndcg@10": 0.6533814859294828,
+    "map@10": 0.8801008377425045
+  },
+  "catboost_ensemble_test": {
+    "ndcg@5": 0.5849495256615183,
+    "map@5": 0.9076833333333333,
+    "ndcg@10": 0.653348727008229,
+    "map@10": 0.8841215301398337
+  },
+  "scores_artifact": "data/avito/benchmark/local_catboost_eval_scores.parquet",
+  "elapsed_seconds": 1.6592130661010742,
+  "blocking_dependency": {
+    "team_catboost_metric": "TBD",
+    "required_from_roma": [
+      "test SERP ids",
+      "candidate ids and scores",
+      "model/config revision and seed",
+      "exact relevance formula",
+      "rank-time cutoff for user history"
+    ]
+  }
+}

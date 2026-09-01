@@ -1,6 +1,6 @@
 # Задание 26.06: датасет, типология rerank-методов и новая статья
 
-Дата аудита: 2026-08-25. Исполнитель: Артём. Актуализация после code review: corrected-v3 запущен от `knowledge`; финальных UR4Rec метрик ещё нет.
+Дата аудита: 2026-08-25. Исполнитель: Артём. Статус актуализирован 2026-09-01: corrected-v3 завершён; base NDCG@10 `0.214796`, pure UR4Rec `0.183334` (`−14.65%`).
 
 ## Короткий вывод
 
@@ -8,7 +8,11 @@
 2. **ESCI Shopping Queries** нужен как дополнительный неперсонализированный контроль качества query–item relevance: у него реальные запросы, выдачи до 40 товаров и graded ESCI labels, но нет пользовательской истории.
 3. Новая статья для обзора — **MemRerank (2026)**. Она напрямую закрывает разрыв диплома: сжимает длинную историю в query-independent preference memory, затем применяет память только на rerank-стадии.
 4. Главная линия собственного метода остаётся **C-UR4Rec**: candidate-aware memory retrieval + query context + confidence gate. После аудита это уже не просто улучшение UR4Rec: исправленная memory должна оставаться последовательностью токенов, иначе cross-attention вырождается.
-5. Старый Avito-результат `0.9417` нельзя использовать: score видел target `contacts_daily` и связанный post-exposure сигнал `clicks_daily`, а NDCG делал все ненулевые labels бинарными. После устранения утечки graded NDCG@10 равен **0.3413** против **0.3126** у position baseline, дельта **+0.0288**.
+5. Оба старых Avito heuristic result нельзя использовать. `0.9417` содержал
+   target/post-exposure leakage. После его удаления число около `0.341` также
+   оказалось невалидным: history schema не содержит заявленных авто
+   brand/model/price, а 200/200 SERP получают одинаковые candidate scores, так
+   что NDCG определяется tie/order policy.
 
 ## Что именно было в задании
 
@@ -45,7 +49,7 @@ offline LLM ─┴─> profiles / knowledge ─────┤
 |---|---|---|---|
 | LettinGo | исследует профили и DPO-выбирает полезные downstream | адаптивный user profile | нет task-level preference pairs |
 | UR4Rec | offline user/item knowledge | компактный trainable retriever | корректность memory, стоимость генерации |
-| Exp3RT | извлекает preference из reviews, строит profiles, reasoning rating | pseudo-profile из истории контактов | в Avito нет reviews; SFT transfer слабый |
+| Exp3RT | извлекает preference из reviews, строит profiles, reasoning rating | только после получения корректно типизированной Auto history | в Avito нет reviews; текущая history taxonomy несовместима с listing attrs |
 | LLM4Rerank | zero-shot multi-aspect list rerank по Goal | accuracy/diversity/fairness nodes | несколько дорогих online вызовов |
 | Persona4Rec | offline item personas | быстрый user–persona score | нужны содержательные reviews |
 | Think When Needed | router Think/Non-Think | вызывать reasoning только на сложных SERP | нужен честный difficulty target |
@@ -67,7 +71,7 @@ offline LLM ─┴─> profiles / knowledge ─────┤
 
 | Датасет | Items | Query / candidate set | История | Labels | Знание LLM | Близость к Avito Auto |
 |---|---|---|---|---|---|---|
-| **Avito local** | title, short description, авто-attrs, `image_count`; самих изображений нет | только category + location; исходных фильтров/текста нет | 274 users, median 2 contacts | contacts/clicks после показа | высокое для марок/моделей, низкое для конкретных объявлений | целевой домен, но неполный query log |
+| **Avito local** | title, short description, почти полные авто-attrs, `image_count`; самих изображений нет | только category + location; исходных фильтров/текста нет | 2 028 contacts / 274 users; history attrs sparse, category-like, без rank-time cutoff | contacts/clicks после показа | высокое для listing-марок/моделей, но history vocabulary с ними не пересекается | целевой домен для content rerank, пока слабый для personalization |
 | **Amazon-C4 + User Purchase History + Reviews'23** | длинный text/metadata; по parent ASIN можно присоединить images/details | 21,223 длинных semi-synthetic product queries; candidate pool строится retrieval | temporal purchases/reviews, within- и cross-category | один positive product; negatives из retrieval | высокое для массовых товаров | **лучшее структурное совпадение** |
 | **ESCI** | title, description, bullets, brand, color | реальные query и до 40 candidates | нет | Exact/Substitute/Complement/Irrelevant | высокое | отличный query-relevance control, без personalization |
 | Coveo SIGIR e-commerce | анонимизированные item fields и text/image vectors | реальные search sessions и impressions | session/browse history | click/non-click | низкое из-за анонимизации | хорошо для search bias, слабо для LLM knowledge |
@@ -115,16 +119,48 @@ offline LLM ─┴─> profiles / knowledge ─────┤
 5. Разбить test по длине истории, within/cross-category history и target category.
 6. Для LLM-методов добавить latency, input/output tokens и повторяемость ranking при 3–5 запусках.
 
-### Минимальные ablation
+### Зафиксированные baselines и ablation
 
-| ID | User memory | Query | Candidate | Gate | Зачем |
-|---|---:|---:|---:|---:|---|
-| B0 | — | ✓ | ✓ | — | неперсонализированный baseline |
-| B1 | raw history | ✓ | ✓ | — | проверка, помогает ли история вообще |
-| B2 | static profile | ✓ | ✓ | — | цена сжатия history |
-| B3 | token memory | — | ✓ | — | чистый UR4Rec-style retrieval |
-| B4 | token memory | ✓ | ✓ | — | вклад query conditioning |
-| B5 | token memory | ✓ | ✓ | ✓ | полный C-UR4Rec |
+Решение от 2026-08-25: retrieval и rerank оцениваются раздельно. Для каждого
+retriever строится свой неизменяемый top-100; все rerankers получают ровно этот
+список без принудительной вставки positive. Для `Automotive` используется
+original Amazon-C4 query, а item text фиксируется как
+`title + description + features + categories`.
+
+**Candidate generation:**
+
+| ID | Метод | Назначение |
+|---|---|---|
+| R0 | BM25 | простой lexical baseline и отдельный Recall@100 |
+| R1 | [`hyp1231/blair-roberta-base`](https://huggingface.co/hyp1231/blair-roberta-base), CLS + L2-normalization + cosine | основной domain-aware dense retriever и отдельный Recall@100 |
+
+**Rerank baselines и варианты собственного метода:**
+
+| ID | Метод | User signal | Query | Gate | Роль в сравнении |
+|---|---|---|---:|---:|---|
+| B0 | исходный retrieval score | — | ✓ | — | нижняя граница без rerank |
+| B1 | [`cross-encoder/ms-marco-MiniLM-L6-v2`](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2) | — | ✓ | — | сильный неперсонализированный reranker |
+| B2 | recency/category heuristic | история категорий и давность | ✓ | — | дешёвая персонализация без LLM |
+| B3 | raw-history concat | последние события до лимита 512 tokens | ✓ | — | помогает ли несжатая история |
+| B4 | static offline profile | один кэшируемый user profile | ✓ | — | цена и эффект сжатия истории |
+| B5 | corrected UR4Rec-style token memory | последовательность memory tokens | — | — | query-independent memory baseline |
+| C1 | C-UR4Rec + query | последовательность memory tokens | ✓ | — | вклад query conditioning |
+| C2 | C-UR4Rec full | последовательность memory tokens | ✓ | ✓ | основной предлагаемый метод |
+
+Основные метрики rerank: `NDCG@10` и `MRR@10`; retrieval всегда отдельно
+отчитывает `Recall@100`. Параметры и blend/gate выбираются только по dev split.
+
+**Будущий multimodal control после фиксации candidate set:**
+
+| ID | Сигнал | Зачем |
+|---|---|---|
+| MM0 | лучший text-only вариант | контрольная точка для честного сравнения |
+| MM1 | image-only [`openai/clip-vit-base-patch32`](https://huggingface.co/openai/clip-vit-base-patch32) | диагностировать самостоятельную полезность изображения |
+| MM2 | text + CLIP image late fusion | измерить добавочный эффект картинки; коэффициент fusion выбирать только по dev |
+
+Изображения не входят в первичный baseline-прогон и не меняют top-100. Они
+скачиваются только для уникальных candidate `parent_asin`, чтобы мультимодальная
+часть оставалась отдельной ablation, а не скрытым изменением candidate recall.
 
 ## Типология и эволюция идей ранжирования
 
@@ -205,29 +241,32 @@ Raw purchase history длинна, шумна и часто не соответ�
 
 Файл содержит `image_count`, но не сами изображения. Query представлен category и location id; значений фильтров и текстового запроса нет. Поэтому по этому срезу нельзя честно проверить assistant-like длинные запросы или полноценный query-conditioned Auto rerank.
 
-### Исправленный Avito-прогон
+### Avito heuristic после schema/score audit
 
 Артефакт: `results/current/metrics/exp3rt_avito_full_leakage_free.json`.
 
-| Model | NDCG@1 | NDCG@5 | NDCG@10 |
+| Diagnostic | NDCG@1 | NDCG@5 | NDCG@10 |
 |---|---:|---:|---:|
-| leakage-free pseudo-profile heuristic | 0.1399 | 0.2394 | **0.3413** |
+| all-tie heuristic output | 0.1399 | 0.2393 | 0.3411 |
 | position baseline | 0.1217 | 0.2092 | **0.3126** |
-| delta | +0.0182 | +0.0302 | **+0.0288** |
 
-Ограничения: random SERP split, маленькая test-выборка 200 SERP, сильный position/exposure bias, почти все items имеют положительный implicit signal, нет propensity correction. Это offline correlation, не доказательство роста contacts online.
+Это **не сравнение моделей**: `valid_for_claims=false`, потому что 200/200
+SERP имеют одинаковые scores. Значение первой строки возникает только из
+порядка разрешения ties. Кроме этого остаются random SERP split, сильный
+position/exposure bias, почти все items имеют положительный implicit signal и
+нет propensity correction.
 
 ## Сопоставление прошлых задач с кодом
 
 | Задача | Артефакт | Фактический статус после аудита |
 |---|---|---|
 | Общий формат проекта | `README.md`, `docs/TEAM_PROJECT.md`, `experiments/registry.yaml` | сделано; часть статусов в handoff устарела |
-| Два прогона | UR4Rec ML-1M, Exp3RT Amazon checkpoints/results | Exp3RT test готов; UR4Rec corrected-v3 запущен, прежние веса legacy |
-| Выбрать метод preferences для Auto | `docs/avito_preferences.md`, Avito heuristic | направление верно, старый результат содержал leakage |
+| Два прогона | UR4Rec ML-1M, Exp3RT Amazon checkpoints/results | Оба готовы; corrected UR4Rec дал negative result, прежние веса legacy |
+| Выбрать метод preferences для Auto | `docs/avito_preferences.md`, Avito audit | текущая history непригодна без schema mapping/cutoff; heuristic result invalid |
 | +1 алгоритм | `docs/llm4rerank_vs_ur4rec_exp3rt.md`, C-UR4Rec design | концепт сделан, LLM4Rerank не воспроизведён |
 | Calibration | `docs/paper_improvements_backlog.md` | только backlog, реализации нет |
 | Ограничение числа LLM requests | offline generation, cached knowledge | частично; строгой cost table нет |
-| Ограниченный контекст | profiles/proxies | token memory и proxies исправлены; эффект проверит corrected-v3 |
+| Ограниченный контекст | profiles/proxies | token memory и proxies исправлены; corrected-v3 не улучшил base, нужны conditioning/gate |
 | References | docs и presentation | сделано, здесь добавлены primary links |
 | Idempotency | backlog | тестов повторяемости пока нет |
 | Классификация датасетов | этот документ | сделано |
@@ -245,7 +284,9 @@ Raw purchase history длинна, шумна и часто не соответ�
 4. Figure 3(c) mask раньше изменял пустой slice `mask[i:p, i:p]`; теперь distinct item tokens не видят друг друга, сохраняя self-attention.
 5. Self-attention projection weights UR4Rec теперь действительно инициализируются из BERT вместе с FFN/norm.
 6. Общий NDCG сохраняет graded labels; на бинарных датасетах поведение не изменилось.
-7. Avito heuristic больше не читает `contacts_daily` или `clicks_daily`; добавлены correctness tests.
+7. Avito heuristic больше не читает `contacts_daily` или `clicks_daily`;
+   дополнительный schema/score audit выявляет incompatible history taxonomy и
+   вырожденные all-tie scores, поэтому artifact явно помечен invalid.
 8. Knowledge cache v2 проверяет generator/model/tokens/shards и флаг полноты, поддерживает resumable shard checkpoints и явный merge.
 9. ML-1M corrected-v3 использует temporal-per-user targets; user embeddings validation/test больше не остаются необученными из-за user-wise split.
 10. Static user profile строится по train history и не включает validation/test targets.
@@ -254,22 +295,28 @@ Raw purchase history длинна, шумна и часто не соответ�
 
 ### Открытые блокеры перед сильным экспериментальным claim
 
-1. UR4Rec corrected-v3 запущен 2026-08-25 от `knowledge`; до успешных `merge → backbone → pretrain → joint → eval` и появления test JSON все прежние weights/metrics остаются legacy.
+1. UR4Rec corrected-v3 завершил `merge → backbone → pretrain → joint → eval` 2026-08-26; test JSON и snapshot сохранены. Прежние weights/metrics остаются legacy.
 2. Corrected-v3 исправляет split через temporal-per-user targets, но использует random top-100. Для paper-like claim нужен отдельный temporal MF/BPR candidate protocol; названия прежних `paper_exact` configs сильнее фактической гарантии.
 3. Avito UR4Rec создаёт internal user по SERP и не использует `users_with_history` как реальную последовательность поведения.
 4. Full Avito query отсутствует, поэтому C-UR4Rec нельзя корректно оценить на текущем extract.
-5. Exp3RT generic `--stage all` не гарантирует chaining всех adapters так, как shell paper-full pipeline; merge после train должен явно брать best checkpoint.
-6. `AGENT_HANDOFF.md` содержит полезную хронологию, но остаётся архивом; текущий вход — `START_HERE.md`, registry и узкие reproduction-документы.
+5. History `brand`/`model_name` — sparse category-like поля с нулевым overlap с
+   listing brand/model; price/year/mileage/gearbox/fuel history отсутствуют.
+6. Exp3RT generic `--stage all` не гарантирует chaining всех adapters так, как shell paper-full pipeline; merge после train должен явно брать best checkpoint.
+7. `AGENT_HANDOFF.md` содержит полезную хронологию, но остаётся архивом; текущий вход — `START_HERE.md`, registry и узкие reproduction-документы.
 
 ## Что можно утверждать на защите уже сейчас
 
 - Архитектурная позиция: LLM полезнее как offline profile/memory/knowledge builder и top-K reranker, чем как full-catalog ranker.
 - Exp3RT reproduction на Amazon имеет отдельные rating-only и 4-stage artifacts; paper-full expected RMSE `0.5624`, MAE `0.3496` на 11,743 examples.
-- Avito показывает наличие user-history join по `user_id`, но история короткая и атрибуты сильно разрежены.
-- Leakage-free pseudo-profile heuristic улучшает graded NDCG@10 относительно position baseline на `0.0288`; это предварительный offline результат с явными ограничениями.
+- Avito показывает наличие user-history join по `user_id`, но история короткая,
+  разреженная, несовместима по taxonomy с Auto attrs и не имеет доказанного
+  временного cutoff.
+- Валидные текущие Avito controls — local CatBoost `0.653349` и no-history
+  Qwen L0 `0.353667`; pseudo-profile heuristic после аудита не является
+  benchmark.
 - Amazon-C4 User Purchase History — выбранный внешний proxy для следующего персонализированного product-search эксперимента.
 
-Нельзя утверждать до завершения corrected-v3: «UR4Rec воспроизведён paper-exact» или «UR4Rec превосходит backbone». Также нельзя утверждать: «Avito NDCG@10 = 0.9417», «C-UR4Rec доказан экспериментально».
+Нельзя утверждать: «UR4Rec воспроизведён paper-exact», «UR4Rec превосходит backbone», «Avito NDCG@10 = 0.9417» или «C-UR4Rec доказан экспериментально». На corrected-v3 честный вывод обратный: pure UR4Rec ниже локального base.
 
 ## Основные источники
 

@@ -19,7 +19,7 @@ except ImportError as exc:  # pragma: no cover - environment error
 
 ROOT = Path(__file__).resolve().parents[1]
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-VALID_STATUSES = {"planned", "running", "done", "failed"}
+VALID_STATUSES = {"planned", "running", "done", "failed", "invalid"}
 
 errors: list[str] = []
 warnings: list[str] = []

@@ -2,26 +2,47 @@
   "mode": "heuristic",
   "split": "test",
   "n_serps": 200,
+  "claim_scope": "diagnostic only; not a valid personalized ranking result",
+  "valid_for_claims": false,
+  "invalid_reasons": [
+    "Current history fields are not mapped to automotive candidate attributes.",
+    "No SERP rank-time timestamp is available for a temporal history cutoff.",
+    "At least 95% of SERPs have constant candidate scores; reported NDCG is tie/order driven."
+  ],
   "evaluation": {
     "relevance": "graded normalised contacts_daily",
     "rank_time_features": [
-      "history brand",
-      "history model",
-      "history median price",
-      "query text",
+      "category/location query proxy",
       "listing title/brand/model/price"
     ],
     "excluded_post_exposure_features": [
       "contacts_daily",
       "clicks_daily"
-    ]
+    ],
+    "history_usage": "not used for candidate matching: exported fields are incompatible taxonomy values"
+  },
+  "history_schema_audit": {
+    "history_available": true,
+    "history_rows": 2028,
+    "history_users": 274,
+    "history_has_price": false,
+    "exact_level1_to_listing_brand_vocab_overlap": 0,
+    "exact_level2_to_listing_model_vocab_overlap": 0,
+    "exact_history_to_listing_item_overlap": 0,
+    "serp_rank_time_available": false
+  },
+  "score_diagnostics": {
+    "evaluated_serps": 200,
+    "constant_score_serps": 200,
+    "all_zero_score_serps": 200,
+    "constant_score_fraction": 1.0
   },
   "exp3rt_style": {
-    "ndcg@1": 0.13990774110781273,
+    "ndcg@1": 0.13988776714862722,
     "map@1": 0.925,
-    "ndcg@5": 0.2393763420154711,
+    "ndcg@5": 0.2393362717920907,
     "map@5": 0.8655000000000002,
-    "ndcg@10": 0.34133833779521394,
+    "ndcg@10": 0.34106042903620876,
     "map@10": 0.8610818562610228
   },
   "position_base": {

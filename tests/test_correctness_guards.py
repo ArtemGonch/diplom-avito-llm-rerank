@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "exp3rt"))
 sys.path.insert(0, str(ROOT / "scripts" / "ur4rec"))
+sys.path.insert(0, str(ROOT / "scripts" / "avito"))
 
 from common.llm.generate import (  # noqa: E402
     KnowledgeStore,
@@ -30,11 +31,49 @@ from data.ml1m import MovieLens1M, RerankSample  # noqa: E402
 from models.ur4rec.masks import proxy_item_mask  # noqa: E402
 from models.ur4rec.retriever import RetrieverBlock, UR4RecRetriever  # noqa: E402
 from models.ur4rec.text_encoder import FrozenTextEncoder  # noqa: E402
-from exp3rt_avito_attribute_rerank import heuristic_scores  # noqa: E402
+from exp3rt_avito_attribute_rerank import (  # noqa: E402
+    heuristic_scores,
+    score_diagnostics,
+)
 from run_ur4rec import _user_preference_prompt_for_sample  # noqa: E402
+from run_local_catboost import (  # noqa: E402
+    FORBIDDEN_RANK_TIME_COLUMNS,
+    rank_time_feature_columns,
+)
+from run_llm_pointwise_diagnostic import (  # noqa: E402
+    FORBIDDEN_PROMPT_FEATURES,
+    build_prompt,
+    merge_exact_catboost_scores,
+    prompt_feature_columns,
+)
 
 
 class CorrectnessGuardTests(unittest.TestCase):
+    def test_local_catboost_excludes_post_exposure_signals(self) -> None:
+        self.assertTrue(
+            FORBIDDEN_RANK_TIME_COLUMNS.isdisjoint(rank_time_feature_columns())
+        )
+
+    def test_local_llm_prompt_excludes_post_exposure_and_position_signals(self) -> None:
+        self.assertTrue(FORBIDDEN_PROMPT_FEATURES.isdisjoint(prompt_feature_columns()))
+        row = pd.Series({column: "safe-value" for column in prompt_feature_columns()})
+        prompt = build_prompt(row)
+        for forbidden in FORBIDDEN_PROMPT_FEATURES:
+            self.assertNotIn(forbidden, prompt)
+
+    def test_catboost_score_join_rejects_extra_candidates(self) -> None:
+        frame = pd.DataFrame(
+            [{"split": "test", "serp_x": "s", "item_id": 1}]
+        )
+        scores = pd.DataFrame(
+            [
+                {"split": "test", "serp_x": "s", "item_id": 1, "catboost_score": 0.1},
+                {"split": "test", "serp_x": "s", "item_id": 2, "catboost_score": 0.2},
+            ]
+        )
+        with self.assertRaisesRegex(ValueError, "extra=1"):
+            merge_exact_catboost_scores(frame, scores)
+
     def test_ndcg_preserves_graded_relevance(self) -> None:
         labels = np.array([1.0, 0.1])
         reversed_scores = np.array([0.0, 1.0])
@@ -134,6 +173,14 @@ class CorrectnessGuardTests(unittest.TestCase):
             user_id=None,
         )
         self.assertEqual(scores[0], scores[1])
+
+    def test_avito_heuristic_flags_degenerate_all_tie_rankings(self) -> None:
+        diagnostics = score_diagnostics(
+            [np.zeros(3, dtype=np.float64), np.ones(2, dtype=np.float64)]
+        )
+        self.assertEqual(diagnostics["constant_score_serps"], 2)
+        self.assertEqual(diagnostics["all_zero_score_serps"], 1)
+        self.assertEqual(diagnostics["constant_score_fraction"], 1.0)
 
     def test_temporal_split_keeps_users_and_targets_after_history(self) -> None:
         data = object.__new__(MovieLens1M)

@@ -1,6 +1,10 @@
 # Exp3RT Avito adaptation — pseudo-reviews MVP
 
-> **LEGACY / INVALID FOR CLAIMS.** The metrics below predate the 2026-08-25 leakage audit: the heuristic used target/post-exposure features and NDCG binarised dense labels. Use `results/current/metrics/exp3rt_avito_full_leakage_free.json` and `docs/avito_preferences.md` instead (graded NDCG@10 `0.3413` vs position `0.3126`).
+> **LEGACY / INVALID FOR CLAIMS.** The metrics below predate both the
+> target-leakage audit and the 2026-09-01 history schema/score audit. The newer
+> artifact also has `valid_for_claims=false`: after removing false automotive
+> semantics, 200/200 SERP have constant scores. Use `docs/avito_preferences.md`
+> for the current conclusion.
 
 **Date:** 2026-06-16  
 **Historical wrapper:** `scripts/exp3rt_avito_attribute_rerank.py`
@@ -15,7 +19,7 @@ Exp3RT expects Amazon/IMDB **review text** for three stages (preference → prof
 | Exp3RT input | Avito proxy |
 |--------------|-------------|
 | Item review body | `title + brand + model + price + mileage + fuel/body` via `item_pseudo_description()` |
-| User review history | `users_with_history.parquet` → pseudo profile: brands, models, median contact price |
+| User review history | current export has sparse category-like values, no automotive brand/model mapping and no price; cannot form the claimed profile |
 | Query context | `AvitoSERP.serp_query_text()` — category + geo (not in original Exp3RT) |
 | Rerank candidates | Full SERP items (`items_with_attrs.parquet`) |
 | Label | Normalized `contacts_daily` (same as UR4Rec Avito smoke) |
@@ -24,10 +28,12 @@ Exp3RT expects Amazon/IMDB **review text** for three stages (preference → prof
 
 Two modes in one script:
 
-1. **`heuristic`** (default) — attribute overlap scoring: brand history, query token overlap, popularity prior, price fit. Fast, no GPU.
+1. **`heuristic`** (default) — historical diagnostic; after schema correction it has only query-token overlap and produces all-tie scores on the full test split.
 2. **`llm`** — Qwen2.5-7B scores each item 1–5 on brand/price/query fit (Exp3RT stage-3 analogue, simplified). Uses `hf_chat_generator.py`.
 
-User profile construction skips gracefully when `user_id` is missing in SERP (1360 rows) or when the user has no rows in `users_with_history.parquet` (274 users with history, all overlap with item `user_id`s).
+`user_id` history covers 295/2 000 SERP, but history item ids do not overlap
+candidate item ids. Exported `brand`/`model_name` values have zero exact
+vocabulary overlap with listing brand/model, and history has no price.
 
 ## Results (test split, 100 SERPs)
 
@@ -73,6 +79,8 @@ CUDA_VISIBLE_DEVICES=4 python scripts/exp3rt_avito_attribute_rerank.py \
 
 ## Limitations
 
+- Current heuristic output is degenerate and invalid for ranking claims; NDCG
+  on equal scores is determined by tie/order policy.
 - No fine-tuned Exp3RT LoRA on Avito (would need pseudo-review SFT data at scale).
 - Heuristic uses listing-side `user_id`; many SERPs lack buyer history → empty profile falls back to query-only signals.
 - LLM mode is per-item scoring, not pairwise A-vs-B comparison (backlog item in `paper_improvements_backlog.md`).

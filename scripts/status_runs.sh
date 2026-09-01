@@ -21,7 +21,19 @@ echo "=== UR4Rec corrected-v3 ==="
 if [ -f checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json ]; then
   cat checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
 elif [ -f logs/ur4rec_corrected_v3/master.log ]; then
-  tail -8 logs/ur4rec_corrected_v3/master.log
+  if [ -f logs/ur4rec_corrected_v3/resume.status ]; then
+    printf 'resume: '
+    cat logs/ur4rec_corrected_v3/resume.status
+  fi
+  if [ -f logs/ur4rec_corrected_v3/resume.pid ]; then
+    printf 'resume pid: '
+    cat logs/ur4rec_corrected_v3/resume.pid
+  fi
+  tail -12 logs/ur4rec_corrected_v3/master.log
+  if [ -f logs/ur4rec_corrected_v3/train.log ]; then
+    train_progress=$(tr '\r' '\n' < logs/ur4rec_corrected_v3/train.log | grep -E '\[(backbone|pretrain|joint)\]|(pretrain|joint) e[0-9]+' | tail -1 || true)
+    [ -n "$train_progress" ] && printf 'train: %s\n' "$train_progress"
+  fi
   for shard_log in logs/ur4rec_corrected_v3/knowledge_shard*.log; do
     [ -f "$shard_log" ] || continue
     progress=$(tr '\r' '\n' < "$shard_log" | grep -E 'llm-(items|users)' | tail -1 || true)

@@ -1,84 +1,148 @@
-# Преференсы пользователя на Avito Auto и выбор алгоритма
+# Avito Auto: данные, признаки и границы персонализации
 
-## Что есть в данных (нет Amazon-отзывов)
+Проверено по двум Parquet snapshot и текущим metric artifacts:
+**2026-09-01**.
 
-| Сигнал | Источник | Содержание |
-|--------|----------|------------|
-| SERP | `items_with_attrs.parquet` | query/category, geo, объявления в выдаче |
-| Контакты | `users_with_history.parquet` | user → item, brand, model, price |
-| Label | `contacts_daily` | нормализованный контакт по объявлению в SERP |
+## Короткий вывод
 
-**Ограничение:** `item_id` в SERP и в history **не пересекаются** — нельзя напрямую перенести Exp3RT stage-1 (Like/Dislike из текста отзыва на target item).
+Avito snapshot хорошо подходит для content/rank-time reranking по атрибутам
+объявления, но пока недостаточен для доказанного personalized reranking:
 
----
+- объявления подробно описаны и почти полностью заполнены;
+- вместо текста запроса доступны только category/location proxies;
+- история содержит 2 028 контактов 274 пользователей, но её экспортированные
+  `brand`/`model_name` фактически являются значениями товарной таксономии и не
+  совпадают со словарём автомобильных марок/моделей;
+- времени показа SERP нет, поэтому нельзя доказать, что контакт был известен до
+  целевой выдачи;
+- текущие безопасные controls — local CatBoost и no-history Qwen L0;
+- UR4Rec Avito остаётся legacy smoke, C-UR4Rec — proposed design.
 
-## Какой метод релевантнее для извлечения преференсов
+## `items_with_attrs.parquet`: выдача и объявления
 
-### 1. Exp3RT-style pseudo-profiles (наиболее релевантен сейчас)
+Размер snapshot: 44 736 candidate rows, 2 000 SERP и 41 592 уникальных
+`item_id`. Одно объявление может встретиться в нескольких SERP.
 
-**Идея:** собрать текстовый профиль из structured signals без отзывов.
+### Автомобильные и текстовые признаки
 
-```text
-User profile ← top brands/models из contacts + median price
-Item text    ← title, brand, model, price, mileage, fuel
-Query        ← category + geo из SERP
-Score        ← heuristic или LLM 1–5 fit
-```
+| Группа | Поля | Непустая заполненность |
+|---|---|---:|
+| Текст | `title`, `description_short` | 100.00%, 97.85% |
+| Идентичность авто | `brand`, `model_name` | 99.64%, 97.52% |
+| Цена | `price`, `price_percentile`, `price_diff_from_median`, `imv` | 100% для `price`, 81.65% для `imv` |
+| Эксплуатация | `year_text`, `mileage_km` | 99.98%, 96.83% |
+| Спецификация | `gearbox_text`, `fuel_text`, `body_type`, `drive_text`, `doors_text` | 99.98% |
+| Регистрация | `rf_reg_text` | 99.98% |
+| Качество карточки | `image_count`, `title_len`, `desc_len`, `seconds_age` | 100% |
+| Продавец | `seller_is_private`, `seller_rating` | 100%, но `seller_rating` константно 0 |
 
-**Плюсы:** работает offline, объяснимо, уже есть скрипт `exp3rt_avito_attribute_rerank.py`.  
-**Минусы:** нет pairwise reasoning; слабый сигнал если у пользователя нет history.
+Словарь содержит 116 марок, 1 079 моделей, 12 типов кузова, 6 типов топлива,
+5 вариантов коробки и 4 типа привода. В snapshot есть только `image_count`:
+файлов изображений и URL для Avito нет.
 
-**Реализация:** `build_user_pseudo_profile()` + `heuristic_scores()` / LLM mode.
+### Контекст выдачи
 
-### 2. UR4Rec-style LLM knowledge (второй по релевантности)
+| Поле | Смысл | Ограничение |
+|---|---|---|
+| `serp_x` | идентификатор выдачи | основной group id |
+| `item_id` | кандидат | уникален внутри SERP |
+| `block`, `block_pos` | блок и исходная позиция | `block_pos` допустим только для модели, которой исходный rank доступен online |
+| `query_infm_logical_category` | category proxy | только 2 значения; это не полный запрос |
+| `query_loc` | location id | 443 значения; нет человекочитаемого текста/фильтров |
+| `user_id` | пользователь выдачи | 1 932 SERP имеют ненулевой id |
+| `user_dist` | расстояние | константно 0 и неинформативно |
 
-**Иdea:** LLM генерирует item/user knowledge JSON → BERT encoder → retriever → DLCM.
+### Target и post-exposure поля
 
-**Плюсы:** хорошо масштабируется на много полей объявления; retriever отбирает нужное под кандидата.  
-**Минусы:** дорого (offline LLM на все items/users); старый Avito smoke относится к legacy-коду. Текущий loader строит internal user по SERP и пока не превращает `users_with_history` в temporal sequence, поэтому corrected Avito claim отсутствует.
+`contacts_daily` используется как graded train/evaluation target. Следующие
+поля запрещены как rank-time features/prompts:
 
-### 3. Full Exp3RT 4-stage SFT (как в paper)
+- `contacts_daily`;
+- `clicks_daily`;
+- `has_tc_events`;
+- `has_x_events`;
+- `serp_is_positive` (к тому же константно `True`).
 
-**Нерелевантен без синтетики:** нужны тексты «отзывов» → preference → profile. На Avito их нет; пришлось бы генерировать pseudo-reviews LLM'ом на contacts (дорого, риск hallucination).
+Их использование в score создаёт target/post-exposure leakage.
 
----
+## `users_with_history.parquet`: что реально есть в истории
 
-## Рекомендация для диплома
+История содержит 2 028 contact rows, 274 пользователя и 1 855 уникальных
+исторических `item_id`; диапазон `contact_date` — 2026-02-24…2026-05-24.
 
-**Краткосрочно (эксперименты сейчас):** Exp3RT-style **pseudo-profiles + attribute rerank** — быстро и interpretable. После удаления label leakage full-test graded NDCG@10 = `0.3413` против position baseline `0.3126`; это предварительный offline signal, а не causal uplift.
+| Экспортированное поле | Заполненность | Фактическая интерпретация в snapshot |
+|---|---:|---|
+| `contact_date` | 100% | дата контакта |
+| `brand` | 49.46% | category-like level-1 values, например виды товаров/техники, не автомобильные марки |
+| `model_name` | 13.51% | category-like level-2 values, не автомобильные модели |
+| `year_raw` | 0% | сигнала нет |
+| `mileage_km` | 0% | сигнала нет |
+| `gearbox_text` | 0% | сигнала нет |
+| `fuel_text` | 0% | сигнала нет |
 
-**Среднесрочно (собственный вклад):** **C-UR4Rec** — UR4Rec + контекст SERP (см. ниже).
+Поля цены в history нет. Точное пересечение vocabulary равно нулю и для
+`history.brand ↔ listing.brand`, и для
+`history.model_name ↔ listing.model_name`. Исторические `item_id` также не
+пересекаются с 41 592 кандидатами выдачи.
 
----
+По `user_id` история покрывает 295 из 2 000 SERP; на local seed-42 split это
+34/200 dev и 30/200 test SERP. Даже для этих SERP временная валидность не
+доказана: у выдачи отсутствует `rank_time`, с которым можно сравнить
+`contact_date`.
 
-## +1 алгоритм: C-UR4Rec (Context-aware UR4Rec)
+## Какие эксперименты можно интерпретировать
 
-**Проблема UR4Rec на Avito:** один статический user embedding на весь list; **нет search query**; retriever не видит кандидата в контексте запроса «BMW X5 Москва».
+Все значения ниже — graded `NDCG@10` на local seed-42 split, если не указано
+иное.
 
-**C-UR4Rec** — три добавки к UR4Rec:
+| Метод | Результат | Статус |
+|---|---:|---|
+| position order | 0.302670 | sanity baseline |
+| local CatBoost ensemble | **0.653349** | текущий сильнейший local diagnostic; не CatBoost Ромы |
+| Qwen2.5-7B L0, без history/position | 0.353667 | валидный no-history diagnostic |
+| CatBoost + dev-selected L0 gate | 0.638136 | negative result; хуже CatBoost, gate отклонён |
+| старый UR4Rec Avito smoke | 0.929924 | legacy; протокол несопоставим, rerun required |
 
-1. **Multi-aspect memory** — K proxy-аспектов (цена, бренд, geo, кузов) вместо одного concat preference.
-2. **Query-conditioned retrieval** — cross-attention query = `concat(h_candidate, e_serp_query, e_category)`.
-3. **Confidence gating** — `e_aug = gate · Retriever(...)`; если retriever не уверен → gate→0, fallback на base DLCM.
+### Почему прежний Exp3RT-style `0.3413` больше не benchmark
 
-```text
-Offline:  LLM knowledge(items) + LLM summary(user contacts)
-Encode:   BERT → e_item, e_user_history, e_query
-Retrieve: Retriever(h_cand, e_query, Z_user) → e_aug  (per candidate!)
-Rerank:   DLCM(item, user, e_aug) with gate
-```
+После отдельного schema/score audit выяснилось:
 
-**Почему это логичный next step после Exp3RT-style на Avito:**
+- history-поля были ошибочно названы автомобильными brand/model и price,
+  хотя price отсутствует, а taxonomy values не совпадают с кандидатами;
+- после устранения этой ложной семантики 200/200 test SERP получают одинаковые
+  candidate scores;
+- вычисленный NDCG определяется порядком разрешения ничьих, а не работой
+  персонализированной модели.
 
-| | Exp3RT-style Avito | C-UR4Rec |
-|--|-------------------|----------|
-| User prefs | rule-based text profile | LLM + retriever |
-| Query in model | только в heuristic | в retriever |
-| Per-candidate | отдельный score 1–5 | e_aug per item |
-| Cost online | LLM optional | BERT only |
+Artifact `results/current/metrics/exp3rt_avito_full_leakage_free.json` сохраняется
+для аудита с `valid_for_claims=false`; использовать его число в сравнительной
+таблице или на защите нельзя. Более ранний legacy `0.9417` дополнительно
+содержал прямой target/post-exposure leakage.
 
-**План ablation:** base DLCM → +UR4Rec → +query → +gate → full C-UR4Rec на Avito SERP с unified top-K sampling.
+## Что можно строить сейчас
 
-См. также [актуальную точку входа](START_HERE.md) и [backlog улучшений](paper_improvements_backlog.md).
+1. **Content-only/L0:** title, short description, brand/model, price, year,
+   mileage, gearbox, fuel, body, drive, doors, registration, listing age и
+   image count.
+2. **LTR control:** те же rank-time признаки плюс исходная позиция, если она
+   является доступным online feature; текущий control — CatBoostRanker.
+3. **Cold-start analysis:** отдельно сравнивать SERP без history и 295 SERP с
+   совпавшим user id, не выдавая последнее за temporal-safe personalization.
 
-Актуальная классификация датасетов и полный аудит: [task_2026-06-26_artem.md](task_2026-06-26_artem.md).
+## Что необходимо для personalized C-UR4Rec
+
+- `rank_time` для каждого SERP или гарантированный history cutoff;
+- автомобильная история с корректными brand/model/price/attrs либо таблица
+  соответствия history item metadata;
+- зафиксированная policy для 85.25% SERP без совпавшей истории;
+- CatBoost Ромы: test SERP ids, полный candidate score artifact, config/seeds и
+  формула relevance;
+- общий immutable candidate set для A1 и L0–L3.
+
+После получения этих данных порядок ablation остаётся таким:
+`no history → raw history → single profile → multi-aspect memory →
+query/candidate-conditioned selection → calibrated cost gate`.
+
+См. также [benchmark protocol](benchmark_protocol_2026-09-01.md),
+[актуальную точку входа](START_HERE.md) и
+[backlog улучшений](paper_improvements_backlog.md).

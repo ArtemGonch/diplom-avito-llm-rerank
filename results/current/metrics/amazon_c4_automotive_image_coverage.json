@@ -1,0 +1,37 @@
+{
+  "manifest_version": 1,
+  "candidate_set_immutable": true,
+  "missing_images_remove_candidates": false,
+  "selection_policy": "variant=MAIN; large -> hi_res -> thumb",
+  "overall": {
+    "candidates": 21558,
+    "ok": 21545,
+    "missing": 12,
+    "failed": 1,
+    "url_coverage": 0.9994433620929585,
+    "download_coverage": 0.9993969756007051
+  },
+  "by_split": {
+    "train": {
+      "candidates": 18780,
+      "ok": 18770,
+      "missing": 9,
+      "failed": 1,
+      "download_coverage": 0.9994675186368477
+    },
+    "dev": {
+      "candidates": 5615,
+      "ok": 5610,
+      "missing": 5,
+      "failed": 0,
+      "download_coverage": 0.9991095280498664
+    },
+    "test": {
+      "candidates": 6136,
+      "ok": 6134,
+      "missing": 2,
+      "failed": 0,
+      "download_coverage": 0.9996740547588006
+    }
+  }
+}

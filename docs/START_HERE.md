@@ -1,6 +1,6 @@
 # Диплом: актуальная точка входа
 
-Обновлено: **2026-08-25**. Этот файл — краткий текущий контекст проекта. Он не заменяет статьи, код и реестр экспериментов, а задаёт правильный порядок чтения и отделяет валидные результаты от legacy.
+Обновлено: **2026-09-01**. Этот файл — краткий текущий контекст проекта. Он не заменяет статьи, код и реестр экспериментов, а задаёт правильный порядок чтения и отделяет валидные результаты от legacy.
 
 Новый Codex получает корневой `AGENTS.md` автоматически. Для полного onboarding следует использовать repo-skill `$diplom-context`; если skills недоступны, выполнить `bash scripts/project_context.sh` и следовать маршрутам чтения ниже.
 
@@ -27,18 +27,23 @@
 ```bash
 bash scripts/status_runs.sh
 tail -f logs/ur4rec_corrected_v3/master.log
-tail -f logs/ur4rec_corrected_v3/knowledge_shard0.log
+cat logs/ur4rec_corrected_v3/resume.status
+tail -f logs/ur4rec_corrected_v3/train.log
 ```
 
 ## Текущее состояние экспериментов
 
 | Эксперимент | Статус | Что можно использовать |
 |---|---|---|
-| UR4Rec ML-1M corrected-v3 | **running**, stage `knowledge` запущен 2026-08-25 на GPU `2,4,5,6` | Пока только protocol/config/code; финальных метрик ещё нет |
+| UR4Rec ML-1M corrected-v3 | **done**, 2026-08-26 | Base NDCG@10 `0.214796`, pure UR4Rec `0.183334` (`−14.65%` relative); negative result, random top-100, не paper-exact |
 | UR4Rec ML-1M beat-base / guaranteed | done, **legacy** | Только как история отладки; веса и метрики предшествуют correctness fixes |
 | Exp3RT Amazon rating-only | done | Отдельный shortcut baseline, не выдавать за полный paper pipeline |
 | Exp3RT Amazon chained paper-full | done | Expected RMSE `0.5624`, MAE `0.3496`, `n=11743` |
-| Exp3RT-style Avito | done | Leakage-free graded NDCG@10 `0.3413` против position baseline `0.3126` |
+| Exp3RT-style Avito heuristic | **invalid after schema/score audit** | После удаления ложной brand/model/price семантики 200/200 SERP имеют одинаковые scores; прежний `0.3413` tie/order-driven и не является benchmark |
+| Amazon-C4 Automotive retrieval | done | BLaIR test Recall@100 `0.592105`, NDCG@10 `0.196720`; BM25 Recall@100 `0.157895` |
+| Amazon-C4 Automotive multimodal | done | Fixed BLaIR top-100: text NDCG@10 `0.196720` → CLIP late fusion `0.226064` (`+14.92%`) |
+| Avito local CatBoost diagnostic | done | Ensemble NDCG@10 `0.653349` на локальном split; **не** CatBoost Ромы/командный A1 |
+| Avito local Qwen L0 diagnostic | done | No-history/position NDCG@10 `0.353667`; dev-selected gate дал test `0.638136` против CatBoost `0.653349`, поэтому gate отклонён |
 | UR4Rec Avito smoke | done, **legacy** | Нужен повторный запуск от `knowledge` |
 | C-UR4Rec | design only | Нельзя утверждать, что метод реализован или проверен |
 
@@ -69,6 +74,7 @@ Corrected-v3 — **честный исправленный rerun, но не pape
 configs/ur4rec/                         experiment protocols
 scripts/ur4rec/run_ur4rec.py            stages and orchestration
 scripts/ur4rec/run_corrected_v3.sh      current 4-GPU launch
+scripts/ur4rec/run_corrected_v3_resume.sh resume merge→eval after knowledge
 src/data/{ml1m,amazon_books,steam,avito}.py
 src/models/ur4rec/backbone.py            DLCM-style GRU reranker
 src/models/ur4rec/retriever.py           proxies, self/cross attention, PIM
@@ -93,12 +99,36 @@ Generic stages: `prepare`, `train`, `test`, `eval`, `all`; train tasks: `prefere
 
 ### Avito
 
-- `items_with_attrs.parquet`: 44 736 строк, 2 000 SERP; candidate/listing attrs и post-exposure signals.
-- `users_with_history.parquet`: 2 028 контактов, 274 пользователя.
-- `user_id` пересекается, `item_id` между файлами не пересекается.
+- `items_with_attrs.parquet`: 44 736 candidate rows, 2 000 SERP и 41 592
+  уникальных объявления; title/description, brand/model, price, year, mileage,
+  body/fuel/gearbox/drive и другие listing attrs почти полностью заполнены.
+- Реальных изображений/URL нет: доступен только `image_count`.
+- `users_with_history.parquet`: 2 028 контактов, 274 пользователя и 1 855
+  historical items; `contact_date` заполнен, но rank-time SERP timestamp
+  отсутствует.
+- Экспортированные history `brand`/`model_name` фактически содержат sparse
+  category-like значения: точное пересечение с автомобильными listing
+  brand/model равно нулю; price и остальные авто-attrs истории отсутствуют.
+- `user_id` history покрывает только 295/2 000 SERP, `item_id` между файлами не
+  пересекается.
 - Полного текста query/фильтров нет; доступны category/location proxies.
 - `serp_is_positive` константный и не является label ранжирования.
 - `contacts_daily` используется как graded target только в evaluation и не должен попадать в features.
+- Для локального executable control добавлен leakage-guarded CatBoost и
+  no-history Qwen L0; финальный командный claim всё ещё требует score/split
+  artifacts Ромы и временного cutoff истории.
+
+### Amazon-C4 Automotive
+
+```text
+scripts/amazon_c4/build_candidates.py   BM25/BLaIR immutable top-100
+scripts/amazon_c4/prepare_images.py     resumable candidate-only image manifest/download
+scripts/amazon_c4/evaluate_multimodal.py CLIP image control and dev-selected late fusion
+src/data/amazon_c4.py                   loaders, BM25, metrics, image selection
+```
+
+Большие candidates/images/embeddings остаются под `data/` и не входят в Git;
+малые агрегированные JSON находятся в `results/current/metrics/`.
 
 Текущая UR4Rec Avito-ветка трактует SERP как internal user и ещё не использует реальную contact history как последовательность. Поэтому C-UR4Rec нельзя честно подтвердить на этом extract без дополнительного query/history protocol.
 
@@ -143,8 +173,19 @@ KNOWLEDGE_GPUS=2,4,5,6 TRAIN_GPU=2 \
 git submodule update --init --recursive
 bash scripts/exp3rt/run_paper_full.sh
 
-# Leakage-free Avito baseline
+# Historical Exp3RT-style diagnostic; invalid for claims after schema/score audit
 bash scripts/exp3rt/run_avito_eval.sh
+
+# Локальный CatBoost diagnostic (не командный A1)
+python scripts/avito/run_local_catboost.py --task-type GPU --devices 0
+
+# Leakage-free no-history L0 и локальный ambiguity-gate control
+python scripts/avito/run_llm_pointwise_diagnostic.py
+
+# Amazon-C4 fixed candidates и multimodal control
+python scripts/amazon_c4/build_candidates.py --method blair --top-k 100
+python scripts/amazon_c4/prepare_images.py
+python scripts/amazon_c4/evaluate_multimodal.py
 ```
 
 Корневые `scripts/run_ur4rec.py` и `scripts/run_exp3rt.py` сохранены как compatibility wrappers. В новой документации и командах использовать paper-specific пути под `scripts/ur4rec/` и `scripts/exp3rt/`.
@@ -156,6 +197,9 @@ bash scripts/exp3rt/run_avito_eval.sh
 | Понять UR4Rec и воспроизвести | `docs/UR4Rec_code_and_reproduction.md`, затем runner и `src/models/ur4rec/` |
 | Понять Exp3RT | `docs/exp3rt_reproduction.md`, `papers/exp3rt/phase2_deep_notes.md` |
 | Понять задание 26.06, датасеты и литературу | `docs/task_2026-06-26_artem.md` |
+| Понять задание 25.08 и план на следующую неделю | `docs/task_2026-08-25_artem.md` |
+| Посмотреть выполненный обзор литературы | `docs/literature_ranked_review_2026-09-01.md` |
+| Посмотреть финальный benchmark protocol и три идеи | `docs/benchmark_protocol_2026-09-01.md` |
 | Сравнить UR4Rec / Exp3RT / LLM4Rerank | `docs/llm4rerank_vs_ur4rec_exp3rt.md` |
 | Понять Avito и C-UR4Rec | `docs/avito_preferences.md`, `docs/paper_improvements_backlog.md` |
 | Восстановить хронологию и презентацию | `docs/AGENT_HANDOFF.md` (archive), единственный `../Гончаров_*.pdf` |

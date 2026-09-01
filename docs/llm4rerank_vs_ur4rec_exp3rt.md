@@ -1,6 +1,6 @@
 # Сравнение: UR4Rec vs Exp3RT vs LLM4Rerank
 
-> Метрики актуализированы 2026-08-25. Legacy Avito NDCG `0.942` содержал target leakage, а прежний ML-1M `beat_base` предшествует UR4Rec correctness fixes. Corrected-v3 сейчас на stage `knowledge`; финальных метрик ещё нет. См. [актуальную точку входа](START_HERE.md) и [полный аудит](task_2026-06-26_artem.md).
+> Метрики актуализированы 2026-09-01. Legacy Avito NDCG `0.942` содержал target leakage, а прежний ML-1M `beat_base` предшествует UR4Rec correctness fixes. Corrected-v3 завершён с negative result: base NDCG@10 `0.214796`, UR4Rec `0.183334`. См. [актуальную точку входа](START_HERE.md) и [полный benchmark protocol](benchmark_protocol_2026-09-01.md).
 
 Краткая шпаргалка для защиты / отчёта.
 Источники: UR4Rec (COLING 2025), Exp3RT (SIGIR 2025), LLM4Rerank (WWW 2025, [arxiv:2406.12433](https://arxiv.org/abs/2406.12433)).
@@ -44,15 +44,20 @@
 | **Нужны отзывы** | Нет (metadata + ratings) | **Да** (review text) | Нет (tabular user + item text) |
 | **Paper datasets** | ML-1M, Amazon, Steam | Amazon-Book, Steam | ML-1M, KuaiRand, Douban |
 | **Key metrics** | NDCG@10, MAP@10 | RMSE, MAE | HR, NDCG, α-NDCG, MAD |
-| **Наш repro (основной)** | ML-1M corrected-v3 running; финальных метрик нет. Legacy beat_base: 0.285 → 0.300, не использовать как corrected claim | Amazon chained paper-full: expected RMSE **0.562** vs paper 0.651 | Не воспроизводили (conceptual baseline) |
-| **Наш repro (Avito)** | Legacy smoke; rerun required | **Exp3RT-style leakage-free**: graded NDCG@10 **0.3413** vs position **0.3126** | План: Goal-based heuristic / будущий C-UR4Rec |
+| **Наш repro (основной)** | ML-1M corrected-v3: NDCG@10 **0.2148 → 0.1833**; negative result, random top-100, не paper-exact | Amazon chained paper-full: expected RMSE **0.562** vs paper 0.651 | Не воспроизводили (conceptual baseline) |
+| **Наш repro (Avito)** | Legacy smoke; rerun required | Exp3RT-style heuristic **invalid**: history schema несовместима, 200/200 SERP all-tie | План: Goal-based control / будущий C-UR4Rec |
 
 ---
 
 ## Что говорить на защите про «+1 алгоритм»
 
 > Мы добавили **LLM4Rerank** (WWW 2025) как **концептуальный baseline** для multi-objective rerank: в отличие от UR4Rec (accuracy-first, обучаемый retriever) и Exp3RT (rating + профили из отзывов), LLM4Rerank **не требует fine-tuning** и явно балансирует accuracy/diversity/fairness через граф узлов и пользовательский **Goal**.
-> На Avito нет отзывов → full Exp3RT 4-stage нерелевантен; UR4Rec дорог offline и не учитывает query SERP. Поэтому мы прогнали **Exp3RT-style pseudo-profiles** (structured contacts → fit score) и предложили **C-UR4Rec** как обучаемую альтернативу с query-conditioning. LLM4Rerank — аргумент «зачем multi-aspect» и «почему не pure LLM online» (latency).
+> На Avito нет отзывов, а текущая contact history не содержит совместимых
+> автомобильных brand/model/price, поэтому full Exp3RT и прежний pseudo-profile
+> не дают валидного baseline. Безопасные controls сейчас — content-only L0 и
+> CatBoost; C-UR4Rec остаётся проектом метода после получения корректной history
+> schema/cutoff. LLM4Rerank — аргумент «зачем multi-aspect» и «почему не pure
+> LLM online» (latency).
 
 ---
 
@@ -60,7 +65,7 @@
 
 | Метод | Как извлекать преференсы на Avito | Релевантность |
 |-------|-----------------------------------|---------------|
-| **Exp3RT-style** | top brand/model/price из contacts → text profile | ✅ **Сейчас лучший** (есть прогон) |
+| **Exp3RT-style** | требует корректно типизированной contact history | ❌ текущий heuristic invalid после schema/score audit |
 | **UR4Rec** | LLM knowledge по items + user history | ⚠️ дорого offline, без query |
 | **LLM4Rerank** | user attrs + Goal («точность vs разнообразие брендов») | 💡 идея для product, не для prod latency |
 | **C-UR4Rec** (наш) | UR4Rec + SERP query + gating | 🔬 proposed contribution |

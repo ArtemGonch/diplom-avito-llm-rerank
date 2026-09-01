@@ -142,15 +142,19 @@ CUDA_VISIBLE_DEVICES=0 python scripts/ur4rec/run_ur4rec.py \
 
 Результат: `checkpoints/ur4rec_avito_smoke/metrics_test.json` (NDCG@K, MAP@K: base vs UR4Rec).
 
-> Статус 2026-08-25: старые UR4Rec checkpoints построены до correctness fixes и считаются legacy. Исправленный ML-1M `corrected-v3` запущен от `knowledge`; до появления `checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json` численного claim нет. Подробности: [актуальная точка входа](docs/START_HERE.md) и [аудит задания 26.06](docs/task_2026-06-26_artem.md).
+> Статус 2026-09-01: старые UR4Rec checkpoints построены до correctness fixes и считаются legacy. ML-1M `corrected-v3` завершён: local base NDCG@10 `0.214796`, pure UR4Rec `0.183334`; random top-100, не paper-exact. Подробности: [актуальная точка входа](docs/START_HERE.md) и [аудит задания 26.06](docs/task_2026-06-26_artem.md).
 
-### Leakage-free Exp3RT-style baseline
+### Exp3RT-style Avito diagnostic — invalid for claims
 
 ```bash
 bash scripts/exp3rt/run_avito_eval.sh
 ```
 
-Честный full-test результат (200 SERP, graded contacts): NDCG@10 `0.3413` против position baseline `0.3126`. Legacy `0.9417` использовал target/post-exposure признаки и не должен цитироваться.
+Artifact сохраняется только для аудита. Legacy `0.9417` использовал
+target/post-exposure признаки. После их удаления schema audit показал, что
+history не содержит заявленных автомобильных brand/model/price, а 200/200
+test SERP имеют одинаковые scores. Поэтому число около `0.341` определяется
+tie/order policy и также не должно цитироваться как результат модели.
 
 ---
 

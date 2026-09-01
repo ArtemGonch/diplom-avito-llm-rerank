@@ -19,12 +19,14 @@
 
   <p>Вторая ошибка была в evaluation: любой <code>contacts_daily &gt; 0</code> превращался в relevance 1. В данных 91.3% строк имеют ненулевой contact, поэтому почти все перестановки выглядят хорошими. Graded NDCG должен различать слабый и сильный контактный сигнал.</p>
 
+  <p>Третью ошибку нашёл schema/score audit: поля history, названные <code>brand</code>/<code>model_name</code>, содержат несовместимые category-like значения, а price отсутствует. После исправления семантики все 200 SERP получили одинаковые candidate scores. Метрика на ties отражает порядок строк, а не качество модели.</p>
+
   <h2>Что изменилось</h2>
   <table>
     <thead><tr><th>Версия</th><th>Heuristic</th><th>Position</th><th>Смысл</th></tr></thead>
     <tbody>
       <tr><td>legacy binary + leakage</td><td>0.9417</td><td>0.9001</td><td>не использовать</td></tr>
-      <tr><td>graded + leakage-free</td><td>0.3413</td><td>0.3126</td><td>предварительный offline signal</td></tr>
+      <tr><td>graded, без target leakage, но all-tie</td><td>0.3411</td><td>0.3126</td><td>не использовать: schema/tie artifact</td></tr>
     </tbody>
   </table>
 

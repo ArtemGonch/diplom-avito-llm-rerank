@@ -11,3 +11,5 @@ accelerate>=0.25
 bitsandbytes>=0.41
 sentencepiece>=0.1.99
 datasets>=2.18
+catboost>=1.2,<2
+pillow>=10

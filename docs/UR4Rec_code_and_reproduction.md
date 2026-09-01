@@ -1,6 +1,6 @@
 # UR4Rec: реализация и воспроизведение
 
-Обновлено: **2026-08-25**. Текущий основной эксперимент — `ur4rec_ml1m_corrected_v3`; это исправленный rerun, **не paper-exact reproduction**.
+Обновлено: **2026-09-01**. Основной эксперимент `ur4rec_ml1m_corrected_v3` завершён 2026-08-26: knowledge cache объединён (`3 883` items / `5 802` users), пройдены `backbone → pretrain → joint → eval`. Это исправленный rerun, **не paper-exact reproduction**.
 
 Статья: Zhang et al., [*Enhancing Reranking for Recommendation with LLMs through User Preference Retrieval*](https://aclanthology.org/2025.coling-main.45/) (COLING 2025). Официального репозитория статьи не найдено, поэтому код в этом проекте — самостоятельная реализация по paper с компактным DLCM-style backbone.
 
@@ -29,6 +29,7 @@ per-candidate augmentation → DLCM-style GRU listwise reranker
 |---|---|
 | Runner и stages | `scripts/ur4rec/run_ur4rec.py` |
 | Текущий 4-GPU orchestrator | `scripts/ur4rec/run_corrected_v3.sh` |
+| Resume после готовых knowledge shards | `scripts/ur4rec/run_corrected_v3_resume.sh` |
 | Dataset protocols | `src/data/ml1m.py`, `amazon_books.py`, `steam.py`, `avito.py` |
 | DLCM-style backbone | `src/models/ur4rec/backbone.py` |
 | Retriever | `src/models/ur4rec/retriever.py` |
@@ -123,7 +124,10 @@ KNOWLEDGE_GPUS=2,4,5,6 TRAIN_GPU=2 \
   bash scripts/ur4rec/run_corrected_v3.sh
 ```
 
-На запуске 2026-08-25 `knowledge` распределён по физическим GPU `2,4,5,6`; обучение после merge идёт на GPU `2`. Список свободных GPU всегда проверять заново: он не является свойством репозитория.
+На запуске 2026-08-25 `knowledge` распределён по физическим GPU `2,4,5,6`.
+После завершения shards исходный orchestrator не продолжил merge; 2026-08-26
+cache успешно объединён и pipeline возобновлён через resume-скрипт на GPU `2`.
+Список свободных GPU всегда проверять заново: он не является свойством репозитория.
 
 Логи:
 
@@ -134,22 +138,45 @@ tail -f logs/ur4rec_corrected_v3/merge.log
 tail -f logs/ur4rec_corrected_v3/train.log
 ```
 
+Если четыре knowledge shards завершены, но orchestrator не дошёл до merge,
+продолжить без повторной Qwen-генерации можно командой:
+
+```bash
+TRAIN_GPU=2 bash scripts/ur4rec/run_corrected_v3_resume.sh
+```
+
+Текущая стадия и PID пишутся в `logs/ur4rec_corrected_v3/resume.status` и
+`resume.pid`. Resume идемпотентно пропускает уже существующие checkpoints,
+использует `finish_joint`, если joint checkpoint сохранён без metadata, и перед
+успешным завершением проверяет структуру `metrics_test.json`.
+
 На стадии `knowledge` `master.log` содержит orchestration events, а живой progress bar находится в `knowledge_shard*.log`. Сообщение Transformers о неиспользуемых generation flags при greedy decoding не означает падение; ориентироваться на рост progress и exit status shard.
 
-Финальный результат появится в:
+Финальный результат находится в:
 
 ```text
 checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
 ```
 
-После завершения нужно сменить registry `running → done` или `failed`, проверить test JSON, сделать snapshot и только затем обновлять численные claims в документах.
+Проверенный snapshot: `results/current/metrics/ur4rec_ml1m_corrected_v3.json`.
+
+| Test method | NDCG@5 | NDCG@10 | MAP@10 |
+|---|---:|---:|---:|
+| local DLCM-style base | **0.175297** | **0.214796** | **0.162291** |
+| pure UR4Rec, `alpha=1.0` | 0.143121 | 0.183334 | 0.134540 |
+
+Pure UR4Rec хуже base на `0.031462` NDCG@10, или `−14.65%` относительно
+base. Это валидный negative result на текущем protocol. Он не противоречит
+paper напрямую: paper DLCM Table 6 использует другой candidate-generation
+protocol и сообщает NDCG@10 `0.315 → 0.661` (`0.359 → 0.678` — NDCG@20, а не
+NDCG@10).
 
 ## Другие конфиги
 
 | Config | Назначение | Статус |
 |---|---|---|
 | `ur4rec_correctness_smoke.yaml` | быстрый offline invariant test | current, не для quality claim |
-| `ur4rec_ml1m_corrected_v3.yaml` | основной corrected ML-1M run | current, running |
+| `ur4rec_ml1m_corrected_v3.yaml` | основной corrected ML-1M run | current, done; negative result |
 | `ur4rec_ml1m_beat_base.yaml` | 50-candidate отладочный run | legacy |
 | `ur4rec_ml1m_guaranteed.yaml` | blend мог выбрать pure base | legacy |
 | `ur4rec_ml1m_full.yaml`, `paper_v2`, `paper_exact` | прежние попытки приблизить paper protocol | названия не гарантируют paper exactness |
@@ -165,7 +192,13 @@ python scripts/ur4rec/download_ur4rec_datasets.py --datasets all
 
 Большие datasets, generated knowledge и weights не входят в git. Пути задаются YAML-конфигами.
 
-Avito имеет отдельное ограничение: текущий loader строит sample по SERP и internal user id, а `users_with_history.parquet` не превращён в leakage-free temporal history для UR4Rec. Результаты старого Avito smoke — legacy; актуальный безопасный baseline описан в `docs/avito_preferences.md`.
+Avito имеет отдельное ограничение: текущий loader строит sample по SERP и
+internal user id, а `users_with_history.parquet` не превращён в leakage-free
+temporal history для UR4Rec. Дополнительный schema audit показал, что history
+`brand`/`model_name` — sparse category-like значения с нулевым vocabulary
+overlap с listing brand/model; price и остальные Auto attrs отсутствуют.
+Результаты старого Avito smoke — legacy; актуальные controls и границы
+персонализации описаны в `docs/avito_preferences.md`.
 
 ## Границы утверждений
 
@@ -173,12 +206,13 @@ Avito имеет отдельное ограничение: текущий loade
 
 - реализован полный исследовательский pipeline offline knowledge → retriever pretrain → joint listwise rerank → test;
 - correctness bugs memory/mask/generation/cache/split исправлены и покрыты regression tests;
-- corrected-v3 использует temporal targets и честный pure-UR4Rec output.
+- corrected-v3 использует temporal targets и честный pure-UR4Rec output;
+- на этом protocol base NDCG@10 `0.214796`, UR4Rec `0.183334`.
 
 Пока нельзя утверждать:
 
 - что локальная реализация численно воспроизводит Table 6 paper;
-- что corrected-v3 завершён или превосходит backbone до появления `metrics_test.json`;
+- что corrected-v3 воспроизводит paper Table 6 или превосходит backbone;
 - что random candidate protocol paper-exact;
 - что C-UR4Rec реализован или подтверждён на Avito.
 

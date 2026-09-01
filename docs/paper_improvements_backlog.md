@@ -5,6 +5,30 @@ Priority: items that close the **Avito gap** (search query, no reviews, latency,
 
 ---
 
+## План на неделю 31.08–06.09.2026
+
+Каноническая полная формулировка:
+[task_2026-08-25_artem.md](task_2026-08-25_artem.md). Она объединяет блок
+`2026-08-25` из командного Google-документа и добавленную задачу по изображениям.
+
+- [x] Ранжированный обзор работ: общая 10-балльная шкала, core list и top-5.
+- [x] Конечный список benchmarks и единый evaluation protocol.
+- [x] Три собственные идеи: multi-aspect memory, conditioned selection, gate.
+- [ ] Получить от Ромы CatBoost metric + split/candidates/config и воспроизвести.
+- [ ] На одном CatBoost top-K сравнить no-history, pointwise profile, listwise
+  profile и confidence-gated LLM rerank; цель — выше CatBoost по `NDCG@10`.
+  Локальный L0/gate diagnostic готов, но CatBoost не превзойдён; L1/L2/L3
+  ждут team artifacts и rank-time history cutoff.
+- [x] Зафиксировать BM25/BLaIR top-100 для Amazon-C4 и `Recall@100`.
+- [x] Скачать только candidate images, собрать coverage/manifest, закэшировать
+  CLIP и сравнить text-only/image-only/late-fusion на том же top-100.
+
+До получения CatBoost artifacts его `NDCG@10` остаётся `TBD`. Новый local
+diagnostic CatBoost (`0.653349`) и L0 (`0.353667`) используют согласованный
+внутренний split, но не подменяют командный baseline Ромы. Старый
+pseudo-profile `0.3413` после schema/score audit признан invalid: 200/200 SERP
+имеют одинаковые scores, поэтому это tie/order artifact, а не benchmark.
+
 ## Exp3RT → Exp3RT+Avito / Exp3RT+Search
 
 - [ ] **Query-conditioned profiles** — inject SERP query (category, geo) into user profile construction, not only review history.

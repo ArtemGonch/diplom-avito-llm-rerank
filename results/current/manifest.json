@@ -1,20 +1,42 @@
 {
-  "generated": "2026-08-25",
+  "generated": "2026-09-01",
+  "avito_dataset_snapshot": {
+    "candidate_rows": 44736,
+    "serps": 2000,
+    "unique_listing_items": 41592,
+    "history_rows": 2028,
+    "history_users": 274,
+    "history_items": 1855,
+    "history_serp_overlap": 295,
+    "history_to_listing_item_overlap": 0,
+    "history_has_price": false,
+    "history_exact_brand_vocab_overlap": 0,
+    "history_exact_model_vocab_overlap": 0,
+    "rank_time_available": false
+  },
   "ur4rec_ml1m_corrected_v3": {
-    "status": "running",
-    "stage": "knowledge",
+    "status": "done",
+    "stage": "eval",
     "config": "configs/ur4rec/ur4rec_ml1m_corrected_v3.yaml",
     "log": "logs/ur4rec_corrected_v3/master.log",
     "metrics": "checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json",
-    "protocol": "temporal per-user, random top-100, leakage-free cache v2; not paper-exact"
+    "snapshot": "metrics/ur4rec_ml1m_corrected_v3.json",
+    "knowledge": "complete and merged: 3883 items, 5802 users",
+    "finished": "2026-08-26T17:39:05+03:00",
+    "protocol": "temporal per-user, random top-100, leakage-free cache v2; not paper-exact",
+    "base_ndcg@10": 0.21479641804057062,
+    "ur4rec_ndcg@10": 0.18333441095567027,
+    "relative_delta_ndcg@10": -0.14647360926736356
   },
   "avito_exp3rt_full_leakage_free": {
     "path": "metrics/exp3rt_avito_full_leakage_free.json",
     "n_serps": 200,
     "relevance": "graded normalised contacts_daily",
-    "exp3rt_style_ndcg@10": 0.3413,
-    "position_base_ndcg@10": 0.3126,
-    "delta_ndcg@10": 0.0288
+    "valid": false,
+    "reason": "history schema is incompatible with automotive candidate attrs and 200/200 SERPs have constant candidate scores; NDCG is tie/order-driven",
+    "all_tie_diagnostic_ndcg@10": 0.34106042903620876,
+    "position_base_ndcg@10": 0.31256126410447593,
+    "constant_score_serps": 200
   },
   "avito_exp3rt_full_legacy_invalid": {
     "path": "metrics/exp3rt_avito_full.json",
@@ -42,6 +64,54 @@
     "rmse": 0.6508,
     "mae": 0.4297,
     "source": "SIGIR 2025 Table 2, Amazon-Book Total"
+  },
+  "amazon_c4_automotive_retrieval": {
+    "path": "metrics/amazon_c4_automotive_retrieval.json",
+    "fixed_downstream_candidates": "BLaIR top-100",
+    "bm25_test_recall@100": 0.15789473684210525,
+    "blair_test_recall@100": 0.5921052631578947,
+    "blair_test_ndcg@10": 0.19671970505503764
+  },
+  "amazon_c4_automotive_images": {
+    "coverage_path": "metrics/amazon_c4_automotive_image_coverage.json",
+    "metrics_path": "metrics/amazon_c4_automotive_multimodal.json",
+    "valid_images": 21545,
+    "candidate_images": 21558,
+    "text_only_test_ndcg@10": 0.19671970505503764,
+    "late_fusion_test_ndcg@10": 0.22606399441829658,
+    "relative_delta_ndcg@10": 0.1491675045569231
+  },
+  "avito_local_catboost_diagnostic": {
+    "path": "metrics/avito_local_catboost_diagnostic.json",
+    "claim_scope": "local diagnostic only; not Roma/team CatBoost",
+    "n_test_serps": 200,
+    "position_ndcg@10": 0.3026703378363252,
+    "catboost_ensemble_ndcg@10": 0.653348727008229,
+    "seed_mean_ndcg@10": 0.6576435960951763,
+    "seed_std_ndcg@10": 0.0025916809906766617
+  },
+  "avito_local_llm_l0_diagnostic": {
+    "path": "metrics/avito_local_llm_diagnostic.json",
+    "claim_scope": "local no-history L0 only; not team protocol",
+    "n_test_serps": 200,
+    "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "full_pass_seconds_including_load_and_scoring": 318.32881236076355,
+    "llm_pointwise_ndcg@10": 0.35366695615274407,
+    "local_catboost_ndcg@10": 0.6533487269811451,
+    "gated_blend_ndcg@10": 0.6381364244784506,
+    "test_llm_call_fraction": 0.46,
+    "conclusion": "simple margin gate rejected: small dev gain did not transfer to test"
+  },
+  "ur4rec_paper_reference": {
+    "source": "COLING 2025 Appendix Table 6, DLCM MovieLens-1M",
+    "ndcg@10": {
+      "base": 0.315,
+      "ur4rec": 0.661
+    },
+    "ndcg@20": {
+      "base": 0.359,
+      "ur4rec": 0.678
+    }
   },
   "exp3rt_plots": "plots/exp3rt_plots_manifest.json",
   "experiments_registry": "experiments/registry.yaml",

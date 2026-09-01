@@ -76,8 +76,16 @@ while IFS='|' read -r exp_id status _ log_path metrics_path; do
   [ "$status" = "running" ] || continue
   section "Live run: $exp_id"
   if [ -n "$log_path" ] && [ -f "$log_path" ]; then
-    tail -8 "$log_path"
     log_dir=$(dirname "$log_path")
+    if [ -f "$log_dir/resume.status" ]; then
+      printf 'resume: '
+      cat "$log_dir/resume.status"
+    fi
+    tail -8 "$log_path"
+    if [ -f "$log_dir/train.log" ]; then
+      train_progress=$(tr '\r' '\n' < "$log_dir/train.log" | grep -E '\[(backbone|pretrain|joint)\]|(pretrain|joint) e[0-9]+' | tail -1 || true)
+      [ -n "$train_progress" ] && printf 'train: %s\n' "$train_progress"
+    fi
     for shard_log in "$log_dir"/knowledge_shard*.log; do
       [ -f "$shard_log" ] || continue
       progress=$(tr '\r' '\n' < "$shard_log" | grep -E 'llm-(items|users)' | tail -1 || true)
@@ -108,5 +116,8 @@ UR4Rec: docs/UR4Rec_code_and_reproduction.md
 Exp3RT: docs/exp3rt_reproduction.md
 Avito/C-UR4Rec: docs/avito_preferences.md
 Literature/task 26.06: docs/task_2026-06-26_artem.md
+Task 25.08 execution: docs/task_2026-08-25_execution_report.md
+Ranked literature: docs/literature_ranked_review_2026-09-01.md
+Benchmarks/ideas: docs/benchmark_protocol_2026-09-01.md
 Historical chronology only: docs/AGENT_HANDOFF.md
 EOF
