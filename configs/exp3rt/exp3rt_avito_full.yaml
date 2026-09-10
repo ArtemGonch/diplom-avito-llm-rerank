@@ -1,0 +1,21 @@
+# Exp3RT-style Avito — full test split (all SERPs, no cap)
+dataset:
+  items_path: items_with_attrs.parquet
+  users_path: users_with_history.parquet
+  label_field: contacts
+  min_serp_size: 10
+  train_ratio: 0.8
+  val_ratio: 0.1
+  max_test_serps: null
+
+llm:
+  backend: qwen
+  use_template_generator: false
+  load_in_4bit: true
+  max_new_tokens: 16
+  batch_size: 4
+  temperature: 0.1
+
+seed: 42
+device: cuda
+gpu_id: 0

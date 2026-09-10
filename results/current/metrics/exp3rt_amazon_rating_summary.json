@@ -1,0 +1,15 @@
+{
+  "stage": "rating",
+  "dataset": "amazon-book",
+  "config": "configs/exp3rt/amazon_book_qwen.yaml",
+  "checkpoint": "checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425",
+  "merged": "checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425/merged",
+  "train_loss": 0.2814,
+  "train_hours": 7.25,
+  "eval_rmse": 0.4280,
+  "eval_mae": 0.1776,
+  "eval_loss": 0.2674,
+  "steps": 2959,
+  "epochs": 1,
+  "status": "completed"
+}

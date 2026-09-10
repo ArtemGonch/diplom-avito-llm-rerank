@@ -1,0 +1,37 @@
+{
+  "ours": {
+    "max_prob_rating": {
+      "rmse": 0.6313639637633696,
+      "mae": 0.3115898833347526,
+      "n": 11743
+    },
+    "expected_rating": {
+      "rmse": 0.5906244608702312,
+      "mae": 0.3430629464300082,
+      "n": 11743
+    }
+  },
+  "paper_total": {
+    "rmse": 0.6508,
+    "mae": 0.4297,
+    "source": "Exp3RT SIGIR 2025 Table 2, Amazon-Book Total"
+  },
+  "paper_baselines": {
+    "MF": {
+      "rmse": 0.6683,
+      "mae": 0.4572
+    },
+    "LLMRec_GPT35_FS": {
+      "rmse": 0.7852,
+      "mae": 0.4562
+    },
+    "LLMRec_GPT4_FS": {
+      "rmse": 0.8386,
+      "mae": 0.5004
+    }
+  },
+  "delta_expected_vs_paper": {
+    "rmse": -0.06017553912976881,
+    "mae": -0.08663705356999185
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "protocol": {
+    "version": 1,
+    "dataset": "Amazon-C4 User Purchase History / Automotive",
+    "category_items": 41962,
+    "split_queries": {
+      "train": 444,
+      "dev": 72,
+      "test": 76
+    },
+    "top_k": 100,
+    "positive_forced_into_candidates": false,
+    "query_fields": [
+      "query"
+    ],
+    "forbidden_reference_fields": [
+      "ori_rating",
+      "ori_review"
+    ]
+  },
+  "bm25": {
+    "train": {
+      "hit@10": 0.060810810810810814,
+      "mrr@10": 0.03142517517517518,
+      "ndcg@10": 0.038269855785161865,
+      "recall@100": 0.19144144144144143
+    },
+    "dev": {
+      "hit@10": 0.05555555555555555,
+      "mrr@10": 0.019097222222222224,
+      "ndcg@10": 0.02788890197225051,
+      "recall@100": 0.18055555555555555
+    },
+    "test": {
+      "hit@10": 0.05263157894736842,
+      "mrr@10": 0.021303258145363407,
+      "ndcg@10": 0.02850877192982456,
+      "recall@100": 0.15789473684210525
+    }
+  },
+  "blair": {
+    "model": "hyp1231/blair-roberta-base",
+    "model_revision": "88adfe2b621cb202dee9aabb19b59de8f622844c8",
+    "train": {
+      "hit@10": 0.32882882882882886,
+      "mrr@10": 0.18367474617474616,
+      "ndcg@10": 0.2175965301283908,
+      "recall@100": 0.6238738738738738
+    },
+    "dev": {
+      "hit@10": 0.2916666666666667,
+      "mrr@10": 0.12692901234567902,
+      "ndcg@10": 0.16621827862917252,
+      "recall@100": 0.5833333333333334
+    },
+    "test": {
+      "hit@10": 0.32894736842105265,
+      "mrr@10": 0.15531015037593984,
+      "ndcg@10": 0.19671970505503764,
+      "recall@100": 0.5921052631578947
+    }
+  },
+  "fixed_downstream_candidate_source": "blair_top100"
+}

@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.ipynb_checkpoints/
+
+# Env / secrets
+.env
+.env.*
+*.pem
+credentials.json
+
+# Large artifacts (download or train locally)
+checkpoints/
+data/
+logs/
+*.log
+wandb/
+.cache/
+.vllm/
+/reports/
+
+# Private Avito data and row-level generated artifacts (local/Drive only)
+/items_with_attrs.parquet
+/users_with_history.parquet
+/results/current/metrics/avito_case_browser.json
+
+# Optional: keep small metric snapshots under results/current/metrics/
+# Uncomment to ignore all results:
+# results/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Conda
+.conda/
+
+# Huge model caches
+models/
+hf_cache/
+
+# Source packages named data/models are code, not downloaded artifacts.
+!src/data/
+!src/data/**/*.py
+!src/models/
+!src/models/**/*.py
+!src/ur4rec/data/
+!src/ur4rec/data/**/*.py

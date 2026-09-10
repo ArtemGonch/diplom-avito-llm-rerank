@@ -1,0 +1,66 @@
+# Exp3RT reproduction on Amazon-Books with Qwen2.5-7B-Instruct
+# Paper: Kim et al., SIGIR 2025 — https://arxiv.org/abs/2408.06276
+
+project:
+  name: exp3rt
+  dataset: amazon-book
+
+paths:
+  data_root: data/exp3rt
+  output_root: checkpoints/exp3rt/amazon_book_qwen
+  paper_repo: papers/exp3rt/assets/github_repo
+
+model:
+  base_model: Qwen/Qwen2.5-7B-Instruct
+  backend: qwen
+
+train:
+  seed: 425
+  batch_size: 32
+  micro_batch_size: 16
+  num_epochs: 1
+  learning_rate: 2.0e-4
+  cutoff_len: 1024
+  gradient_checkpointing: true
+  max_train_samples: null
+  max_eval_samples: 5000
+  dataloader_num_workers: 4
+  lora_r: 128
+  lora_alpha: 32
+  lora_dropout: 0.1
+  rmse_patience: 1
+  eval_patience: 5
+  group_by_length: true
+  # preference/user/item use lr=5e-4 in upstream; rating uses 2e-4
+  preference_learning_rate: 5.0e-4
+  profile_learning_rate: 5.0e-4
+
+inference:
+  seed: 425
+  max_tokens: 512
+  tensor_parallel_size: 2
+  test_split: test.json
+
+stages:
+  preference:
+    enabled: true
+    train: preference_extraction/preference_train.json
+    valid: preference_extraction/preference_valid.json
+  user:
+    enabled: true
+    train: user_profile/user_train.json
+    valid: user_profile/user_valid.json
+  item:
+    enabled: true
+    train: item_profile/item_train.json
+    valid: item_profile/item_valid.json
+  rating:
+    enabled: true
+    train: rating_bias/train.json
+    valid: rating_bias/valid.json
+    test: rating_bias/test.json
+
+# Fast single-GPU profile (A100 80GB, GPU ~30-40GB used):
+#   rating train: ~2-4 h (1 epoch, micro_batch=16) + merge ~20 min
+#   test+eval:    ~4-6 h (vLLM)
+# Paper-faithful (micro_batch=4, 3 epochs): ~24 h train on 1x A100

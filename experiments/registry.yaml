@@ -1,0 +1,178 @@
+# Shared experiment registry — single source of truth for the team.
+# Update status after each run; link metrics under results/current/.
+
+project:
+  name: diplom-avito-llm-rerank
+  repo: https://github.com/ArtemGonch/diplom-avito-llm-rerank
+  local_path: avito/
+  conda_env: diplom_avito
+  owner: team
+  updated: "2026-09-10"
+
+datasets:
+  ml1m:
+    path: data/movielens-1m
+    task: rerank
+    metrics: [ndcg@5, ndcg@10, map@10]
+  amazon_book:
+    path: data/exp3rt/amazon-book
+    task: rating_prediction
+    metrics: [rmse, mae]
+  avito_auto:
+    path: .
+    files: [items_with_attrs.parquet, users_with_history.parquet]
+    storage: private_vm_and_google_drive
+    git_tracked: false
+    task: serp_rerank
+    metrics: [ndcg@5, ndcg@10, map@10]
+    candidate_rows: 44736
+    serps: 2000
+    unique_items: 41592
+    history_rows: 2028
+    history_users: 274
+    history_serp_overlap: 295
+    notes: "Listing attrs are rich; query is category/location only. History has no rank-time cutoff, no price, sparse category-like fields with zero exact overlap to listing brand/model, and zero item-id overlap. contacts_daily is the graded benchmark target; has_tc_events is a separate post-exposure marker used only for diagnostics."
+  amazon_c4_automotive:
+    path: data/amazon-c4-user-purchase-history/Automotive
+    item_metadata: data/amazon-reviews-2023/Automotive/meta_Automotive.jsonl.gz
+    task: personalized_product_search
+    metrics: [recall@100, hit@10, mrr@10, ndcg@10]
+
+experiments:
+  ur4rec_ml1m_corrected_v3:
+    method: UR4Rec
+    dataset: ml1m
+    config: configs/ur4rec/ur4rec_ml1m_corrected_v3.yaml
+    script: scripts/ur4rec/run_corrected_v3.sh
+    status: done
+    stage: eval
+    started: "2026-08-25T12:17:51+03:00"
+    resumed: "2026-08-26T16:44:52+03:00"
+    finished: "2026-08-26T17:39:05+03:00"
+    knowledge_gpus: [2, 4, 5, 6]
+    train_gpu: 2
+    resume_script: scripts/ur4rec/run_corrected_v3_resume.sh
+    status_file: logs/ur4rec_corrected_v3/resume.status
+    metrics: checkpoints/ur4rec_ml1m_corrected_v3/metrics_test.json
+    results: results/current/metrics/ur4rec_ml1m_corrected_v3.json
+    log: logs/ur4rec_corrected_v3/master.log
+    notes: "Corrected temporal per-user split, random top-100; not paper-exact. Test NDCG@10 base=0.214796, pure UR4Rec=0.183334 (delta -14.65% relative). Negative result; alpha fixed at 1.0, so no fallback is hidden."
+
+  ur4rec_ml1m_beat_base:
+    method: UR4Rec
+    dataset: ml1m
+    config: configs/ur4rec/ur4rec_ml1m_beat_base.yaml
+    script: scripts/ur4rec/run_beat_baseline.sh
+    status: done
+    metrics: checkpoints/ur4rec_ml1m_beat_base/metrics_test.json
+    notes: "LEGACY: UR4Rec > base with random 50 candidates, but predates memory/mask/generation fixes; rerun required"
+
+  ur4rec_ml1m_guaranteed:
+    method: UR4Rec
+    dataset: ml1m
+    config: configs/ur4rec/ur4rec_ml1m_guaranteed.yaml
+    script: scripts/ur4rec/run_guaranteed.sh
+    status: done
+    metrics: checkpoints/ur4rec_ml1m_guaranteed/metrics_test.json
+    log: logs/guaranteed_train.log
+    notes: "LEGACY: 100 cand; base NDCG@10=0.204, UR4Rec=0.201 (alpha=0); predates correctness fixes"
+
+  exp3rt_amazon_rating_only:
+    method: Exp3RT
+    dataset: amazon_book
+    config: configs/exp3rt/amazon_book_qwen.yaml
+    status: done
+    metrics: checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425/metrics.json
+    notes: "Rating stage only; beats paper Total on test (shortcut)"
+
+  exp3rt_amazon_paper_full:
+    method: Exp3RT
+    dataset: amazon_book
+    config: configs/exp3rt/amazon_book_qwen_paper_full.yaml
+    script: scripts/exp3rt/finish_paper_full_test.sh
+    status: done
+    metrics: checkpoints/exp3rt/amazon_book_qwen_paper_full/amazon-book_rating_r128_alpha32_seed425/metrics.json
+    results: results/current/metrics/exp3rt_paper_full_test_metrics.json
+    log: logs/exp3rt_paper_full_test.log
+    notes: "4-stage Qwen; expected RMSE 0.562 MAE 0.350 vs paper 0.651/0.430"
+
+  exp3rt_avito_heuristic:
+    method: Exp3RT-style
+    dataset: avito_auto
+    config: configs/exp3rt/exp3rt_avito_full.yaml
+    script: scripts/exp3rt/run_avito_eval.sh
+    status: invalid
+    metrics: results/current/metrics/exp3rt_avito_full_leakage_free.json
+    notes: "INVALID FOR CLAIMS. Direct target leakage was removed, but history brand/model exports are incompatible taxonomy values, history has no price, and 200/200 test SERPs have constant scores after the schema fix. NDCG is tie/order-driven. Legacy 0.9417 additionally had target leakage."
+
+  ur4rec_avito_smoke:
+    method: UR4Rec
+    dataset: avito_auto
+    config: configs/ur4rec/ur4rec_avito_smoke_qwen.yaml
+    status: done
+    metrics: checkpoints/ur4rec_avito_smoke_qwen/metrics_test.json
+    notes: "LEGACY: predates memory/mask/generation fixes; rerun from knowledge required"
+
+  amazon_c4_automotive_retrieval:
+    method: BM25 + BLaIR
+    dataset: amazon_c4_automotive
+    script: scripts/amazon_c4/build_candidates.py
+    status: done
+    metrics: results/current/metrics/amazon_c4_automotive_retrieval.json
+    notes: "Separate top-100, no forced positive. BLaIR fixed for downstream: test Recall@100=0.592105, NDCG@10=0.196720; BM25 Recall@100=0.157895."
+
+  amazon_c4_automotive_multimodal:
+    method: BLaIR + CLIP late fusion
+    dataset: amazon_c4_automotive
+    script: scripts/amazon_c4/evaluate_multimodal.py
+    status: done
+    metrics: results/current/metrics/amazon_c4_automotive_multimodal.json
+    notes: "21,545/21,558 valid candidate images. Dev-selected text weight 0.4; test NDCG@10 0.196720 text-only -> 0.226064 fusion (+14.92% relative), candidates unchanged."
+
+  avito_local_catboost_diagnostic:
+    method: CatBoostRanker
+    dataset: avito_auto
+    script: scripts/avito/run_local_catboost.py
+    status: done
+    metrics: results/current/metrics/avito_local_catboost_diagnostic.json
+    notes: "LOCAL DIAGNOSTIC, not Roma/team A1. Canonical 300-iteration GPU fit on physical GPU 2, seeds 42/43/44; score ensemble test NDCG@10=0.657788. Exact split/model/score SHA-256 and driver/UUID are recorded; GPU refit is not claimed bitwise deterministic. Block-aware source order=0.428257. Legacy .cbm files without matching v2 metadata/hash cannot be reused."
+
+  avito_local_llm_l0_diagnostic:
+    method: Qwen2.5-7B pointwise + ambiguity gate
+    dataset: avito_auto
+    script: scripts/avito/run_llm_pointwise_diagnostic.py
+    status: done
+    metrics: results/current/metrics/avito_local_llm_diagnostic.json
+    notes: "LOCAL L0, pinned Qwen revision, no history/position and explicit score-desc/item_id-asc lexsort; not team protocol. Test NDCG@10=0.353148 vs canonical local CatBoost=0.657788. Dev-selected margin gate improved dev by 0.002838 but reduced test to 0.644844 at 37.5% simulated LLM calls; gate rejected."
+
+  avito_case_browser_analysis:
+    method: offline case browser + Qwen structured insights
+    dataset: avito_auto
+    script: scripts/avito/build_case_browser.py
+    insight_script: scripts/avito/generate_case_insights.py
+    status: done
+    finished: "2026-09-08"
+    metrics: results/current/metrics/avito_case_browser.json
+    local_browser: reports/avito_case_browser/index.html
+    local_bundle: data/avito/case_browser/avito_case_browser_share_bundle.zip
+    external_delivery:
+      provider: google_drive
+      status: uploaded
+      uploaded: "2026-09-10"
+      file_count: 7
+      private_artifacts_uploaded: 16
+      drive_link_committed: false
+      access_mode: anyone_with_link_writer
+      intended_recipient: roma
+      item_overlay_received: false
+    notes: "200 test SERPs and 8 deterministic featured cases. Existing no-history Qwen L0 is compared with canonical local CatBoost using explicit item_id tie breaks. contacts_daily graded relevance and has_tc_events post-exposure outcomes remain separate. Browser v5 has 72/72 prompt-v3/validation-v9 insights. Only exact source seller spans may survive; every other displayed field is evidence-derived. Contract v5 pins tokenizer artifacts/chat template; canonical batch size 1, request manifest, physical GPU/driver/determinism, exact padded token tensors and complete primary/retry attempts are independently re-tokenized and revalidated. Incomplete builds cannot publish a ZIP; dataset, row-level metrics, generated browser/cache/bundle remain outside Git and are stored on the private VM/Drive. Seven-file handoff was uploaded to an owner-controlled Google Drive folder on 2026-09-10; images and extra metadata from Roma are still pending."
+
+paper_targets:
+  ur4rec_ml1m:
+    source: "UR4Rec Table 6, DLCM backbone"
+    ndcg@10: {base: 0.315, ur4rec: 0.661}
+    ndcg@20: {base: 0.359, ur4rec: 0.678}
+  exp3rt_amazon:
+    source: "Exp3RT SIGIR 2025 Table 2 Total"
+    rmse: 0.6508
+    mae: 0.4297

@@ -1,0 +1,19 @@
+{
+  "run_id": "rating_only_qwen_2026-06-17",
+  "snapshot_time": "2026-06-17T094654Z",
+  "label": "Qwen2.5-7B rating-only, 1 epoch, cutoff 1024 (beats paper on test)",
+  "config": "configs/exp3rt/amazon_book_qwen.yaml",
+  "checkpoint": "checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425",
+  "test_metrics": {
+    "max_prob_rating": {
+      "rmse": 0.6313639637633696,
+      "mae": 0.3115898833347526,
+      "n": 11743
+    },
+    "expected_rating": {
+      "rmse": 0.5906244608702312,
+      "mae": 0.3430629464300082,
+      "n": 11743
+    }
+  }
+}

@@ -1,0 +1,4 @@
+[submodule "papers/exp3rt/assets/github_repo"]
+	path = papers/exp3rt/assets/github_repo
+	url = https://github.com/jieyong99/EXP3RT.git
+	ignore = untracked

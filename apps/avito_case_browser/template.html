@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avito Auto · Ranking Case Browser</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17211b;
+      --muted: #66736b;
+      --paper: #f5f2ea;
+      --card: #fffdf8;
+      --line: #dedbd1;
+      --accent: #0f766e;
+      --accent-dark: #0a4f4a;
+      --accent-soft: #d9efeb;
+      --blue: #365f91;
+      --blue-soft: #e7eef8;
+      --amber: #9a5b0b;
+      --amber-soft: #fff1d8;
+      --red: #a53a35;
+      --red-soft: #fce8e5;
+      --green: #2d6a4f;
+      --green-soft: #e2f1e8;
+      --shadow: 0 10px 35px rgba(35, 45, 38, .08);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(15,118,110,.10), transparent 33rem),
+        radial-gradient(circle at 95% 5%, rgba(154,91,11,.09), transparent 28rem),
+        var(--paper);
+      color: var(--ink);
+      font: 15px/1.48 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      min-height: 68px; padding: 12px 24px;
+      color: white; background: rgba(23,33,27,.96); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      display: grid; place-items: center; width: 39px; height: 39px; flex: 0 0 auto;
+      border-radius: 12px; background: linear-gradient(145deg, #3fc1b4, #0f766e);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); font-weight: 800;
+    }
+    .brand h1 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+    .brand p { margin: 1px 0 0; color: #b9c4bd; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .top-pills { display: flex; gap: 8px; align-items: center; }
+    .top-pill { padding: 6px 9px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; color: #dce5df; font-size: 12px; white-space: nowrap; }
+    .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); min-height: calc(100vh - 68px); }
+    .sidebar {
+      position: sticky; top: 68px; height: calc(100vh - 68px); overflow: auto;
+      padding: 18px 14px; border-right: 1px solid var(--line); background: rgba(250,248,242,.84);
+    }
+    .search { position: relative; margin-bottom: 12px; }
+    .search input {
+      width: 100%; padding: 11px 12px 11px 36px; border: 1px solid var(--line); border-radius: 12px;
+      background: var(--card); color: var(--ink); outline: none;
+    }
+    .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .search span { position: absolute; left: 12px; top: 10px; color: var(--muted); }
+    .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .filter {
+      padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--muted); text-align: left;
+    }
+    .filter.active { color: var(--accent-dark); border-color: #82b9b2; background: var(--accent-soft); font-weight: 650; }
+    .case-count { display: flex; justify-content: space-between; margin: 10px 3px 8px; color: var(--muted); font-size: 12px; }
+    .case-list { display: grid; gap: 8px; }
+    .case-link {
+      width: 100%; padding: 11px; border: 1px solid transparent; border-radius: 12px;
+      background: transparent; color: inherit; text-align: left;
+    }
+    .case-link:hover { background: rgba(255,255,255,.72); border-color: var(--line); }
+    .case-link.active { background: var(--card); border-color: #8cbdb7; box-shadow: 0 4px 18px rgba(35,45,38,.06); }
+    .case-link-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .case-code { font: 650 12px/1.2 var(--mono); color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+    .delta { font: 700 12px/1 var(--mono); }
+    .good { color: var(--green); } .bad { color: var(--red); }
+    .case-meta { margin-top: 7px; display: flex; gap: 5px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
+    .mini-tag { padding: 2px 6px; background: #ebe9e2; border-radius: 999px; }
+    .mini-tag.featured { color: var(--amber); background: var(--amber-soft); }
+    main { min-width: 0; padding: 24px clamp(18px, 3vw, 44px) 70px; }
+    .hero {
+      display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px; align-items: start;
+      margin-bottom: 18px;
+    }
+    .eyebrow { margin-bottom: 7px; color: var(--accent); font-weight: 750; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .hero h2 { margin: 0 0 7px; font-size: clamp(25px, 3vw, 38px); letter-spacing: -.035em; line-height: 1.05; }
+    .hero p { margin: 0; color: var(--muted); }
+    .copy-id { padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--muted); }
+    .banner {
+      display: flex; align-items: flex-start; gap: 10px; margin: 13px 0; padding: 12px 14px;
+      border: 1px solid #edca92; border-radius: 12px; background: var(--amber-soft); color: #684009;
+    }
+    .banner strong { display: block; margin-bottom: 2px; }
+    .featured-note { border-color: #b6d8d3; background: var(--accent-soft); color: var(--accent-dark); }
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(125px,1fr)); gap: 10px; margin: 17px 0 24px; }
+    .metric { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,253,248,.88); box-shadow: 0 4px 20px rgba(35,45,38,.035); }
+    .metric-label { color: var(--muted); font-size: 11px; line-height: 1.25; }
+    .metric-value { margin-top: 7px; font: 720 21px/1 var(--mono); letter-spacing: -.04em; }
+    .metric-note { margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .section { margin-top: 25px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+    .section h3 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
+    .section-sub { color: var(--muted); font-size: 12px; }
+    .panel { border: 1px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+    .history-grid { display: grid; grid-template-columns: minmax(240px,.72fr) minmax(0,1.28fr); }
+    .profile { padding: 18px; border-right: 1px solid var(--line); }
+    .profile h4, .timeline h4 { margin: 0 0 10px; }
+    .profile-list { display: grid; gap: 8px; }
+    .profile-row { padding: 9px 10px; border-radius: 9px; background: #f3f1eb; }
+    .profile-row strong { display: block; font-size: 12px; }
+    .profile-row span { color: var(--muted); font-size: 12px; }
+    .insight { margin-top: 14px; padding: 12px; border: 1px solid #b6d8d3; border-radius: 11px; background: #f2fbf9; }
+    .insight h5 { margin: 0 0 7px; color: var(--accent-dark); }
+    .insight p { margin: 5px 0; }
+    .insight ul { margin: 5px 0 9px; padding-left: 18px; }
+    .timeline { max-height: 440px; overflow: auto; padding: 18px; }
+    .event { position: relative; margin-left: 8px; padding: 0 0 17px 19px; border-left: 1px solid #cdd5cf; }
+    .event:last-child { padding-bottom: 0; }
+    .event::before { content: ""; position: absolute; left: -5px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .event-date { font: 650 11px/1.2 var(--mono); color: var(--muted); }
+    .event-title { margin: 4px 0 2px; font-weight: 650; }
+    .event-taxonomy { color: var(--muted); font-size: 12px; }
+    .empty { padding: 28px; color: var(--muted); text-align: center; }
+    .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .segmented { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: #ebe9e2; }
+    .segmented button { padding: 7px 10px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; font-size: 12px; }
+    .segmented button.active { color: var(--ink); background: var(--card); box-shadow: 0 2px 7px rgba(35,45,38,.08); font-weight: 650; }
+    select { padding: 8px 28px 8px 9px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--card); }
+    .rank-legend { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; color: var(--muted); font-size: 11px; }
+    .legend-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.55); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .dot.tc { background: var(--red); } .dot.rel { background: var(--blue); } .dot.llm { background: var(--accent); }
+    .candidates { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px,1fr)); gap: 11px; }
+    .candidate {
+      position: relative; display: grid; grid-template-rows: 120px auto; min-width: 0;
+      border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden;
+      box-shadow: 0 4px 18px rgba(35,45,38,.04); transition: transform .15s, box-shadow .15s, border-color .15s;
+    }
+    .candidate:hover { transform: translateY(-2px); border-color: #a9bbb0; box-shadow: 0 10px 25px rgba(35,45,38,.09); }
+    .candidate.tc { border-color: #df9f99; box-shadow: inset 0 0 0 1px #f4cbc7, 0 5px 20px rgba(165,58,53,.09); }
+    .candidate-media { position: relative; display: grid; place-items: center; background: linear-gradient(145deg,#e8ece9,#f6f3ec); overflow: hidden; }
+    .candidate-media img { width: 100%; height: 100%; object-fit: cover; }
+    .placeholder-car { color: #849087; font-size: 31px; filter: grayscale(1); }
+    .rank-badge { position: absolute; left: 9px; top: 9px; padding: 5px 8px; border-radius: 8px; color: white; background: rgba(23,33,27,.88); font: 750 12px/1 var(--mono); }
+    .tc-badge { position: absolute; right: 9px; top: 9px; padding: 5px 8px; border-radius: 8px; color: white; background: var(--red); font-weight: 750; font-size: 11px; }
+    .candidate-body { padding: 12px; }
+    .candidate-title { min-height: 42px; margin: 0 0 7px; font-weight: 720; line-height: 1.35; }
+    .candidate-facts { display: flex; gap: 5px; flex-wrap: wrap; min-height: 27px; }
+    .fact { padding: 3px 6px; border-radius: 6px; background: #efede7; color: #525e56; font-size: 11px; }
+    .candidate-score { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
+    .score-cell span { display: block; color: var(--muted); font-size: 10px; }
+    .score-cell strong { font: 650 12px/1.2 var(--mono); }
+    .details-btn { width: 100%; margin-top: 10px; padding: 7px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--accent-dark); }
+    .details-btn:hover { background: var(--accent-soft); }
+    .limitations { padding: 0; margin: 0; list-style: none; }
+    .limitations li { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .limitations li:last-child { border-bottom: 0; }
+    .limitations strong { color: var(--amber); margin-right: 8px; }
+    dialog { width: min(760px, calc(100vw - 26px)); max-height: calc(100vh - 34px); padding: 0; border: 0; border-radius: 18px; background: var(--card); box-shadow: 0 24px 90px rgba(0,0,0,.28); }
+    dialog::backdrop { background: rgba(18,25,21,.58); backdrop-filter: blur(4px); }
+    .dialog-head { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 16px; padding: 17px 19px; border-bottom: 1px solid var(--line); background: rgba(255,253,248,.96); }
+    .dialog-head h3 { margin: 0; font-size: 18px; }
+    .close { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: white; }
+    .dialog-body { padding: 19px; }
+    .dialog-description { white-space: pre-wrap; color: #465148; }
+    .rank-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+    .rank-table th, .rank-table td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; font-size: 12px; }
+    .rank-table th { color: var(--muted); font-weight: 600; }
+    .footer-note { margin-top: 35px; color: var(--muted); font-size: 11px; text-align: center; }
+    @media (max-width: 1050px) {
+      .metrics { grid-template-columns: repeat(3, 1fr); }
+      .history-grid { grid-template-columns: 1fr; }
+      .profile { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 760px) {
+      .top-pills { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: 0; height: auto; max-height: 390px; border-right: 0; border-bottom: 1px solid var(--line); }
+      main { padding: 18px 13px 50px; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .hero { grid-template-columns: 1fr; }
+      .hero-actions { display: none; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div><h1>Avito Auto · Case Browser</h1><p>Выдача · Qwen L0 · CatBoost · фактические TC-события</p></div>
+    </div>
+    <div class="top-pills"><span class="top-pill" id="split-pill"></span><span class="top-pill">offline audit</span></div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="search"><span>⌕</span><input id="search" type="search" placeholder="SERP, user, item, title…" aria-label="Поиск кейса"></div>
+      <div class="filters">
+        <button class="filter active" data-filter="all">Все кейсы</button>
+        <button class="filter" data-filter="featured">★ Отобранные</button>
+        <button class="filter" data-filter="with_history">С историей</button>
+        <button class="filter" data-filter="actual_tc_event">С TC-event</button>
+        <button class="filter" data-filter="qwen_beats_catboost">Qwen лучше</button>
+        <button class="filter" data-filter="target_disagreement">Targets ≠</button>
+      </div>
+      <div class="case-count"><span id="case-count"></span><span>Δ Qwen − CB</span></div>
+      <nav class="case-list" id="case-list" aria-label="Список SERP"></nav>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow" id="case-eyebrow"></div>
+          <h2 id="case-title"></h2>
+          <p id="case-query"></p>
+        </div>
+        <div class="hero-actions"><button class="copy-id" id="copy-id">Скопировать SERP ID</button></div>
+      </section>
+      <div id="featured-notes"></div>
+      <div class="banner">
+        <div>⚠</div><div><strong>Два разных target-слоя</strong><span><code>contacts_daily</code> используется для graded NDCG; красный TC — отдельный <code>has_tc_events</code>, показанный только после ранжирования. История не имеет проверяемого rank-time cutoff.</span></div>
+      </div>
+
+      <section class="metrics" id="metrics"></section>
+
+      <section class="section">
+        <div class="section-head"><div><h3>История пользователя</h3><div class="section-sub" id="history-sub"></div></div></div>
+        <div class="panel history-grid" id="history-panel"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div><h3>Сравнение ранжирований</h3><div class="section-sub">Карточки сортируются по выбранному методу; клик открывает все ranks, описание и LLM-разбор.</div></div>
+          <div class="toolbar">
+            <div class="segmented" id="ranking-tabs">
+              <button data-method="source">Выдача</button>
+              <button data-method="catboost">CatBoost</button>
+              <button class="active" data-method="qwen_l0">Qwen L0</button>
+              <button data-method="gated_blend">Gate</button>
+            </div>
+            <select id="top-k" aria-label="Число карточек"><option value="5">Top-5</option><option value="10" selected>Top-10</option><option value="999">Все</option></select>
+          </div>
+        </div>
+        <div class="rank-legend"><span class="legend-chip"><i class="dot tc"></i> фактический TC-event</span><span class="legend-chip"><i class="dot rel"></i> graded contacts_daily</span><span class="legend-chip"><i class="dot llm"></i> Qwen L0 без history/position</span></div>
+        <div class="candidates" id="candidates"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><div><h3>Ограничения интерпретации</h3><div class="section-sub">Эти предупреждения являются частью артефакта, а не сноской.</div></div></div>
+        <div class="panel"><ul class="limitations" id="limitations"></ul></div>
+      </section>
+      <p class="footer-note" id="footer-note"></p>
+    </main>
+  </div>
+
+  <dialog id="item-dialog"><div class="dialog-head"><h3 id="dialog-title"></h3><button class="close" id="dialog-close" aria-label="Закрыть">×</button></div><div class="dialog-body" id="dialog-body"></div></dialog>
+
+  <script id="payload" type="text/plain">__AVITO_BROWSER_PAYLOAD_BASE64__</script>
+  <script>
+    "use strict";
+    const encoded = document.getElementById("payload").textContent.trim();
+    const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
+    const DATA = JSON.parse(new TextDecoder().decode(bytes));
+    const state = { filter: "all", search: "", selected: DATA.featured_serps[0] || DATA.cases[0]?.serp_x, method: "qwen_l0", topK: 10 };
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+    const num = (value, digits=3) => value === null || value === undefined ? "—" : Number(value).toFixed(digits);
+    const money = value => value === null || value === undefined ? null : new Intl.NumberFormat("ru-RU", {maximumFractionDigits:0}).format(value) + " ₽";
+    const shortId = id => id ? `${id.slice(0, 6)}…${id.slice(-4)}` : "без ID";
+    const tagLabels = {featured:"★ отобран",with_history:"history",cold_start:"cold-start",actual_tc_event:"TC",no_actual_tc_event:"без TC",qwen_beats_catboost:"Qwen↑",qwen_below_catboost:"Qwen↓",target_disagreement:"targets ≠",long_history:"long history",gate_helps:"gate↑",gate_hurts:"gate↓",gate_unchanged:"gate="};
+    const methodLabels = {source:"Экспортированная выдача",catboost:"Local CatBoost",qwen_l0:"Qwen2.5-7B L0",gated_blend:"Отклонённый gate"};
+    function safeImage(value) {
+      if (typeof value !== "string" || !value) return false;
+      if (/^https?:\/\//i.test(value)) return true;
+      if (/^data:image\/(png|jpeg|webp|gif);base64,/i.test(value)) return true;
+      if (!/^assets\/[A-Za-z0-9._\/-]+$/.test(value)) return false;
+      return !value.split("/").some(part => part === "." || part === "..");
+    }
+
+    function searchable(caseRow) {
+      return [caseRow.serp_x, caseRow.user_id, caseRow.query.category_proxy, caseRow.query.location_id,
+        ...caseRow.candidates.flatMap(c => [c.item_id, c.title, c.attributes.brand, c.attributes.model])].join(" ").toLowerCase();
+    }
+    function visibleCases() {
+      const q = state.search.trim().toLowerCase();
+      return DATA.cases.filter(c => (state.filter === "all" || c.tags.includes(state.filter)) && (!q || searchable(c).includes(q)))
+        .sort((a,b) => (b.tags.includes("featured") - a.tags.includes("featured")) || a.serp_x.localeCompare(b.serp_x));
+    }
+    function renderCaseList() {
+      const rows = visibleCases();
+      $("case-count").textContent = `${rows.length} из ${DATA.cases.length}`;
+      $("case-list").innerHTML = rows.map(c => {
+        const d = c.metrics["delta_qwen_vs_catboost_ndcg@10"];
+        const tags = c.tags.filter(t => ["featured","with_history","actual_tc_event","target_disagreement"].includes(t)).map(t => `<span class="mini-tag ${t === "featured" ? "featured" : ""}">${esc(tagLabels[t])}</span>`).join("");
+        return `<button class="case-link ${c.serp_x === state.selected ? "active" : ""}" data-serp="${esc(c.serp_x)}"><span class="case-link-top"><span class="case-code">${esc(shortId(c.serp_x))}</span><span class="delta ${d >= 0 ? "good" : "bad"}">${d >= 0 ? "+" : ""}${num(d)}</span></span><span class="case-meta">${tags}<span class="mini-tag">${c.candidate_count} items</span></span></button>`;
+      }).join("") || `<div class="empty">Ничего не найдено</div>`;
+      document.querySelectorAll(".case-link").forEach(el => el.addEventListener("click", () => { state.selected = el.dataset.serp; renderAll(); }));
+    }
+    function selectedCase() {
+      const rows = visibleCases();
+      return rows.find(c => c.serp_x === state.selected) || rows[0] || null;
+    }
+    function metricCard(label, value, note, cls="") { return `<article class="metric"><div class="metric-label">${esc(label)}</div><div class="metric-value ${cls}">${esc(value)}</div><div class="metric-note">${esc(note)}</div></article>`; }
+
+    function insightHtml(insight, kind) {
+      if (!insight || insight.status !== "ok" || !insight.parsed) return `<div class="insight"><h5>LLM-разбор пока не материализован</h5><p>Запустите генератор insights; ranking score при этом не изменится.</p></div>`;
+      const p = insight.parsed;
+      const fields = kind === "user" ? [["Границы наблюдения", p.observed_signals],["Осторожные гипотезы из raw category",p.hypotheses],["Ограничения",p.limitations]] : [["Факты экспорта",p.observed_facts],["Дословные фрагменты, выбранные LLM",p.seller_claims],["Что проверить",p.risks_to_verify],["Ограничения",p.limitations]];
+      const provenance = insight.fallback_applied ? "guarded fallback: исходный LLM-ответ отклонён" : "LLM output прошёл schema/language/safety/exact-span guards; fact/profile-поля заново собраны из evidence";
+      const heading = kind === "user" ? "Evidence-сводка истории" : (insight.fallback_applied ? "Безопасная сводка объявления" : "Проверенный разбор объявления");
+      return `<div class="insight"><h5>${heading} · confidence ${esc(p.confidence || "—")}</h5><p>${esc(p.summary || "")}</p>${fields.map(([name,values]) => Array.isArray(values) && values.length ? `<strong>${esc(name)}</strong><ul>${values.map(v=>`<li>${esc(v)}</li>`).join("")}</ul>` : "").join("")}<div class="section-sub">${esc(insight.model || "model unknown")} · ${esc(provenance)}</div></div>`;
+    }
+
+    function renderHistory(c) {
+      $("history-sub").textContent = c.history.length ? `${c.history.length} экспортированных контактов · temporal status unknown` : "Совпавшей истории в текущем extract нет";
+      if (!c.history.length) { $("history-panel").innerHTML = `<div class="empty" style="grid-column:1/-1">Cold-start: user_id отсутствует или не пересекается с users_with_history.parquet. Qwen L0 в любом случае не использовал history.</div>`; return; }
+      const s = c.history_summary;
+      const top = s.top_raw_taxonomy_level_1.length ? s.top_raw_taxonomy_level_1.map(([v,n]) => `<div class="profile-row"><strong>${esc(v)}</strong><span>${n} contact events</span></div>`).join("") : `<div class="profile-row"><span>taxonomy level 1 не заполнена</span></div>`;
+      const timeline = c.history.map(h => `<article class="event"><div class="event-date">${esc(h.contact_date)} · item ${esc(h.item_id)}</div><div class="event-title">${esc(h.title || "Метаданные объявления ожидаются от Ромы")}</div><div class="event-taxonomy">raw taxonomy: ${esc(h.raw_taxonomy_level_1 || "—")} / ${esc(h.raw_taxonomy_level_2 || "—")}</div></article>`).join("");
+      $("history-panel").innerHTML = `<div class="profile"><h4>Наблюдаемая сводка</h4><div class="profile-list"><div class="profile-row"><strong>Период экспорта</strong><span>${esc(s.date_from)} — ${esc(s.date_to)}</span></div><div class="profile-row"><strong>Metadata coverage</strong><span>${num(s.metadata_coverage * 100,1)}%</span></div>${top}</div>${insightHtml(c.user_insight,"user")}</div><div class="timeline"><h4>Лента контактов</h4>${timeline}</div>`;
+    }
+
+    function candidateFacts(c) {
+      const a = c.attributes; return [a.brand, a.model, a.year, money(a.price), a.mileage_km !== null ? `${new Intl.NumberFormat("ru-RU").format(a.mileage_km)} км` : null, a.body, a.gearbox].filter(Boolean).slice(0,6);
+    }
+    function renderCandidates(c) {
+      if (!c) { $("candidates").innerHTML = `<div class="empty">Нет выдачи для текущего поиска.</div>`; return; }
+      const rows = [...c.candidates].sort((a,b) => a.ranks[state.method] - b.ranks[state.method]).slice(0,state.topK);
+      $("candidates").innerHTML = rows.map(item => {
+        const image = safeImage(item.image) ? `<img src="${esc(item.image)}" alt="" onerror="this.remove()">` : `<span class="placeholder-car">◇</span>`;
+        const facts = candidateFacts(item).map(v=>`<span class="fact">${esc(v)}</span>`).join("");
+        const tc = item.outcomes.actual_tc_event ? `<span class="tc-badge">TC event</span>` : "";
+        return `<article class="candidate ${item.outcomes.actual_tc_event ? "tc" : ""}"><div class="candidate-media">${image}<span class="rank-badge">#${item.ranks[state.method]}</span>${tc}</div><div class="candidate-body"><p class="candidate-title">${esc(item.title)}</p><div class="candidate-facts">${facts}</div><div class="candidate-score"><div class="score-cell"><span>benchmark rel.</span><strong>${num(item.outcomes.benchmark_relevance)}</strong></div><div class="score-cell"><span>Qwen / CB rank</span><strong>#${item.ranks.qwen_l0} / #${item.ranks.catboost}</strong></div></div><button class="details-btn" data-item="${item.item_id}">Подробнее</button></div></article>`;
+      }).join("");
+      document.querySelectorAll(".details-btn").forEach(el => el.addEventListener("click", () => openItem(c, Number(el.dataset.item))));
+    }
+
+    function openItem(c, itemId) {
+      const item = c.candidates.find(row => row.item_id === itemId); if (!item) return;
+      $("dialog-title").textContent = item.title;
+      const rankRows = Object.entries(methodLabels).map(([key,label]) => `<tr><td>${esc(label)}</td><td>#${item.ranks[key]}</td><td>${key === "source" ? "—" : num(item.scores[key === "qwen_l0" ? "qwen_l0" : key])}</td></tr>`).join("");
+      $("dialog-body").innerHTML = `<div class="rank-legend"><span class="legend-chip">item_id ${esc(item.item_id)}</span>${item.outcomes.actual_tc_event ? `<span class="legend-chip"><i class="dot tc"></i> фактический TC-event</span>` : ""}<span class="legend-chip"><i class="dot rel"></i> relevance ${num(item.outcomes.benchmark_relevance)}</span></div><h4>Описание</h4><p class="dialog-description">${esc(item.description || "Описание отсутствует")}</p><table class="rank-table"><thead><tr><th>Метод</th><th>Rank</th><th>Score</th></tr></thead><tbody>${rankRows}</tbody></table>${insightHtml(item.insight,"item")}`;
+      $("item-dialog").showModal();
+    }
+
+    function renderEmptyCase() {
+      state.selected = null;
+      $("case-eyebrow").textContent = "Поиск не дал результатов";
+      $("case-title").textContent = "Кейсы не найдены";
+      $("case-query").textContent = "Измените запрос или сбросьте фильтр слева.";
+      $("featured-notes").innerHTML = "";
+      $("metrics").innerHTML = `<div class="empty" style="grid-column:1/-1">Метрики выбранного SERP отсутствуют.</div>`;
+      $("history-sub").textContent = "Нет выбранного SERP";
+      $("history-panel").innerHTML = `<div class="empty" style="grid-column:1/-1">История не отображается без выбранного кейса.</div>`;
+      $("candidates").innerHTML = `<div class="empty">Нет выдачи для текущего поиска.</div>`;
+      $("copy-id").disabled = true;
+    }
+
+    function renderCase() {
+      const c = selectedCase();
+      if (!c) { renderEmptyCase(); return; }
+      state.selected = c.serp_x;
+      $("copy-id").disabled = false;
+      $("case-eyebrow").textContent = `SERP ${c.serp_x} · user ${c.user_id || "unknown"}`;
+      $("case-title").textContent = c.query.category_proxy || "Avito Auto выдача";
+      $("case-query").textContent = `location_id ${c.query.location_id || "—"} · ${c.candidate_count} candidates · полный query отсутствует`;
+      $("featured-notes").innerHTML = c.featured_reasons.map(r => `<div class="banner featured-note"><div>★</div><div><strong>${esc(r.id)}</strong><span>${esc(r.description)}</span></div></div>`).join("");
+      const m = c.metrics, g = m["graded_ndcg@10"], a = m.actual_tc;
+      $("metrics").innerHTML = [
+        metricCard("Local CatBoost · NDCG@10", num(g.catboost), "graded contacts_daily"),
+        metricCard("Qwen L0 · NDCG@10", num(g.qwen_l0), `Δ ${m["delta_qwen_vs_catboost_ndcg@10"] >= 0 ? "+" : ""}${num(m["delta_qwen_vs_catboost_ndcg@10"])} vs CB`, m["delta_qwen_vs_catboost_ndcg@10"] >= 0 ? "good" : "bad"),
+        metricCard("Gate · NDCG@10", num(g.gated_blend), "gate отклонён по test"),
+        metricCard("Первый TC: Qwen / CB", a.qwen_l0.eligible ? `#${a.qwen_l0.first_rank} / #${a.catboost.first_rank}` : "нет TC", "has_tc_events, не contacts_daily"),
+        metricCard("История", String(c.history_summary.count), "Qwen score её не использовал")
+      ].join("");
+      renderHistory(c); renderCandidates(c);
+    }
+    function renderAll() { renderCaseList(); renderCase(); }
+
+    $("search").addEventListener("input", e => { state.search = e.target.value; const rows=visibleCases(); if (!rows.some(c=>c.serp_x===state.selected)) state.selected=rows[0]?.serp_x || null; renderAll(); });
+    document.querySelectorAll(".filter").forEach(el => el.addEventListener("click", () => { document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active")); el.classList.add("active"); state.filter=el.dataset.filter; const rows=visibleCases(); state.selected=rows[0]?.serp_x || null; renderAll(); }));
+    document.querySelectorAll("#ranking-tabs button").forEach(el => el.addEventListener("click", () => { document.querySelectorAll("#ranking-tabs button").forEach(x=>x.classList.remove("active")); el.classList.add("active"); state.method=el.dataset.method; renderCandidates(selectedCase()); }));
+    $("top-k").addEventListener("change", e => { state.topK=Number(e.target.value); renderCandidates(selectedCase()); });
+    $("copy-id").addEventListener("click", async () => { const c=selectedCase(); if (!c) return; try { await navigator.clipboard.writeText(c.serp_x); $("copy-id").textContent="Скопировано"; setTimeout(()=>$("copy-id").textContent="Скопировать SERP ID",900); } catch (_) {} });
+    $("dialog-close").addEventListener("click", () => $("item-dialog").close());
+    $("item-dialog").addEventListener("click", e => { if (e.target === $("item-dialog")) $("item-dialog").close(); });
+    $("split-pill").textContent = `${DATA.meta.split} · ${DATA.summary.counts.serps} SERP`;
+    $("limitations").innerHTML = DATA.meta.limitations.map(v=>`<li><strong>!</strong>${esc(v)}</li>`).join("");
+    $("footer-note").textContent = `Browser v${DATA.meta.browser_version} · generated ${DATA.meta.generated_at} · ${DATA.meta.claim_scope}`;
+    renderAll();
+  </script>
+</body>
+</html>

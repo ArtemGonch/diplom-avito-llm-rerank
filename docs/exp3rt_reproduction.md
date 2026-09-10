@@ -1,0 +1,87 @@
+# Exp3RT reproduction (Qwen)
+
+> **Статус 2026-08-25:** rating-only и chained paper-full test завершены. Для полного pipeline использовать `scripts/exp3rt/run_paper_full.sh`: generic `--stage all --train-stages ...` обучает перечисленные задачи, но сам по себе не гарантирует последовательное наследование adapters.
+
+Paper: [Exp3RT SIGIR 2025](https://arxiv.org/abs/2408.06276)
+
+## Layout
+
+```
+avito/
+├── src/
+│   ├── common/          # metrics, device_util, shared HF LLM backends
+│   ├── data/            # MovieLens, Amazon, Steam, Avito loaders
+│   ├── models/
+│   │   ├── ur4rec/      # UR4Rec architecture (COLING 2025)
+│   │   └── exp3rt/      # Exp3RT Qwen port (SIGIR 2025)
+│   └── ur4rec/          # backward-compatible import shims
+├── configs/
+│   ├── ur4rec/
+│   └── exp3rt/
+├── scripts/
+│   ├── ur4rec/
+│   └── exp3rt/
+├── checkpoints/
+│   ├── ur4rec_ml1m_*/
+│   └── exp3rt/
+├── data/exp3rt/         # symlink → papers/exp3rt/assets/github_repo/data
+└── papers/exp3rt/assets/github_repo/  # upstream git submodule
+```
+
+## Setup
+
+```bash
+git submodule update --init --recursive
+conda activate diplom_avito
+pip install -r requirements-exp3rt.txt
+```
+
+## Minimal reproduction (rating stage only)
+
+Bundled JSON already contains stage-1/2 profiles inside rating examples.
+
+```bash
+# 1) Merge shards + validate paths
+python scripts/exp3rt/run_exp3rt.py --config configs/exp3rt/amazon_book_qwen.yaml --stage prepare
+
+# 2) Train stage-3 rating (~8-16 h on 8×A100)
+CUDA_VISIBLE_DEVICES=4,5,6,7 EXP3RT_SINGLE_GPU=1 \
+  python scripts/exp3rt/run_exp3rt.py --config configs/exp3rt/amazon_book_qwen.yaml --stage train --train-stage rating
+
+# 3) Inference + metrics (~3-6 h)
+CUDA_VISIBLE_DEVICES=4 python scripts/exp3rt/run_exp3rt.py --config configs/exp3rt/amazon_book_qwen.yaml --stage test
+python scripts/exp3rt/run_exp3rt.py --config configs/exp3rt/amazon_book_qwen.yaml --stage eval
+```
+
+Or one command (rating only):
+
+```bash
+CUDA_VISIBLE_DEVICES=4,5,6,7 python scripts/exp3rt/run_exp3rt.py \
+  --config configs/exp3rt/amazon_book_qwen.yaml --stage all
+```
+
+## Full staged pipeline
+
+```bash
+bash scripts/exp3rt/run_paper_full.sh
+```
+
+## Time estimates (8× A100 80GB)
+
+| Step | Hours |
+|------|-------|
+| preference + user + item (3× train) | ~12–24 |
+| rating train | ~8–16 |
+| vLLM test (11k rows) | ~3–6 |
+| **Total (all stages)** | **~30–50** |
+| **Rating-only (recommended first)** | **~12–24** |
+
+## Outputs
+
+- LoRA + merged model: `checkpoints/exp3rt/amazon_book_qwen/amazon-book_rating_r128_alpha32_seed425/merged`
+- Predictions: `.../predictions_test.json`
+- RMSE/MAE: `.../metrics.json`
+
+Актуальный агрегированный test snapshot: `results/current/metrics/exp3rt_paper_full_test_metrics.json` — expected RMSE `0.5624`, expected MAE `0.3496`, `n=11743`.
+
+Compare with paper Table 2 (Amazon-Books rating / rerank).

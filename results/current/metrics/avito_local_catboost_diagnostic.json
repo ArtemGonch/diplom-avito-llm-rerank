@@ -1,0 +1,329 @@
+{
+  "claim_scope": "local diagnostic only; not Roma/team CatBoost",
+  "protocol": {
+    "version": 3,
+    "dataset": "items_with_attrs.parquet",
+    "dataset_sha256": "047e70586b12fae44dabaf03b09d3ffa7686e7059f8645b104a85ec7cd022103",
+    "split": "SERP-disjoint deterministic 80/10/10",
+    "split_seed": 42,
+    "split_fingerprints": {
+      "train_sha256": "f3c5568f8094275ccd52e4db1519eddf06ca53227629cefc4b634b7301796b69",
+      "val_sha256": "62cbeb18f6e39c0a9da75b53206ed2deea3eaf73ef8bf164c481de42eb32d26a",
+      "test_sha256": "1a955726c21831e37b2ac0eca6d10b46233e4601304da3aecd87e653bc9ee950",
+      "combined_sha256": "4669f4da20b6005bc79e4e8b929b8010b4d624d46590d1ab8318362e4e3e583b"
+    },
+    "candidate_set": "all rows of each fixed SERP; no resampling",
+    "source_order": "block priority, valid block_pos ascending, item_id ascending",
+    "score_tie_break": "score descending, item_id ascending",
+    "training_label": "contacts_daily / max contacts_daily within SERP; float32 as frozen producer; never a feature",
+    "evaluation_relevance": "contacts_daily / max contacts_daily within SERP; float64; never a feature",
+    "evaluation_relevance_dtype": "float64",
+    "features": [
+      "block_pos",
+      "price",
+      "image_count",
+      "seller_is_private",
+      "price_percentile",
+      "price_diff_from_median",
+      "seconds_age",
+      "title_len",
+      "desc_len",
+      "mileage_km",
+      "imv",
+      "block",
+      "query_infm_logical_category",
+      "query_loc",
+      "brand",
+      "model_name",
+      "gearbox_text",
+      "fuel_text",
+      "body_type",
+      "drive_text",
+      "doors_text",
+      "year_text",
+      "rf_reg_text"
+    ],
+    "excluded_post_exposure_features": [
+      "clicks_daily",
+      "contacts_daily",
+      "has_tc_events",
+      "has_x_events",
+      "serp_is_positive"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "catboost_version": "1.2.10",
+    "code_fingerprints": {
+      "runner_sha256": "3b4c3feae6876dd1f1e423dc0764477a54124375a993069d420f6678e58723cc",
+      "dataset_loader_sha256": "615ae224b34cc92732526c60e4edd014e38caabb2ce96898d44b3b43dd4fb6e3",
+      "metrics_sha256": "a5be7ddb22176f3702d9137d1dadb69c60c827f8d98fa3fdd7cbccff0b2f0b41"
+    },
+    "frozen_artifact_generator_runner_sha256": [
+      "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e"
+    ],
+    "frozen_artifact_generator_code_fingerprints": [
+      {
+        "dataset_loader_sha256": "615ae224b34cc92732526c60e4edd014e38caabb2ce96898d44b3b43dd4fb6e3",
+        "metrics_sha256": "2656be02e6e43e35af30de17d066efe21cf0f6b2afac64551b692c467162556e",
+        "runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e"
+      }
+    ],
+    "current_verifier_runner_sha256": "3b4c3feae6876dd1f1e423dc0764477a54124375a993069d420f6678e58723cc",
+    "execution_environment": {
+      "python": "3.11.15",
+      "platform": "Linux-6.12.31-1.docaofed2510ya2-b300-x86_64-with-glibc2.35",
+      "numpy": "1.26.4",
+      "pandas": "3.0.3",
+      "task_type": "GPU",
+      "catboost_devices_argument": "0",
+      "cuda_visible_devices": "2",
+      "nvidia_driver": "570.211.01",
+      "nvidia_gpus": [
+        {
+          "physical_index": "0",
+          "uuid": "GPU-1bac0625-fe9c-ab6e-2837-e7a9dd54b1c0",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "1",
+          "uuid": "GPU-79f436e0-3569-54e4-7111-52c77132eb83",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "2",
+          "uuid": "GPU-f3c9a67d-33a4-0479-b75b-d5b24a184070",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "3",
+          "uuid": "GPU-8f7a212b-4eae-2db1-bc05-e223b472a9a3",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "4",
+          "uuid": "GPU-d67c2357-de89-e9ee-35a5-74a3702192d5",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "5",
+          "uuid": "GPU-5d7cff70-310e-16e0-ce57-75b9fe4c5612",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "6",
+          "uuid": "GPU-1a6a806e-e3fc-f28a-7b83-e890e516339a",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        },
+        {
+          "physical_index": "7",
+          "uuid": "GPU-034dab0e-0902-0e2e-6be9-a7379b9326a3",
+          "name": "NVIDIA A100-SXM4-80GB",
+          "driver_version": "570.211.01"
+        }
+      ]
+    },
+    "normalized_training_command": [
+      "python",
+      "scripts/avito/run_local_catboost.py",
+      "--split-seed",
+      "42",
+      "--seeds",
+      "42",
+      "43",
+      "44",
+      "--iterations",
+      "300",
+      "--depth",
+      "8",
+      "--learning-rate",
+      "0.05",
+      "--early-stopping-rounds",
+      "100",
+      "--task-type",
+      "GPU",
+      "--devices",
+      "0",
+      "--items",
+      "items_with_attrs.parquet",
+      "--model-dir",
+      "checkpoints/avito_local_catboost_300_canonical_v2",
+      "--scores-output",
+      "data/avito/benchmark/local_catboost_eval_scores.parquet",
+      "--output",
+      "results/current/metrics/avito_local_catboost_diagnostic.json"
+    ],
+    "model": {
+      "loss": "YetiRankPairwise",
+      "iterations_cap": 300,
+      "depth": 8,
+      "learning_rate": 0.05,
+      "early_stopping_rounds": 100,
+      "task_type": "GPU",
+      "gpu_fixed_iteration_budget": true,
+      "gpu_fit_reproducibility": "CatBoost GPU fitting is not claimed bitwise deterministic; exact evaluation is frozen by immutable model and score SHA-256 artifacts."
+    }
+  },
+  "counts": {
+    "train_serps": 1600,
+    "val_serps": 200,
+    "test_serps": 200,
+    "train_candidates": 35852,
+    "val_candidates": 4426,
+    "test_candidates": 4458
+  },
+  "best_iterations": {
+    "42": 299,
+    "43": 299,
+    "44": 299
+  },
+  "source_order_baseline_dev": {
+    "ndcg@5": 0.2944393292453944,
+    "map@5": 0.8932666666666667,
+    "ndcg@10": 0.4186371005515008,
+    "map@10": 0.8874645282186949
+  },
+  "source_order_baseline_test": {
+    "ndcg@5": 0.33754365898496785,
+    "map@5": 0.9003666666666666,
+    "ndcg@10": 0.42825710458058763,
+    "map@10": 0.8834463734567902
+  },
+  "legacy_position_baseline": {
+    "valid": false,
+    "reason": "raw -block_pos ranked sentinel -1 rows ahead of positioned items; removed"
+  },
+  "catboost_by_seed_dev": {
+    "42": {
+      "ndcg@5": 0.5681626673372862,
+      "map@5": 0.89705,
+      "ndcg@10": 0.6511748211113165,
+      "map@10": 0.880510758377425
+    },
+    "43": {
+      "ndcg@5": 0.5744202854920817,
+      "map@5": 0.8943166666666668,
+      "ndcg@10": 0.6522387686444514,
+      "map@10": 0.8797770282186949
+    },
+    "44": {
+      "ndcg@5": 0.5726272722094166,
+      "map@5": 0.8982833333333332,
+      "ndcg@10": 0.6515906501560559,
+      "map@10": 0.8803714726631392
+    }
+  },
+  "catboost_by_seed_test": {
+    "42": {
+      "ndcg@5": 0.5873756171413779,
+      "map@5": 0.9035333333333333,
+      "ndcg@10": 0.6589968093229078,
+      "map@10": 0.8845988118858653
+    },
+    "43": {
+      "ndcg@5": 0.5860210061238821,
+      "map@5": 0.9017166666666665,
+      "ndcg@10": 0.6562631296075202,
+      "map@10": 0.8833330215419501
+    },
+    "44": {
+      "ndcg@5": 0.590897438302909,
+      "map@5": 0.9009333333333334,
+      "ndcg@10": 0.6604077789223369,
+      "map@10": 0.8825612622826908
+    }
+  },
+  "catboost_stability_test": {
+    "map@10": {
+      "mean": 0.8834976985701687,
+      "std": 0.0008399368980529859
+    },
+    "map@5": {
+      "mean": 0.9020611111111111,
+      "std": 0.001089030603023152
+    },
+    "ndcg@10": {
+      "mean": 0.6585559059509216,
+      "std": 0.0017205282760970595
+    },
+    "ndcg@5": {
+      "mean": 0.588098020522723,
+      "std": 0.002055285492447277
+    }
+  },
+  "catboost_ensemble_dev": {
+    "ndcg@5": 0.5743191625580352,
+    "map@5": 0.8966,
+    "ndcg@10": 0.6521017429661846,
+    "map@10": 0.8801905202821869
+  },
+  "catboost_ensemble_test": {
+    "ndcg@5": 0.5874027176989911,
+    "map@5": 0.9028333333333333,
+    "ndcg@10": 0.657787798086604,
+    "map@10": 0.8846616591080877
+  },
+  "scores_artifact": "data/avito/benchmark/local_catboost_eval_scores.parquet",
+  "scores_artifact_sha256": "2723f3ad8e44f9644084aeeb83ae8e66b98d7cd5610ebfa28c31c2af9c9c235b",
+  "model_artifacts": [
+    {
+      "seed": 42,
+      "model": "checkpoints/avito_local_catboost_300_canonical_v2/seed_42.cbm",
+      "model_sha256": "bc00a2b3edb506222fa1c8f82e887b52805038a4d1620ffb7e650f9891931815",
+      "metadata": "checkpoints/avito_local_catboost_300_canonical_v2/seed_42.meta.json",
+      "metadata_sha256": "e0059f5589b9298c1514affafdae03f38a4bab59f3c90f653428eb2090ad5008",
+      "generator_runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+      "generator_code_fingerprints": {
+        "runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+        "dataset_loader_sha256": "615ae224b34cc92732526c60e4edd014e38caabb2ce96898d44b3b43dd4fb6e3",
+        "metrics_sha256": "2656be02e6e43e35af30de17d066efe21cf0f6b2afac64551b692c467162556e"
+      }
+    },
+    {
+      "seed": 43,
+      "model": "checkpoints/avito_local_catboost_300_canonical_v2/seed_43.cbm",
+      "model_sha256": "92cc54b601816336ac2bb71dec25943ba0ca49453ad7d8b1bb3a89b8e92db866",
+      "metadata": "checkpoints/avito_local_catboost_300_canonical_v2/seed_43.meta.json",
+      "metadata_sha256": "73b9ec1c4b9148e5aec36ac79a69f759ad72cb23968173afc1bb7cf0ba3c1104",
+      "generator_runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+      "generator_code_fingerprints": {
+        "runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+        "dataset_loader_sha256": "615ae224b34cc92732526c60e4edd014e38caabb2ce96898d44b3b43dd4fb6e3",
+        "metrics_sha256": "2656be02e6e43e35af30de17d066efe21cf0f6b2afac64551b692c467162556e"
+      }
+    },
+    {
+      "seed": 44,
+      "model": "checkpoints/avito_local_catboost_300_canonical_v2/seed_44.cbm",
+      "model_sha256": "fd5a465f5a07d0b947feffc3fa2de142fef3fd3e8b94fee17892f8b4a736fc14",
+      "metadata": "checkpoints/avito_local_catboost_300_canonical_v2/seed_44.meta.json",
+      "metadata_sha256": "af4a09b535be25a2a52434e718fe5906ab0885e3854fabba4698312dc1e4f73a",
+      "generator_runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+      "generator_code_fingerprints": {
+        "runner_sha256": "3cf2ec0a792b8a53c289efcbde52d2577c4b85255fc88d69fde34e95c809353e",
+        "dataset_loader_sha256": "615ae224b34cc92732526c60e4edd014e38caabb2ce96898d44b3b43dd4fb6e3",
+        "metrics_sha256": "2656be02e6e43e35af30de17d066efe21cf0f6b2afac64551b692c467162556e"
+      }
+    }
+  ],
+  "elapsed_seconds": 2.3758440017700195,
+  "blocking_dependency": {
+    "team_catboost_metric": "TBD",
+    "required_from_roma": [
+      "test SERP ids",
+      "candidate ids and scores",
+      "model/config revision and seed",
+      "exact relevance formula",
+      "rank-time cutoff for user history"
+    ]
+  }
+}

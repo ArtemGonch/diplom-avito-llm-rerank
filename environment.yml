@@ -1,0 +1,13 @@
+name: diplom_avito
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pandas
+  - pyarrow
+  - matplotlib
+  - seaborn
+  - jupyter
+  - ipykernel
+  - plotly

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Avito Case Browser"
+  short_description: "Build, serve, and interpret the Avito UI"
+  default_prompt: "Use $avito-case-browser to build and open the Avito ranking interface, then explain the selected case."
