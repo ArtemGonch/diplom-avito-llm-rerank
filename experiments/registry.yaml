@@ -7,7 +7,7 @@ project:
   local_path: avito/
   conda_env: diplom_avito
   owner: team
-  updated: "2026-09-10"
+  updated: "2026-10-22"
 
 datasets:
   ml1m:
@@ -32,6 +32,15 @@ datasets:
     history_users: 274
     history_serp_overlap: 295
     notes: "Listing attrs are rich; query is category/location only. History has no rank-time cutoff, no price, sparse category-like fields with zero exact overlap to listing brand/model, and zero item-id overlap. contacts_daily is the graded benchmark target; has_tc_events is a separate post-exposure marker used only for diagnostics."
+  avito_user_history_20260920:
+    path: data/user_view/usedcars-100-no-communications-2026-10-16
+    storage: private_local_user_authorized_download
+    git_tracked: false
+    task: descriptive_user_analysis
+    users: 100
+    history_active_users: 79
+    history_period: ["2026-09-06", "2026-09-19"]
+    notes: "New private export, separate from old rerank parquet. No conversation contents or image files. Snapshot timing and BTC coverage limitations remain."
   amazon_c4_automotive:
     path: data/amazon-c4-user-purchase-history/Automotive
     item_metadata: data/amazon-reviews-2023/Automotive/meta_Automotive.jsonl.gz
@@ -166,6 +175,19 @@ experiments:
       intended_recipient: roma
       item_overlay_received: false
     notes: "200 test SERPs and 8 deterministic featured cases. Existing no-history Qwen L0 is compared with canonical local CatBoost using explicit item_id tie breaks. contacts_daily graded relevance and has_tc_events post-exposure outcomes remain separate. Browser v5 has 72/72 prompt-v3/validation-v9 insights. Only exact source seller spans may survive; every other displayed field is evidence-derived. Contract v5 pins tokenizer artifacts/chat template; canonical batch size 1, request manifest, physical GPU/driver/determinism, exact padded token tensors and complete primary/retry attempts are independently re-tokenized and revalidated. Incomplete builds cannot publish a ZIP; dataset, row-level metrics, generated browser/cache/bundle remain outside Git and are stored on the private VM/Drive. Seven-file handoff was uploaded to an owner-controlled Google Drive folder on 2026-09-10; images and extra metadata from Roma are still pending."
+
+  avito_user_view_20261016:
+    method: evidence-grounded descriptive summaries with LLM fact selection
+    dataset: avito_user_history_20260920
+    script: scripts/avito/build_user_view.py
+    status: done
+    task_status: implemented_on_available_data
+    finished: "2026-10-22"
+    metrics: results/current/metrics/avito_user_view.json
+    local_browser: reports/avito_user_view/index.html
+    data_request: docs/user_view_missing_data_request.txt
+    open_data_dependencies: [conversation_contents, vehicle_country_definition, full_candidate_catalog, temporal_contract]
+    notes: "100 full profiles; 100/100 validated LLM editorial selections of 515 canonical facts. Explicit filters, LOO descriptive signals, narrow ranges, model-price/common features, cluster status and scenario-based alternatives. Existing raw/display counts retained; technical source provenance added. No Qwen run, model training or ranking-quality claim. Conversations/country unavailable; alternative usefulness not evaluated. Private inputs/generated reports/cache stay ignored."
 
 paper_targets:
   ur4rec_ml1m:

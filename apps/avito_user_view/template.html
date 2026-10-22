@@ -1,0 +1,642 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Auto / User Observatory</title><style>
+:root{--bg:#f3f5f8;--ink:#172d35;--muted:#697c84;--line:#dfe6e9;--accent:#087f78;--tint:#e5f4ee;--gold:#d99437;--serif:Georgia,'Times New Roman',serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #66c5bb;outline-offset:2px}aside{position:fixed;inset:0 auto 0 0;width:264px;background:#132f35;color:white;padding:28px 18px;display:flex;flex-direction:column}.brand{font-size:17px;letter-spacing:2px;font-weight:700}.brand span{color:#91cdbc}.aside-note{color:#b1c5c7;font-size:12px;margin:8px 0 22px}.search{width:100%;padding:10px 12px;background:#234249;border:1px solid #3c575e;border-radius:8px;color:white}.search::placeholder{color:#b5c6c9}.filters{display:flex;gap:5px;margin:10px 0 17px}.filters button{background:none;border:1px solid #506970;border-radius:6px;color:#d9e9e8;font-size:11px;padding:5px 7px}.filters button.active{background:#d9eee6;color:#173a35;border-color:#d9eee6}#users{overflow-y:auto;flex:1} .user{display:block;text-align:left;width:100%;border:0;color:#d1e1e3;background:none;padding:12px 11px;border-radius:9px;margin-bottom:4px}.user.selected{background:#d9eee6;color:#153e35}.user b{font-weight:600}.user small{display:block;font-size:11px;opacity:.7}.aside-foot{font-size:11px;color:#a8bdc0;padding-top:15px;border-top:1px solid #3d565c}main{margin-left:264px;max-width:1600px;padding:30px 40px 70px}.topline{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px;letter-spacing:.3px}.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:20px;background:var(--tint);color:#14685a;font-size:11px}.hero{display:flex;justify-content:space-between;align-items:center;margin:20px 0 25px}h1{font:36px/1.15 var(--serif);letter-spacing:-1px;margin:0 0 7px}h2{font-size:17px;letter-spacing:-.3px;margin:0 0 15px}h3{font-size:14px;margin:0 0 8px}.muted,.sub{color:var(--muted)}.sub{font-size:12px}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 24px}.kpi{padding:17px 20px;background:#fff;border:1px solid var(--line);border-radius:12px}.kpi strong{display:block;font-size:25px;line-height:1.3;letter-spacing:-.7px}.kpi span{font-size:11px;color:var(--muted)}nav{display:flex;gap:25px;border-bottom:1px solid var(--line);margin:12px 0 24px}nav button{border:0;background:none;padding:12px 0;color:var(--muted);border-bottom:3px solid transparent;font-size:13px}nav button.active{border-color:var(--accent);color:var(--accent);font-weight:600}.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:23px;margin-bottom:18px}.wide{grid-column:1/-1}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}.statement{font:24px/1.35 var(--serif);margin:0 0 14px}.preference{border-top:1px solid #edf0f1;padding:13px 0;display:grid;grid-template-columns:85px 1fr;gap:10px}.preference:last-child{padding-bottom:0}.bar{height:5px;background:#edf0ef;border-radius:5px;margin:8px 0}.bar i{height:100%;display:block;background:var(--accent);border-radius:5px}.tiny{font-size:11px;color:var(--muted)}.evidence{border:0;background:transparent;color:var(--accent);padding:0;font-size:11px;text-decoration:underline;text-underline-offset:3px}.tag{display:inline-block;background:#f0f4f5;color:#52676e;border-radius:5px;font-size:11px;padding:3px 7px;margin:3px 4px 3px 0}.cluster{border:1px solid var(--line);border-radius:10px;padding:17px;margin:10px 0}.cluster.main{border-color:#91bfb5;background:#f3faf7}.cluster-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.price{font-size:23px;letter-spacing:-.5px}.note{font-size:12px;background:#f7f5ed;border-left:3px solid #d7b26b;padding:12px 15px;margin:14px 0;color:#746247}.empty{padding:30px 0;color:var(--muted)}.rec{padding:13px 0;border-top:1px solid var(--line)}.rec b{font-size:14px}.timeline{display:flex;align-items:flex-end;gap:8px;height:110px;margin:15px 0 25px}.day{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:9px;color:var(--muted)}.day i{background:#71ada1;width:100%;max-width:35px;border-radius:4px 4px 0 0;min-height:2px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}input,select{border:1px solid var(--line);border-radius:7px;padding:8px 12px;background:white;color:var(--ink)}table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}th{color:var(--muted);font-weight:500;padding:11px 9px;border-bottom:1px solid var(--line);white-space:nowrap}td{padding:13px 9px;vertical-align:top;border-bottom:1px solid #ecf0f1}td small{display:block;color:var(--muted)}.scroll{overflow:auto}.linkbutton{border:0;background:none;color:var(--accent);text-align:left;padding:0}.model{max-width:280px;font-weight:600}.audit-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf0f1;gap:20px}.audit-row span:first-child{color:var(--muted)}.searchrow{padding:13px 0;border-top:1px solid var(--line)}.badge{background:#fff1dc;color:#8e6524;border-radius:4px;padding:3px 6px;font-size:10px}.dialog{position:fixed;inset:0;background:#0d252d88;z-index:5;display:flex;justify-content:center;align-items:center;padding:28px}.dialog-box{max-width:850px;width:100%;max-height:88vh;overflow:auto;background:white;border-radius:16px;padding:28px}.close{float:right;border:1px solid var(--line);border-radius:7px;background:#fff;padding:6px 12px}.no-match{color:#bed2d3;font-size:12px;padding:15px}.footer{color:var(--muted);font-size:11px;margin-top:25px}@media(max-width:1050px){aside{width:225px}main{margin-left:225px;padding:25px}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){aside{position:relative;width:100%;height:240px;padding:16px}.aside-note,.aside-foot{display:none}#users{display:flex;gap:5px;overflow:auto;margin-top:10px}.user{min-width:160px}main{margin:0;padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:30px}nav{gap:16px;overflow:auto}nav button{white-space:nowrap}.hero{display:block}.topline{gap:12px}.panel{padding:18px}.grid{display:block}}
+.fact{padding:10px 0;border-bottom:1px solid #edf0f1}.fact:last-child{border-bottom:0}.fact p{margin:0 0 5px;line-height:1.65}.summary-section{border-top:1px solid var(--line);padding:13px 0}.summary-section summary{cursor:pointer;font-weight:600}.summary-section .fact{margin-left:18px}.price-chart{width:100%;min-width:700px;min-height:210px;display:block}.price-chart circle{cursor:pointer}.price-chart circle:hover{opacity:1;r:5}details summary{cursor:pointer}nav{gap:19px}.rec .tag{font-weight:400}
+</style>
+</head>
+<body><aside><div class="brand">AUTO <span>/ OBSERVATORY</span></div><div class="aside-note">История выбора · исследовательский стенд</div><input class="search" id="user-search" aria-label="Поиск пользователя" placeholder="Пользователь, ID или модель"><div class="filters"><button data-filter="all" class="active">Все 100</button><button data-filter="ready">Есть профиль</button><button data-filter="empty">Без карточек</button></div><div id="users"></div><div class="aside-foot">Локально · приватная выборка<br>Никаких внешних запросов</div></aside>
+<main><div class="topline"><span>USED CARS / USER VIEW</span><span id="period"></span><span class="pill">● Локальная версия</span></div><div id="hero"></div><div id="kpis" class="kpis"></div><nav aria-label="Разделы"><button data-tab="summary" class="active">Саммари</button><button data-tab="profile">Параметры</button><button data-tab="models">Модели и сценарии</button><button data-tab="history">История</button><button data-tab="searches">Поиски</button><button data-tab="audit">Качество данных</button></nav><div id="content"></div><div class="footer">User View v2 · Проверяемые саммари истории. Польза альтернатив требует отдельной проверки.</div></main>
+<div id="modal"></div><script id="dataset" type="application/json">__USER_VIEW_DATA__</script><script>
+'use strict';
+const DATA = JSON.parse(document.getElementById('dataset').textContent);
+const stateParams = new URLSearchParams(location.hash.slice(1));
+let selected = Math.max(0, Math.min(DATA.users.length - 1, Math.trunc(Number(stateParams.get('u') || 1)) - 1)) || 0,
+  tab = ['summary', 'profile', 'models', 'history', 'searches', 'audit'].includes(stateParams.get('tab')) ? stateParams.get('tab') : 'summary',
+  filter = 'all',
+  evidence = null;
+const $ = id => document.getElementById(id),
+  fmt = n => n == null ? '—' : new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: 0
+  }).format(n),
+  rub = n => n == null ? '—' : fmt(n) + ' ₽',
+  year = n => n == null ? '—' : String(Math.round(n));
+
+function node(tag, text, cls) {
+  const el = document.createElement(tag);
+  if (text != null) el.textContent = text;
+  if (cls) el.className = cls;
+  return el
+}
+
+function append(parent, ...children) {
+  children.filter(Boolean).forEach(c => parent.append(c));
+  return parent
+}
+
+function panel(title) {
+  const p = node('section', null, 'panel');
+  if (title) p.append(node('h2', title));
+  return p
+}
+
+function note(t) {
+  return node('div', t, 'note')
+}
+
+function button(t, fn, cls = 'evidence') {
+  const b = node('button', t, cls);
+  b.onclick = fn;
+  return b
+}
+
+function tags(values) {
+  const p = node('div');
+  values.forEach(v => p.append(node('span', v, 'tag')));
+  return p
+}
+
+function auditRow(p, k, v) {
+  p.append(append(node('div', null, 'audit-row'), node('span', k), node('strong', v)))
+}
+
+function userList() {
+  const q = $('user-search').value.toLowerCase().trim();
+  $('users').replaceChildren();
+  let count = 0;
+  DATA.users.forEach((u, i) => {
+    if (filter === 'ready' && !u.preferences.length || filter === 'empty' && u.status !== 'empty') return;
+    if (q && !(u.label + ' ' + u.id + ' ' + u.items.map(c => c.brand + ' ' + c.model).join(' ')).toLowerCase().includes(q)) return;
+    const b = button('', () => {
+      searchEvidence = null;
+      selected = i;
+      evidence = null;
+      render()
+    }, 'user' + (selected === i ? ' selected' : ''));
+    append(b, node('b', u.label), node('small', u.counts.analyzed_items ? fmt(u.counts.analyzed_items) + ' объявлений · ' + u.counts.contacts + ' контактов' : 'Нет карточек · ' + u.counts.searches + ' поисков'));
+    $('users').append(b);
+    count++
+  });
+  if (!count) $('users').append(node('p', 'Ничего не найдено', 'no-match'));
+  const box = $('users'),
+    active = box.querySelector('.selected');
+  if (active) {
+    if (box.scrollWidth > box.clientWidth) box.scrollLeft = Math.max(0, active.offsetLeft - box.offsetLeft - (box.clientWidth - active.clientWidth) / 2);
+    else box.scrollTop = Math.max(0, active.offsetTop - box.offsetTop - (box.clientHeight - active.clientHeight) / 2)
+  }
+}
+
+function historyReplace() {
+  window.history.replaceState(null, '', '#u=' + (selected + 1) + '&tab=' + tab)
+}
+
+function render() {
+  historyReplace();
+  const u = DATA.users[selected];
+  userList();
+  $('period').textContent = DATA.period.join(' — ');
+  $('hero').replaceChildren(append(node('div', null, 'hero'), append(node('div'), node('div', 'ПОВЕДЕНЧЕСКИЙ ПРОФИЛЬ', 'eyebrow'), node('h1', u.label), node('div', 'История 6–19 сентября · ' + u.counts.items + ' уникальных карточек в экспорте', 'sub')), node('span', u.status === 'empty' ? 'Нет карточек' : u.status === 'sparse' ? 'Мало наблюдений' : 'Основания доступны', 'pill')));
+  $('kpis').replaceChildren();
+  [
+    ['Просмотры в витрине', u.counts.views],
+    ['Объявления для анализа', u.counts.analyzed_items],
+    ['Избранное · события', u.counts.favorites],
+    ['Контакты · витрина', u.counts.contacts],
+    ['Поисковые события', u.counts.searches]
+  ].forEach(([label, n]) => $('kpis').append(append(node('div', null, 'kpi'), node('strong', fmt(n)), node('span', label))));
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('content').replaceChildren();
+  if (tab === 'summary') summary(u);
+  if (tab === 'profile') profile(u);
+  if (tab === 'models') models(u);
+  if (tab === 'history') renderHistory(u);
+  if (tab === 'searches') searches(u);
+  if (tab === 'audit') audit(u)
+}
+
+function showEvidence(ids, title) {
+  evidence = new Set(ids);
+  tab = 'history';
+  render();
+  $('content').prepend(note(title + ' · ' + ids.length + ' объявлений. Нажмите «Сбросить», чтобы вернуть всю историю.'))
+}
+
+const statusText = {
+  explicit: 'Явный фильтр',
+  distinctive: 'Отличительный сигнал',
+  common_in_sample: 'Характерно выборке',
+  concentrated: 'Концентрация',
+  variable: 'Вариативно',
+  inconclusive: 'Неопределённо',
+  insufficient: 'Мало данных'
+};
+const fieldName = {
+  price: 'Цена',
+  year: 'Год',
+  mileage_km: 'Пробег',
+  power_hp: 'Мощность',
+  engine_liters: 'Объём',
+  body_type: 'Кузов',
+  transmission: 'КПП',
+  engine_type: 'Двигатель',
+  drive: 'Привод',
+  brand_region: 'Регион бренда',
+  owners: 'Владельцы',
+  generation: 'Поколение',
+  latest_query_context: 'Последний контекст поиска',
+  body_and_doors: 'Кузов и двери'
+};
+const unit = {
+  price: ' ₽',
+  year: ' г.',
+  mileage_km: ' км',
+  power_hp: ' л.с.',
+  engine_liters: ' л'
+};
+const precise = n => n == null ? '—' : new Intl.NumberFormat('ru-RU', {
+  maximumFractionDigits: 1
+}).format(n);
+let searchEvidence = null;
+
+function showSearchEvidence(refs, title) {
+  searchEvidence = new Set(refs);
+  evidence = null;
+  tab = 'searches';
+  render();
+  $('content').prepend(note(title + ' · показаны исходные поиски-основания.'))
+}
+
+function factNode(u, f) {
+  const row = node('div', null, 'fact');
+  row.append(node('p', f.text));
+  if (f.candidate_item_id) {
+    const r = u.recommendations.find(r => r.example_item === f.candidate_item_id);
+    if (r) row.append(button('Пример и источник', () => detail(r.example, true)))
+  } else if (f.search_refs.length) row.append(button('Поиски-основания', () => showSearchEvidence(f.search_refs, f.text.split(':')[0])));
+  else if (f.item_ids.length) row.append(button('Объявления-основания', () => showEvidence(f.item_ids, 'Основания сводки')));
+  return row
+}
+
+function downloadSummary(u) {
+  const byId = Object.fromEntries(u.facts.map(f => [f.id, f]));
+  const text = [u.label, 'История: ' + DATA.period.join(' — '), '', ...u.summary.sections.flatMap(s => [s.title, ...s.fact_ids.map(id => byId[id].text), ''])].join('\n');
+  const url = URL.createObjectURL(new Blob([text], {
+    type: 'text/plain;charset=utf-8'
+  }));
+  const a = node('a');
+  a.href = url;
+  a.download = u.label.replace(' ', '_') + '_саммари.txt';
+  a.click();
+  URL.revokeObjectURL(url)
+}
+
+function downloadMissingRequest() {
+  const url = URL.createObjectURL(new Blob([DATA.missing_data_request || 'Запрос данных недоступен'], {
+    type: 'text/plain;charset=utf-8'
+  }));
+  const a = node('a');
+  a.href = url;
+  a.download = 'Запрос_данных_Роме.txt';
+  a.click();
+  URL.revokeObjectURL(url)
+}
+
+function summary(u) {
+  const grid = node('div', null, 'grid');
+  $('content').append(grid);
+  const byId = Object.fromEntries(u.facts.map(f => [f.id, f]));
+  const p = panel();
+  p.classList.add('wide');
+  append(p, node('div', 'САММАРИ / ОСНОВНЫЕ НАБЛЮДЕНИЯ', 'eyebrow'), append(node('div', null, 'cluster-head'), node('h2', 'Что видно по этой истории'), button('Скачать саммари .txt', () => downloadSummary(u), 'close')), node('p', u.summary.status === 'llm_fact_selection' ? 'Краткий обзор отобран LLM-редактором из проверенных фактов. Числа и основания рассчитаны кодом.' : 'Обзор из проверенных фактов. Редакторский LLM-отбор ещё не загружен.', 'sub'));
+  u.summary.overview.forEach(id => p.append(factNode(u, byId[id])));
+  grid.append(p);
+  const full = panel('Полный разбор по заданию');
+  full.classList.add('wide');
+  u.summary.sections.forEach(s => {
+    const details = node('details', null, 'summary-section');
+    const head = node('summary', s.title + ' · ' + s.fact_ids.length + ' наблюд.');
+    details.append(head);
+    if (s.fact_ids.length) s.fact_ids.forEach(id => details.append(factNode(u, byId[id])));
+    else details.append(node('p', 'Недостаточно наблюдений для вывода по этому разделу.', 'sub'));
+    full.append(details)
+  });
+  grid.append(full);
+  const next = panel('Что уточнить');
+  if (u.analysis.cluster_status === 'tied') next.append(node('p', 'Крупнейшие группы равны по размеру. Это разные сценарии покупки или сравнение альтернатив?', 'sub'));
+  else if (u.analysis.cluster_status === 'largest_only') next.append(node('p', 'Крупнейшая группа не охватывает половину истории. Какой сценарий сейчас приоритетен?', 'sub'));
+  if (u.analysis.search.latest?.warnings.length) next.append(note(u.analysis.search.latest.warnings.join('; ')));
+  if (u.analysis.recommendation_status === 'conditional') next.append(node('p', 'Для альтернатив не все явные ограничения проверяются по доступным атрибутам; список ограничений показан у каждого примера.', 'sub'));
+  next.append(node('p', 'Для анализа вопросов нужны тексты или расшифровки разговоров. Для страны производства — проверенное поле с определением.', 'sub'));
+  if (DATA.missing_data_request) next.append(button('Скачать запрос недостающих данных', downloadMissingRequest, 'close'));
+  grid.append(next);
+  const scope = panel('Полнота задания');
+  [
+    ['Интерфейс и источники', 'Доступны'],
+    ['Предпочтения и диапазоны', 'Рассчитаны по имеющимся наблюдениям'],
+    ['Ключевые параметры', 'Описательные сигналы и явные фильтры'],
+    ['Модели и сценарии', 'Доступны при достаточной истории'],
+    ['Новые модели', 'Гипотезы, полезность не проверена'],
+    ['Темы вопросов', 'Нужны коммуникации']
+  ].forEach(([k, v]) => auditRow(scope, k, v));
+  grid.append(scope)
+}
+
+function profile(u) {
+  const grid = node('div', null, 'grid');
+  $('content').append(grid);
+  const p = panel('Ключевые и вариативные параметры');
+  p.append(node('p', 'Приоритет основан на явных фильтрах, концентрации и отличии от остальных пользователей. Это описательная гипотеза, а не причинная важность.', 'sub'));
+  u.analysis.importance.forEach(x => {
+    const row = node('div', null, 'rec');
+    append(row, append(node('div', null, 'cluster-head'), node('strong', x.label), node('span', statusText[x.status] || x.status, 'tag')), node('div', 'В истории: ' + (x.values.join(' / ') || 'Нет значений')), node('div', x.count + ' / ' + x.known + ' известных · заполнено ' + x.known + '/' + x.total, 'tiny'));
+    if (x.reference_share != null) row.append(node('div', 'Доля в истории ' + Math.round(100 * (x.share || 0)) + '% · в остальной выборке ' + Math.round(100 * x.reference_share) + '% (' + x.reference_known + ' уникальных объявлений)', 'tiny'));
+    if (x.evidence.length) row.append(button('Объявления-основания', () => showEvidence(x.evidence, x.label)));
+    if (x.explicit) append(row, node('div', 'В поисках: ' + x.explicit.values.join(' / ')), node('div', 'Явно: ' + x.explicit.states + ' конфигураций, ' + x.explicit.days + ' дней', 'tiny'), button('Поиски-основания', () => showSearchEvidence(x.explicit.search_refs, x.label)));
+    p.append(row)
+  });
+  grid.append(p);
+  const nr = panel('Числовые диапазоны');
+  nr.append(node('p', 'Кратчайшая полоса, в которую попадает не менее 80% известных значений. «Узкий» определяется заранее заданным правилом.', 'sub'));
+  u.analysis.numeric.forEach(x => {
+    const row = node('div', null, 'rec');
+    append(row, append(node('div', null, 'cluster-head'), node('strong', x.label), node('span', x.status === 'narrow' ? 'Узкий' : x.status === 'broad' ? 'Широкий' : 'Мало данных', 'tag')));
+    if (x.count) append(row, node('div', precise(x.core_min) + ' — ' + precise(x.core_max) + unit[x.field], 'price'), node('div', 'В полосе ' + x.core_count + '/' + x.count + ' известных · заполнено ' + x.count + '/' + x.total, 'tiny'), node('div', 'Медиана ' + precise(x.median) + unit[x.field] + ' · весь разброс ' + precise(x.min) + '–' + precise(x.max), 'tiny'), button('Объявления в полосе', () => showEvidence(x.evidence, x.label)));
+    else row.append(node('p', 'Значения отсутствуют.', 'sub'));
+    nr.append(row)
+  });
+  grid.append(nr);
+  const ex = panel('Явные фильтры поиска');
+  const s = u.analysis.search;
+  auditRow(ex, 'Поисковые события / состояния', s.matched_events + ' / ' + s.unique_states);
+  Object.values(s.fields).forEach(x => {
+    const r = node('div', null, 'rec');
+    append(r, node('strong', x.label), tags(x.values), node('div', x.states + '/' + x.total_states + ' конфигураций · ' + x.days + ' дней · ' + x.events + ' исходных событий', 'tiny'), button('Основания', () => showSearchEvidence(x.search_refs, x.label)));
+    ex.append(r)
+  });
+  if (!s.unique_states) ex.append(node('p', 'Нет однозначно сопоставленных поисков.', 'sub'));
+  ex.append(node('p', 'Одинаковые наборы фильтров и повторные страницы не добавляют конфигураций. Исторические ограничения не сливаются в один запрос.', 'tiny'));
+  grid.append(ex);
+  const latest = panel('Последняя сопоставленная конфигурация');
+  if (s.latest) {
+    append(latest, node('strong', s.latest.last_t), tags(s.latest.filters), node('p', 'Используется только этот набор явных ограничений вместе с наблюдаемым сценарием; более поздний поиск без фильтров сбрасывает старые ограничения.', 'sub'), button('Открыть поиски', () => showSearchEvidence(s.latest.search_refs, 'Последняя конфигурация')));
+    if (s.latest.warnings.length) latest.append(note(s.latest.warnings.join('; ')));
+    if (s.newer_ambiguous) latest.append(note('Есть более поздний поиск с неоднозначным сопоставлением. Текущие ограничения требуют проверки.'))
+  } else latest.append(node('p', 'Доступны только гипотезы по истории объявлений.', 'sub'));
+  grid.append(latest)
+}
+
+function models(u) {
+  const grid = node('div', null, 'grid');
+  $('content').append(grid);
+  const chart = panel('Цена и год в истории');
+  chart.classList.add('wide');
+  chart.append(append(node('div', null, 'scroll'), priceChart(u)));
+  chart.append(node('p', 'Каждая точка — объявление с годом и корректной ценой. Вертикальная шкала логарифмическая; цвет соответствует описательной группе. Нажмите точку, чтобы открыть источник.', 'tiny'));
+  grid.append(chart);
+  const c = panel('Сценарии выбора');
+  const a = u.analysis;
+  const status = {
+    dominant: 'Доминирующая группа',
+    tied: 'Крупнейшие группы равны',
+    largest_only: 'Есть крупнейшая, но не доминирующая группа',
+    not_available: 'Недостаточно данных для групп'
+  };
+  c.append(note(status[a.cluster_status]));
+  u.clusters.forEach((x, i) => {
+    const d = node('details', null, 'cluster' + (x.role === 'primary' ? ' main' : ''));
+    if (i < 2) d.open = true;
+    d.append(node('summary', (i + 1) + '. ' + x.body_type + ' · ' + x.transmission + ' — ' + x.count + '/' + x.total + ' (' + Math.round(100 * x.share) + '%)'));
+    append(d, node('div', rub(x.price.p10) + ' — ' + rub(x.price.p90), 'price'), node('div', 'Медиана ' + rub(x.price.median) + ' · год ' + year(x.year?.p10) + '–' + year(x.year?.p90), 'tiny'), button('Объявления группы', () => showEvidence(x.evidence, 'Группа ' + (i + 1))));
+    c.append(d)
+  });
+  auditRow(c, 'В группах ≥3 / доступно полей', a.cluster_assigned + ' / ' + a.cluster_eligible);
+  auditRow(c, 'В группах из двух', a.small_group_items);
+  auditRow(c, 'Единичные сочетания', a.rare_count);
+  auditRow(c, 'Без полей группировки', a.cluster_unavailable);
+  if (u.outliers.length) c.append(button('Посмотреть единичные сочетания', () => showEvidence(u.outliers.map(x => x.item), 'Редкие сочетания')));
+  c.append(node('p', 'Редкие сочетания могут быть отдельным сценарием или случайным интересом. Достоверно отличить эти объяснения по одним действиям нельзя.', 'tiny'));
+  grid.append(c);
+  const r = panel('Новые модели для проверки');
+  r.append(node('p', 'Пул исторических объявлений других пользователей. Уже встречавшиеся модели и объявления исключены; доступность в продаже не проверена.', 'sub'));
+  const reasons = {
+    insufficient_history: 'Мало истории для подбора.',
+    invalid_latest_constraints: 'Последние ограничения некорректны или не поддерживаются; нужно уточнение.',
+    no_matching_candidates: 'В доступном пуле подходящих новых моделей нет.'
+  };
+  if (!u.recommendations.length) r.append(note(reasons[a.recommendation_status] || 'Нет кандидатов.'));
+  u.recommendations.forEach(x => {
+    const row = node('div', null, 'rec');
+    append(row, node('strong', x.brand + ' ' + x.model), node('div', rub(x.price) + ' · ' + year(x.year) + ' г.', 'price'), tags(x.reasons));
+    if (x.unverified.length) row.append(note('Нужно проверить: ' + x.unverified.map(k => fieldName[k] || k).join(', ')));
+    else row.append(node('p', 'Доступные условия сценария выполнены.', 'tiny'));
+    append(row, node('div', 'Сценарий ' + x.scenario_id + (x.search_state ? ' · с явными фильтрами' : ' · по наблюдаемой группе'), 'tiny'), button('Пример и источник цены', () => detail(x.example, true)));
+    r.append(row)
+  });
+  r.append(node('p', 'Доступные поля каждого примера проверены по одному целому сценарию; непроверяемые ограничения перечислены отдельно. Условия разных поисков не перемешиваются.', 'tiny'));
+  grid.append(r);
+  const common = panel('Что объединяет модели');
+  common.classList.add('wide');
+  if (a.model_common.length) a.model_common.forEach(x => append(common, node('p', x.label + ': ' + x.value + ' преобладает у ' + x.model_count + '/' + x.known_models + ' моделей с достаточной историей; всего моделей ' + x.total_models + '.'), button('Объявления-основания', () => showEvidence(x.evidence, 'Общее свойство моделей'))));
+  else common.append(node('p', 'Недостаточно моделей с повторными наблюдениями для устойчивого общего свойства.', 'sub'));
+  grid.append(common);
+  const tablep = panel('Модель × цена');
+  tablep.classList.add('wide');
+  const container = node('div', null, 'scroll');
+  tablep.append(container);
+  let limit = 20;
+  const more = button('Ещё 20 моделей', () => {
+    limit += 20;
+    draw()
+  }, 'close');
+  tablep.append(more);
+
+  function draw() {
+    container.replaceChildren();
+    const t = node('table'),
+      head = node('tr');
+    ['Модель', 'Объявления', 'Цены', 'Что повторяется', 'Основания'].forEach(x => head.append(node('th', x)));
+    t.append(append(node('thead'), head));
+    const body = node('tbody');
+    a.models.slice(0, limit).forEach(x => {
+      const pr = x.price;
+      const tr = node('tr');
+      append(tr, node('td', x.brand + ' ' + x.model), node('td', x.count + '/' + x.total), node('td', pr.count ? rub(pr.median) + ' · известно ' + pr.count + '/' + x.count : 'Неизвестно'), append(node('td'), tags(x.common.map(c => c.label + ': ' + c.value))), append(node('td'), button('Открыть', () => showEvidence(x.evidence, x.brand + ' ' + x.model))));
+      body.append(tr)
+    });
+    t.append(body);
+    container.append(t);
+    more.hidden = a.models.length <= limit
+  }
+  draw();
+  grid.append(tablep)
+}
+
+function priceChart(u) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 900 280');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Год выпуска и цена просмотренных автомобилей');
+  svg.classList.add('price-chart');
+  const cards = u.items.filter(c => c.analyzed && c.price > 0 && !c.price_flag && c.year);
+  if (!cards.length) return node('p', 'Нет объявлений с известной ценой и годом.', 'sub');
+  const rawMinY = Math.min(...cards.map(c => Math.log10(c.price))),
+    rawMaxY = Math.max(...cards.map(c => Math.log10(c.price)));
+  const padding = Math.max(0, .1 - (rawMaxY - rawMinY)) / 2;
+  const minY = rawMinY - padding,
+    maxY = rawMaxY + padding;
+  const minX = Math.min(...cards.map(c => c.year)),
+    maxX = Math.max(...cards.map(c => c.year));
+  const X = v => 135 + 725 * (v - minX) / Math.max(1, maxX - minX),
+    Y = v => 230 - 195 * (Math.log10(v) - minY) / (maxY - minY);
+
+  function elem(tag, attrs, text) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+    if (text != null) e.textContent = text;
+    svg.append(e);
+    return e
+  }
+  for (let i = 0; i <= 4; i++) {
+    const y = 35 + 195 * i / 4;
+    const value = Math.pow(10, maxY - (maxY - minY) * i / 4);
+    elem('line', {
+      x1: 130,
+      x2: 870,
+      y1: y,
+      y2: y,
+      stroke: '#e1e8e7'
+    });
+    elem('text', {
+      x: 123,
+      y: y + 4,
+      'text-anchor': 'end',
+      fill: '#6d7d83',
+      'font-size': 10
+    }, fmt(value / 1000) + ' тыс. ₽')
+  }
+  for (let i = 0; i <= 4; i++) {
+    const v = minX + (maxX - minX) * i / 4;
+    elem('text', {
+      x: X(v),
+      y: 255,
+      'text-anchor': 'middle',
+      fill: '#6d7d83',
+      'font-size': 11
+    }, year(v))
+  }
+  const palette = ['#087f78', '#d99437', '#7c84af', '#74aa9f', '#a76a72', '#7e9aaa'];
+  const groups = {};
+  u.clusters.forEach((c, i) => c.evidence.forEach(id => groups[id] = palette[i % palette.length]));
+  cards.forEach(c => {
+    const dot = elem('circle', {
+      cx: X(c.year),
+      cy: Y(c.price),
+      r: 3.2,
+      fill: groups[c.item] || '#a4afb4',
+      opacity: .65,
+      tabindex: 0,
+      role: 'button',
+      'aria-label': c.title + ' ' + rub(c.price)
+    });
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = c.title + ' · ' + rub(c.price);
+    dot.append(title);
+    dot.onclick = () => detail(c);
+    dot.onkeydown = e => {
+      if (e.key === 'Enter') detail(c)
+    }
+  });
+  return svg
+}
+
+function renderHistory(u) {
+  const p = panel('История и основания');
+  $('content').append(p);
+  const timeline = node('div', null, 'timeline');
+  const max = Math.max(1, ...u.timeline.map(d => Object.values(d.counts).reduce((a, b) => a + b, 0)));
+  u.timeline.forEach(d => {
+    const n = Object.values(d.counts).reduce((a, b) => a + b, 0);
+    const bar = node('i');
+    bar.style.height = Math.max(2, 80 * n / max) + 'px';
+    bar.title = d.day + ': ' + n + ' событий';
+    timeline.append(append(node('div', null, 'day'), bar, node('span', d.day.slice(8))))
+  });
+  p.append(timeline);
+  const tools = node('div', null, 'toolbar'),
+    search = node('input');
+  search.placeholder = 'Марка, модель, ID';
+  search.setAttribute('aria-label', 'Поиск объявления');
+  const sel = node('select');
+  sel.setAttribute('aria-label', 'Тип событий');
+  [
+    ['all', 'Все карточки'],
+    ['analyzed', 'Для анализа'],
+    ['contacts', 'С контактами'],
+    ['favorites', 'Избранное']
+  ].forEach(([v, t]) => {
+    const o = node('option', t);
+    o.value = v;
+    sel.append(o)
+  });
+  const reset = button('Сбросить', () => {
+    evidence = null;
+    search.value = '';
+    sel.value = 'all';
+    draw()
+  }, 'close');
+  append(tools, search, sel, reset);
+  p.append(tools);
+  const count = node('div', null, 'sub'),
+    scroll = node('div', null, 'scroll'),
+    more = button('Показать ещё 250', () => {
+      limit += 250;
+      draw()
+    }, 'close');
+  let limit = 250;
+  append(p, count, scroll, more);
+
+  function draw() {
+    const q = search.value.toLowerCase();
+    const rows = u.items.filter(c => (!evidence || evidence.has(c.item)) && (!q || (c.title + ' ' + c.brand + ' ' + c.model + ' ' + c.item).toLowerCase().includes(q)) && (sel.value === 'all' || sel.value === 'analyzed' && c.analyzed || sel.value === 'contacts' && c.contacts.length || sel.value === 'favorites' && c.displayEvents.some(e => e.kind === 'favorite')));
+    count.textContent = rows.length + ' карточек · показано ' + Math.min(limit, rows.length);
+    scroll.replaceChildren();
+    const table = node('table'),
+      head = node('tr');
+    ['Объявление', 'Цена / год', 'Характеристики', 'События', 'Источник'].forEach(t => head.append(node('th', t)));
+    table.append(append(node('thead'), head));
+    const body = node('tbody');
+    rows.slice(0, limit).forEach(c => {
+      const tr = node('tr'),
+        name = node('td'),
+        ct = Counter(c.displayEvents.map(e => e.kind));
+      append(name, button(c.title, () => detail(c), 'linkbutton model'), node('small', 'ID ' + c.item));
+      append(tr, name, append(node('td'), node('strong', rub(c.price)), node('small', year(c.year) + ' г. · ' + fmt(c.mileage_km) + ' км')), append(node('td'), node('div', [c.body_type, c.transmission].filter(Boolean).join(' · ') || '—'), node('small', [c.engine_type, c.drive].filter(Boolean).join(' · '))), append(node('td'), node('div', (ct.view || 0) + ' просмотров'), node('small', c.contacts.length + ' контактов · ' + (ct.favorite || 0) + ' избранное')), append(node('td'), node('div', c.priceSource || 'Не указан', 'tiny'), node('small', c.price_flag || (c.analyzed ? 'В анализе' : 'Только исходные события'))));
+      body.append(tr)
+    });
+    table.append(body);
+    scroll.append(table);
+    more.hidden = rows.length <= limit;
+    if (!rows.length) scroll.append(node('div', 'Нет карточек с выбранными условиями.', 'empty'))
+  }
+  search.oninput = () => {
+    limit = 250;
+    draw()
+  };
+  sel.onchange = () => {
+    limit = 250;
+    draw()
+  };
+  draw()
+}
+
+function Counter(xs) {
+  return xs.reduce((a, x) => (a[x] = (a[x] || 0) + 1, a), {})
+}
+
+function detail(c, fromPool = false) {
+  const overlay = node('div', null, 'dialog'),
+    box = node('div', null, 'dialog-box');
+  append(box, button('Закрыть', () => $('modal').replaceChildren(), 'close'), node('div', fromPool ? 'ПРИМЕР ИЗ ОБЩЕГО ПУЛА' : 'КАРТОЧКА / ОСНОВАНИЯ', 'eyebrow'), node('h2', c.title), tags([rub(c.price), year(c.year) + ' г.', c.body_type, c.transmission].filter(Boolean)), note('Фотографий в архиве нет. Продавец, VIN и исходные описания в интерфейс не экспортируются.'));
+  if (fromPool) box.append(note('Пример из общего пула. Это не история выбранного пользователя; цена относится к указанному снимку.'));
+  auditRow(box, 'ID объявления', c.item);
+  auditRow(box, 'Источник цены', c.priceSource || 'Не указан');
+  auditRow(box, 'Источник характеристик', c.attributeSource || 'Не указан');
+  auditRow(box, 'Снимок', c.snapshot || 'Не указан');
+  auditRow(box, 'Мощность / объём / двери', precise(c.power_hp) + ' л.с. / ' + precise(c.engine_liters) + ' л / ' + fmt(c.doors));
+  auditRow(box, 'Источник технических полей', c.technicalSource || 'Не указан');
+  auditRow(box, 'Дата технических полей', c.technicalSnapshot || 'Не указана');
+  auditRow(box, 'Временной статус технических полей', c.technicalTemporalStatus || 'Не указан');
+  if (c.price_flag) box.append(note(c.price_flag));
+  if (!fromPool && c.supplementaryEvents.length) {
+    box.append(node('h3', 'Восстановленные BTC-события'));
+    c.supplementaryEvents.forEach(e => auditRow(box, e.t, e.kind))
+  }
+  if (!fromPool) {
+    auditRow(box, 'Сырые / отображаемые события', c.events.length + ' / ' + c.displayEvents.length);
+    auditRow(box, 'Контакты / текущая метка целевого', c.contacts.length + ' / ' + c.contacts.filter(x => x.is_target).length);
+    box.append(node('h3', 'Отображаемые события'));
+    c.displayEvents.slice(-60).reverse().forEach(e => auditRow(box, e.t, e.kind));
+  }
+  if (c.imv.point != null) {
+    auditRow(box, 'Дневная IMV · ' + c.imv.day, rub(c.imv.point));
+    box.append(node('p', 'Ретроспективная дневная оценка, не гарантированно доступная до действия. В сводках и подборе не используется.', 'tiny'));
+  }
+  append(overlay, box);
+  overlay.onclick = e => {
+    if (e.target === overlay) $('modal').replaceChildren()
+  };
+  $('modal').replaceChildren(overlay)
+}
+
+function searches(u) {
+  const p = panel('Поиски и фильтры');
+  append(p, node('p', 'Неоднозначным сопоставлениям фильтры не приписываются. Повторные запросы и страницы сохранены.', 'sub'));
+  u.searches.filter(s => !searchEvidence || searchEvidence.has(s.ref)).forEach(s => {
+    const row = node('div', null, 'searchrow');
+    append(row, node('strong', s.t), node('span', s.status === 'matched' ? ' · сопоставлен' : ' · неоднозначно', 'tiny'), s.query ? node('div', 'Запрос: ' + s.query) : null, tags(s.filters));
+    p.append(row)
+  });
+  if (!u.searches.length) p.append(node('div', 'Поисковые события отсутствуют в экспорте.', 'empty'));
+  $('content').append(p)
+}
+
+function audit(u) {
+  const grid = node('div', null, 'grid'),
+    p = panel('Текущий пользователь'),
+    all = panel('Вся выборка');
+  [
+    ['Исходные события', u.counts.raw_events],
+    ['События в проекции UI', u.counts.projected_raw_events],
+    ['Отображаемые события', u.counts.display_events],
+    ['Карточки всего / в анализе', u.counts.items + ' / ' + u.counts.analyzed_items],
+    ['Контакты витрины / clickstream', u.counts.contacts + ' / ' + u.counts.stream_contacts],
+    ['Контакты без карточки', u.counts.unmapped_contacts],
+    ['Воронка / целевые', u.counts.funnel_contacts + ' / ' + u.counts.target_funnel_contacts],
+    ['Восстановленные BTC', u.counts.btc_supplement],
+    ['Покупки / использования отчётов', u.counts.report_purchases + ' / ' + u.counts.report_uses]
+  ].forEach(([k, v]) => auditRow(p, k, v));
+  p.append(node('h3', 'Источники цен'));
+  Object.entries(u.price_sources).forEach(([k, v]) => auditRow(p, k, v));
+  p.append(node('p', 'Источники указаны для объявлений в анализе.', 'tiny'));
+  [
+    ['Профили / активные', DATA.audit.users + ' / ' + DATA.audit.active_users],
+    ['Исходные / отображаемые события', DATA.audit.raw_events + ' / ' + DATA.audit.display_events],
+    ['User–item строки', DATA.audit.user_item_rows],
+    ['Поиски / неоднозначные', DATA.audit.searches + ' / ' + DATA.audit.ambiguous_searches],
+    ['Контакты витрины / clickstream', DATA.audit.contacts + ' / ' + DATA.audit.stream_contacts],
+    ['Карточки без цены / с флагом', DATA.audit.missing_prices + ' / ' + DATA.audit.flagged_prices],
+    ['Контакты в воронке / целевые', DATA.audit.funnel_contacts + ' / ' + DATA.audit.target_funnel_contacts],
+    ['Восстановленные BTC-события', DATA.btc_reconciliation.added_events || 0],
+    ['Отличительные сигналы / узкие диапазоны', DATA.audit.distinct_signal_users + ' / ' + DATA.audit.narrow_range_users],
+    ['Явные фильтры / регион бренда', DATA.audit.explicit_filter_users + ' / ' + DATA.audit.brand_region_filter_users],
+    ['LLM-отбор проверен', (DATA.editor_audit?.validated_users || 0) + ' / ' + DATA.audit.users]
+  ].forEach(([k, v]) => auditRow(all, k, v));
+  append(grid, p, all);
+  const limits = panel('Как читать выводы');
+  limits.classList.add('wide');
+  ['Единица анализа — уникальное объявление с отображаемой активностью или фактом контакта. Повторные просмотры не увеличивают уверенность в предпочтениях.', 'Порог концентрации: ≥5 известных значений, заполненность ≥60%; одно значение ≥70% или два ≥85% (второе ≥20%).', 'Группы — описательные сочетания кузова, КПП и ценовой полосы. Разрыв соседних цен >1,8× начинает новую группу; минимум 3 объявления.', 'Цены ниже 10 000 ₽ помечены и исключены из ценовых групп и альтернатив; исходное значение доступно в истории. Дорогие автомобили автоматически не удаляются.', 'Цены и характеристики преимущественно из снимков до 20 сентября, а не гарантированно на момент события. Диапазоны описывают экспорт.', 'Пустой профиль означает отсутствие истории в этом сэмпле. Это не доказательство отсутствия интереса.', 'Текущая метка целевого контакта — постфактум; клики на связь и контакты витрины — разные счётчики.', 'IMV показана только в карточке как ретроспективная дневная оценка. В сводках и подборе она не используется. VIN, описания, контактные идентификаторы и исходные параметры в UI не включены.', 'BTC: дополнительные события из раннего source/btc_history восстановлены отдельным слоем. Исходные счётчики витрины сохранены; общая полнота clickstream не доказана.', 'Числа и факты вычислены кодом. Краткий обзор может быть отобран LLM-редактором из этого каталога; новые факты в редакторский вывод не допускаются. Обучение и проверка улучшения ранжирования здесь не выполнялись.'].forEach(t => limits.append(node('p', t, 'sub')));
+  limits.append(note(DATA.coverage_note));
+  grid.append(limits);
+  const reports = panel('Автотека · события');
+  reports.classList.add('wide');
+  if (!u.report_events.length) reports.append(node('p', 'Нет событий отчётов в этой истории.', 'sub'));
+  u.report_events.forEach(e => auditRow(reports, e.t, e.kind === 'report_purchase' ? 'Покупка пакета' : ('Использование отчёта' + (e.item ? ' · связано с карточкой' : ' · без карточки'))));
+  reports.append(node('p', 'Покупка пакета и использование отчёта — разные действия.', 'tiny'));
+  grid.append(reports);
+  $('content').append(grid)
+}
+$('user-search').oninput = userList;
+document.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => {
+  filter = b.dataset.filter;
+  document.querySelectorAll('[data-filter]').forEach(x => x.classList.toggle('active', x === b));
+  userList()
+});
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  evidence = null;
+  searchEvidence = null;
+  render()
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('modal').replaceChildren()
+});
+render();
+</script></body></html>

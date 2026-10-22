@@ -234,7 +234,10 @@ class AvitoCaseBrowserTests(unittest.TestCase):
         self.assertEqual(expected["ndcg@5"], 1.0)
 
     def test_catboost_artifact_path_supports_external_verification_output(self) -> None:
-        external = Path("/tmp/avito-catboost-verification/scores.parquet")
+        external = (
+            Path(tempfile.gettempdir()).resolve()
+            / "avito-catboost-verification/scores.parquet"
+        )
         self.assertEqual(_display_path(external), str(external))
         self.assertEqual(
             _display_path(ROOT / "items_with_attrs.parquet"), "items_with_attrs.parquet"

@@ -19,3 +19,14 @@ Do not change code or configs used by an active run unless the user explicitly a
 Read `docs/AGENT_HANDOFF.md` only for historical chronology or literature context. Its old paths, infrastructure notes, and metrics are not current state.
 
 When changing code or experiment claims, update the focused documentation, registry, and result manifest together. Run the smallest relevant tests plus `python scripts/check_project_docs.py` before committing.
+
+## Delivery and synchronization
+
+The user explicitly authorized keeping GitHub and the existing thesis Google Drive folder current (22 October 2026). Before finishing a completed thesis change:
+
+- Commit and push verified code, tests, documentation and identifier-free aggregates to the configured GitHub remote. Inspect remote changes first; never overwrite unrelated work or force-push.
+- Upload new or changed datasets, row-level outputs, editor caches and portable interfaces to the existing designated thesis Drive folder. Reuse matching file IDs for updates, retain the source archive and include checksums plus viewing/reproduction instructions.
+- Preserve the existing folder organization and permissions. Keep Drive IDs, private links and row-level delivery manifests in ignored local artifacts; do not put them in GitHub.
+- Verify the pushed commit against the remote and verify uploaded files by metadata/checksums before reporting synchronization complete. Report an actual access/network blocker explicitly; do not silently leave changes local.
+
+This authorization does not include sending messages to collaborators. Prepare requested messages for the user to send unless the user explicitly authorizes delivery.

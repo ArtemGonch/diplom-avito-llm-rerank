@@ -1,0 +1,120 @@
+{
+  "version": "user-summary-v2",
+  "input_sha256": "1765a7aed7b2792f6c53d66212f2848e2ac4c282a1666316fff62257cbddb953",
+  "manifest_verified_files": 28,
+  "counts": {
+    "users": 100,
+    "active_users": 79,
+    "empty_users": 21,
+    "raw_events": 24325,
+    "display_events": 12384,
+    "user_item_rows": 9079,
+    "analyzed_items": 9010,
+    "searches": 1998,
+    "ambiguous_searches": 12,
+    "contacts": 138,
+    "stream_contacts": 145,
+    "eligible_preferences": 69,
+    "recommendations_users": 37,
+    "cluster_users": 71,
+    "missing_attrs": {
+      "brand": 93,
+      "model": 93,
+      "body_type": 93,
+      "transmission": 93,
+      "engine_type": 93,
+      "drive": 93,
+      "generation": 93
+    },
+    "missing_prices": 93,
+    "flagged_prices": 11,
+    "funnel_contacts": 135,
+    "target_funnel_contacts": 19,
+    "distinct_signal_users": 40,
+    "explicit_filter_users": 60,
+    "brand_region_filter_users": 12,
+    "narrow_range_users": 28,
+    "summary_users": 100,
+    "unique_search_states": 572,
+    "recommendation_statuses": {
+      "candidates": 29,
+      "no_matching_candidates": 31,
+      "conditional": 8,
+      "insufficient_history": 32
+    },
+    "cluster_statuses": {
+      "largest_only": 51,
+      "dominant": 18,
+      "tied": 2,
+      "not_available": 29
+    }
+  },
+  "btc_reconciliation": {
+    "source_rows": 1517,
+    "added_events": 211,
+    "affected_users": 27,
+    "unmatched_items": 0,
+    "added_by_eid": {
+      "308": 208,
+      "6607": 1,
+      "8109": 1,
+      "451": 1
+    }
+  },
+  "source_enrichment": {
+    "cardsWithImv": 7653,
+    "search_matched": 1986,
+    "search_ambiguous": 12,
+    "purchases": 8,
+    "linked_uses": 20,
+    "unlinked_uses": 13
+  },
+  "technical_enrichment": {
+    "cards": 9079,
+    "as_of_last_cards": 568,
+    "fallback_snapshot_cards": 8416,
+    "unavailable_cards": 95,
+    "ambiguous_intervals": 0,
+    "ambiguous_snapshots": 0,
+    "invalid_last_cards": 0,
+    "snapshot_after_last_cards": 3851,
+    "source_rows": {
+      "params_history": 12417,
+      "viewer_ads": 8680
+    },
+    "missing_fields": {
+      "power_hp": 97,
+      "engine_liters": 96,
+      "doors": 95
+    },
+    "rejected_values": {
+      "power_hp": 1,
+      "engine_liters": 0,
+      "doors": 0
+    },
+    "missing_source_files": []
+  },
+  "communications": false,
+  "photos": false,
+  "analysis": "Evidence-grounded descriptive analysis; no ranking evaluation",
+  "editor": {
+    "validated_users": 100,
+    "total_users": 100,
+    "status": "complete",
+    "method": "LLM selects canonical fact IDs; no free factual prose or new values",
+    "provenance": {
+      "provider": "codex_collaboration",
+      "model": "session_inherited",
+      "model_revision": "not_exposed",
+      "date": "2026-10-22",
+      "method": "Individual LLM editorial selection by two session agents; displayed sentences resolved from computed canonical facts",
+      "editors": [
+        "summary_editor_a",
+        "summary_editor_b"
+      ],
+      "prompt_contract": "canonical-fact-selection-v1",
+      "requests_sha256": "95a974d23a6256e58ae54a33d95b8b2da593019c59b8e364886a75357a83afa2",
+      "selections_sha256": "14c168b23ea4039339aa0507c065f12d8b29f98252425ddf7b40aaecb053b10c"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-10",
+  "generated": "2026-10-22",
   "avito_dataset_snapshot": {
     "candidate_rows": 44736,
     "serps": 2000,
@@ -192,5 +192,29 @@
   "exp3rt_plots": "plots/exp3rt_plots_manifest.json",
   "experiments_registry": "experiments/registry.yaml",
   "project_entrypoint": "docs/START_HERE.md",
-  "team_docs": "docs/TEAM_PROJECT.md"
+  "team_docs": "docs/TEAM_PROJECT.md",
+  "avito_user_view_20261016": {
+    "status": "implemented_on_available_data",
+    "path": "metrics/avito_user_view.json",
+    "version": "user-summary-v2",
+    "completed": "2026-10-22",
+    "task": "16 October user-view and descriptive summaries",
+    "claim_scope": "Evidence-grounded descriptive analysis and LLM canonical-fact selection; no Qwen run, training or ranking evaluation",
+    "users": 100,
+    "active_users": 79,
+    "complete_summaries": 100,
+    "llm_editor_validated_users": 100,
+    "llm_editor_selected_facts": 515,
+    "distinct_signal_users": 40,
+    "explicit_filter_users": 60,
+    "narrow_range_users": 28,
+    "recommendations_users": 37,
+    "communications_available": false,
+    "production_country_available": false,
+    "photos_available": false,
+    "local_browser": "reports/avito_user_view/index.html",
+    "execution_report": "docs/task_2026-10-16_execution_report.md",
+    "missing_data_request": "docs/user_view_missing_data_request.txt",
+    "generated_artifacts_in_git": false
+  }
 }
