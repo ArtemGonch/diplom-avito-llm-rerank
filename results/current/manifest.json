@@ -215,6 +215,18 @@
     "local_browser": "reports/avito_user_view/index.html",
     "execution_report": "docs/task_2026-10-16_execution_report.md",
     "missing_data_request": "docs/user_view_missing_data_request.txt",
-    "generated_artifacts_in_git": false
+    "generated_artifacts_in_git": false,
+    "external_delivery": {
+      "provider": "google_drive",
+      "status": "uploaded_metadata_verified",
+      "uploaded": "2026-10-22",
+      "file_count": 9,
+      "code_commit": "3a1642c653ce588b2c11936c07f98f90c7e11468",
+      "drive_link_committed": false,
+      "source_archive_sha256": "c00d2048ce08a09ff40ca6269a57be76cc53ef296eb874b92ab0586f75fe7c9d",
+      "bundle_sha256": "9fb9e81b0f115c183120b48aff86712403c96bd765914fe249822db5b48daf60",
+      "browser_html_sha256": "3e3145101b749098e81ab9b04e40438e1a3a3bcb5f18af31a530f3ca24d5c221",
+      "verification": "Names, sizes and parent folder verified by Drive readback; local SHA256 manifests supplied; bundle member hashes verified"
+    }
   }
 }

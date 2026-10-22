@@ -204,6 +204,23 @@ python -m http.server 8780 --bind 127.0.0.1 --directory reports/avito_user_view
 агрегат — [avito_user_view.json](../results/current/metrics/avito_user_view.json).
 Никаких row-level данных, generated knowledge или HTML в Git; сервер loopback.
 
+### Передача на Google Drive
+
+22.10.2026 в существующей папке диплома, внутри `private_avito_data`, создан
+каталог `user_view_2026-10-16`. Там девять файлов: исходный ZIP, переносимый
+`avito_user_view_bundle.zip`, автономный `avito_user_view.html`, все саммари,
+краткий отчёт, аудит, запрос данных, README и SHA256SUMS. Переносимый пакет
+содержит также JSON результатов, editor cache/requests, preview и документацию.
+Для просмотра HTML нужно скачать; Drive Preview приложение не исполняет.
+
+Для всех девяти файлов проверяются имя, размер и родительская папка через
+Drive metadata. SHA-256 каждого файла сохранён в переданном SHA256SUMS;
+внутри переносимого ZIP каждый член дополнительно проверен по его манифесту.
+Подробный delivery manifest с Drive IDs/ссылками остаётся локально в
+игнорируемом `reports/avito_user_view/delivery/`. Существующие права папки
+сохранены, Drive-ссылки не включаются в Git. При следующих обновлениях
+использовать те же file IDs, без дубликатов.
+
 Код: `src/avito_user_view/`, шаблон `apps/avito_user_view/template.html`, сборщик
 `scripts/avito/build_user_view.py`. UI использует textContent, JSON escaping и
 CSP без внешних ресурсов/fetch. График — реальные year/price points, общая

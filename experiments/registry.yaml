@@ -186,6 +186,14 @@ experiments:
     metrics: results/current/metrics/avito_user_view.json
     local_browser: reports/avito_user_view/index.html
     data_request: docs/user_view_missing_data_request.txt
+    external_delivery:
+      provider: google_drive
+      status: uploaded_metadata_verified
+      uploaded: "2026-10-22"
+      file_count: 9
+      code_commit: 3a1642c653ce588b2c11936c07f98f90c7e11468
+      drive_link_committed: false
+      verification: names, sizes and parent folder read back; local SHA256 manifests supplied and bundle members checked
     open_data_dependencies: [conversation_contents, vehicle_country_definition, full_candidate_catalog, temporal_contract]
     notes: "100 full profiles; 100/100 validated LLM editorial selections of 515 canonical facts. Explicit filters, LOO descriptive signals, narrow ranges, model-price/common features, cluster status and scenario-based alternatives. Existing raw/display counts retained; technical source provenance added. No Qwen run, model training or ranking-quality claim. Conversations/country unavailable; alternative usefulness not evaluated. Private inputs/generated reports/cache stay ignored."
 
