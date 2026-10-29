@@ -221,6 +221,18 @@
     "external_delivery": {
       "provider": "google_drive",
       "status": "uploaded_metadata_verified",
+      "uploaded": "2026-10-29",
+      "file_count": 13,
+      "code_commit": "c6d48f87509e514a87d10c98168181e7e85edd2f",
+      "drive_link_committed": false,
+      "source_archive_sha256": "c00d2048ce08a09ff40ca6269a57be76cc53ef296eb874b92ab0586f75fe7c9d",
+      "bundle_sha256": "eb9ff6f1f36070e216dda7ec81ebda87db7ad6756d8c54999c2ba68059f35494",
+      "browser_html_sha256": "fbf73ca4116caa86ce5d0e57f29f0b8d53e3fd0cf6b37ba5a4cca7ff89f39f25",
+      "verification": "13 names, sizes and parent folder read back; unchanged source retained; local SHA256 manifests supplied; 30 bundle members verified"
+    },
+    "previous_delivery_snapshot": {
+      "provider": "google_drive",
+      "status": "uploaded_metadata_verified",
       "uploaded": "2026-10-22",
       "file_count": 9,
       "code_commit": "3a1642c653ce588b2c11936c07f98f90c7e11468",
@@ -263,8 +275,15 @@
     "sampling_model_verified": false,
     "external_delivery": {
       "provider": "google_drive",
-      "status": "pending_update",
-      "drive_link_committed": false
+      "status": "uploaded_metadata_verified",
+      "uploaded": "2026-10-29",
+      "file_count": 13,
+      "code_commit": "c6d48f87509e514a87d10c98168181e7e85edd2f",
+      "drive_link_committed": false,
+      "source_archive_sha256": "c00d2048ce08a09ff40ca6269a57be76cc53ef296eb874b92ab0586f75fe7c9d",
+      "bundle_sha256": "eb9ff6f1f36070e216dda7ec81ebda87db7ad6756d8c54999c2ba68059f35494",
+      "browser_html_sha256": "fbf73ca4116caa86ce5d0e57f29f0b8d53e3fd0cf6b37ba5a4cca7ff89f39f25",
+      "verification": "13 names, sizes and parent folder read back; unchanged source retained; local SHA256 manifests supplied; 30 bundle members verified"
     }
   }
 }

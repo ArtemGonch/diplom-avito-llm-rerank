@@ -189,9 +189,9 @@ experiments:
     external_delivery:
       provider: google_drive
       status: uploaded_metadata_verified
-      uploaded: "2026-10-22"
-      file_count: 9
-      code_commit: 3a1642c653ce588b2c11936c07f98f90c7e11468
+      uploaded: "2026-10-29"
+      file_count: 13
+      code_commit: c6d48f87509e514a87d10c98168181e7e85edd2f
       drive_link_committed: false
       verification: names, sizes and parent folder read back; local SHA256 manifests supplied and bundle members checked
     open_data_dependencies: [conversation_contents, vehicle_country_definition, full_candidate_catalog, temporal_contract]
@@ -209,7 +209,11 @@ experiments:
     local_browser: reports/avito_user_view/index.html
     external_delivery:
       provider: google_drive
-      status: pending_update
+      status: uploaded_metadata_verified
+      uploaded: "2026-10-29"
+      file_count: 13
+      code_commit: c6d48f87509e514a87d10c98168181e7e85edd2f
+      verification: names, sizes and parent folder read back; local SHA256 manifests supplied and bundle members checked
       drive_link_committed: false
     open_data_dependencies: [serp_exposures_clicks, communication_summaries, photos_descriptions, temporal_contract, human_annotations]
     notes: "User View v3 research layer; canonical v2 facts and original 515 LLM selections remain frozen. 37 unique leaders, 34 ties, 29 abstain; 264 marginal median CIs (66x4), IID unverified. Day-deletion available for 30, all leader sets unchanged for 16. Matched body K=489 per method, two blind 100-pair expert packages without labels; usefulness and ranking not evaluated. Literature-informed controls; no new model run/training."
