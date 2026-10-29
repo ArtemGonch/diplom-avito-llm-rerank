@@ -652,8 +652,9 @@ def build_payload(dataset):
     )
 
     from .analysis import enrich_payload
+    from .research import enrich_research
 
-    return enrich_payload(payload, dataset)
+    return enrich_research(enrich_payload(payload, dataset))
 
 
 def render_html(payload):

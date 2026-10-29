@@ -17,6 +17,10 @@ def summary_text(user, period):
         if not section["fact_ids"]:
             parts.append("Недостаточно данных для вывода по этому разделу.")
         parts.append("")
+    if user.get("research"):
+        from .research import followup_text
+
+        parts += [followup_text(user), ""]
     return "\n".join(parts)
 
 
@@ -80,3 +84,6 @@ def write_reports(payload, output):
         "Все построчные данные и отчёты приватные; интерфейс доступен только локально.",
     ]
     (output / "assignment_report.txt").write_text("\n".join(rows) + "\n")
+    from .research import write_research_reports
+
+    write_research_reports(payload, output)

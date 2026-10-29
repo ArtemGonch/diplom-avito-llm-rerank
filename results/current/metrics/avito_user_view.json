@@ -1,5 +1,5 @@
 {
-  "version": "user-summary-v2",
+  "version": "user-summary-v3",
   "input_sha256": "1765a7aed7b2792f6c53d66212f2848e2ac4c282a1666316fff62257cbddb953",
   "manifest_verified_files": 28,
   "counts": {
@@ -116,5 +116,48 @@
       "requests_sha256": "95a974d23a6256e58ae54a33d95b8b2da593019c59b8e364886a75357a83afa2",
       "selections_sha256": "14c168b23ea4039339aa0507c065f12d8b29f98252425ddf7b40aaecb053b10c"
     }
+  },
+  "followup": {
+    "version": "user-summary-v3",
+    "task_date": "2026-10-22",
+    "users": 100,
+    "fact_rule_version": "user-summary-v2",
+    "top_interest_statuses": {
+      "available": 37,
+      "tied": 34,
+      "not_available": 29
+    },
+    "ci_available_users": {
+      "price": 66,
+      "mileage_km": 66,
+      "year": 66,
+      "power_hp": 66
+    },
+    "ci_total_available": 264,
+    "compared_users": 100,
+    "equal_budget_verified": true,
+    "same_priority_selection_users": 0,
+    "same_diverse_selection_users": 0,
+    "mean_jaccard_priority": 0.24601948051948053,
+    "mean_jaccard_diverse": 0.18405339105339105,
+    "total_fact_budget": 489,
+    "total_original_llm_fact_budget": 515,
+    "context_only_users": 0,
+    "compared_active_users": 79,
+    "explicit_stability_users": 30,
+    "unchanged_top_set_on_all_day_removals": 16,
+    "sections_total": {
+      "llm_sections": 312,
+      "rule_sections": 209,
+      "diverse_sections": 480
+    },
+    "characters_total": {
+      "llm_characters": 54011,
+      "rule_characters": 59098,
+      "diverse_characters": 62408
+    },
+    "usefulness_evaluated": false,
+    "ranking_evaluated": false,
+    "sampling_model_verified": false
   }
 }

@@ -1,6 +1,6 @@
 # Диплом: актуальная точка входа
 
-Обновлено: **2026-10-22**. Этот файл — краткий текущий контекст проекта. Он не заменяет статьи, код и реестр экспериментов, а задаёт правильный порядок чтения и отделяет валидные результаты от legacy.
+Обновлено: **2026-10-29**. Этот файл — краткий текущий контекст проекта. Он не заменяет статьи, код и реестр экспериментов, а задаёт правильный порядок чтения и отделяет валидные результаты от legacy.
 
 Новый Codex получает корневой `AGENTS.md` автоматически. Для полного onboarding следует использовать repo-skill `$diplom-context`; для сборки, запуска и интерпретации Avito Case Browser — `$avito-case-browser`. Если skills недоступны, выполнить `bash scripts/project_context.sh` и следовать маршрутам чтения ниже.
 
@@ -46,6 +46,7 @@ tail -f logs/ur4rec_corrected_v3/train.log
 | Avito local Qwen L0 diagnostic | done | No-history/position NDCG@10 `0.353148` с явным `item_id` tie-break; dev-selected gate дал test `0.644844` против CatBoost `0.657788`, поэтому gate отклонён |
 | Avito ranking case browser | done | 200 test SERP, 8 featured cases, 72/72 validation-v9 insights; UI v5 и пакет из 7 файлов переданы через Google Drive 2026-09-10. Actual TC показан отдельно от graded target; overlay Ромы ещё ожидается |
 | Avito User View v2 (задание 16.10) | реализовано по доступным данным, 22.10 | Полные сводки 100/100; LLM-отбор 515 проверенных фактов, explicit/LOO-сигналы, модели/сценарии и альтернативы. Содержание общения и страна производства отсутствуют. Не Qwen-run и не ranking benchmark; [документ](avito_user_view.md) |
+| Avito User View v3 (задание 22.10) | вычисления/ресерч выполнены, 29.10; human/ranking eval ожидаются | 37 уникальных ведущих атрибутов + 34 ties; 264 ДИ медианы (IID не проверено); day-deletion и matched-K LLM/rules controls. [Отчёт и выбор методов](task_2026-10-22_execution_report.md) |
 | UR4Rec Avito smoke | done, **legacy** | Нужен повторный запуск от `knowledge` |
 | C-UR4Rec | design only | Нельзя утверждать, что метод реализован или проверен |
 
@@ -159,7 +160,9 @@ manifests и ZIP являются приватными локальными/Driv
 Документ и запланировано на следующую неделю: интерес по топ-значимому
 атрибуту, доверительные интервалы числовых параметров, NDCG интересов (Рома),
 новые данные (Рома), преимущества LLM над эвристикой в саммари (Артём).
-Выполнение этих новых пунктов ещё не начато.
+На 29.10 вычисления и ресерч по доступным данным выполнены в v3;
+экспертная полезность и NDCG ожидают независимой оценки/данных.
+[Отчёт выполнения](task_2026-10-22_execution_report.md).
 
 ### Amazon-C4 Automotive
 
@@ -242,6 +245,17 @@ python scripts/amazon_c4/evaluate_multimodal.py
 ```
 
 Корневые `scripts/run_ur4rec.py` и `scripts/run_exp3rt.py` сохранены как compatibility wrappers. В новой документации и командах использовать paper-specific пути под `scripts/ur4rec/` и `scripts/exp3rt/`.
+
+## Последнее задание: исследование и User View v3
+
+См. [задание 22.10](task_2026-10-22_artem.md),
+[отчёт 29.10](task_2026-10-22_execution_report.md),
+[профили в статьях](research_user_profiles_2026-10-29.md) и
+[оценку полезности саммари](research_summary_evaluation_2026-10-29.md).
+Canonical fact store/LLM cache остаются v2 от 22.10; новый v3-слой их не меняет.
+Два слепых экспертных пакета по 100 пар подготовлены, ответы пустые.
+Различие отборов и покрытие разделов не доказывают пользу LLM. Ни нового Qwen-run,
+ни NDCG на новой выгрузке не было. Воспроизведение: [User View](avito_user_view.md).
 
 ## Что читать дальше
 

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-22",
+  "generated": "2026-10-29",
   "avito_dataset_snapshot": {
     "candidate_rows": 44736,
     "serps": 2000,
@@ -196,7 +196,9 @@
   "avito_user_view_20261016": {
     "status": "implemented_on_available_data",
     "path": "metrics/avito_user_view.json",
-    "version": "user-summary-v2",
+    "version": "user-summary-v3",
+    "canonical_fact_version": "user-summary-v2",
+    "updated": "2026-10-29",
     "completed": "2026-10-22",
     "task": "16 October user-view and descriptive summaries",
     "claim_scope": "Evidence-grounded descriptive analysis and LLM canonical-fact selection; no Qwen run, training or ranking evaluation",
@@ -227,6 +229,42 @@
       "bundle_sha256": "9fb9e81b0f115c183120b48aff86712403c96bd765914fe249822db5b48daf60",
       "browser_html_sha256": "3e3145101b749098e81ab9b04e40438e1a3a3bcb5f18af31a530f3ca24d5c221",
       "verification": "Names, sizes and parent folder verified by Drive readback; local SHA256 manifests supplied; bundle member hashes verified"
+    }
+  },
+  "avito_user_view_followup_20261022": {
+    "status": "implemented_available_analysis_pending_human_and_ranking_evaluation",
+    "path": "metrics/avito_user_view_followup.json",
+    "version": "user-summary-v3",
+    "canonical_fact_version": "user-summary-v2",
+    "completed": "2026-10-29",
+    "execution_report": "docs/task_2026-10-22_execution_report.md",
+    "local_browser": "reports/avito_user_view/index.html",
+    "claim_scope": "Descriptive interest priority, nominal IID median CIs and summary-selection diagnostics; no human utility or ranking evaluation",
+    "generated_artifacts_in_git": false,
+    "users": 100,
+    "top_interest_statuses": {
+      "available": 37,
+      "tied": 34,
+      "not_available": 29
+    },
+    "ci_available_users": {
+      "price": 66,
+      "mileage_km": 66,
+      "year": 66,
+      "power_hp": 66
+    },
+    "ci_total_available": 264,
+    "compared_users": 100,
+    "total_fact_budget": 489,
+    "explicit_stability_users": 30,
+    "unchanged_top_set_on_all_day_removals": 16,
+    "usefulness_evaluated": false,
+    "ranking_evaluated": false,
+    "sampling_model_verified": false,
+    "external_delivery": {
+      "provider": "google_drive",
+      "status": "pending_update",
+      "drive_link_committed": false
     }
   }
 }

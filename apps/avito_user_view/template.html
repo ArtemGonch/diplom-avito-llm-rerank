@@ -1,16 +1,17 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Auto / User Observatory</title><style>
 :root{--bg:#f3f5f8;--ink:#172d35;--muted:#697c84;--line:#dfe6e9;--accent:#087f78;--tint:#e5f4ee;--gold:#d99437;--serif:Georgia,'Times New Roman',serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #66c5bb;outline-offset:2px}aside{position:fixed;inset:0 auto 0 0;width:264px;background:#132f35;color:white;padding:28px 18px;display:flex;flex-direction:column}.brand{font-size:17px;letter-spacing:2px;font-weight:700}.brand span{color:#91cdbc}.aside-note{color:#b1c5c7;font-size:12px;margin:8px 0 22px}.search{width:100%;padding:10px 12px;background:#234249;border:1px solid #3c575e;border-radius:8px;color:white}.search::placeholder{color:#b5c6c9}.filters{display:flex;gap:5px;margin:10px 0 17px}.filters button{background:none;border:1px solid #506970;border-radius:6px;color:#d9e9e8;font-size:11px;padding:5px 7px}.filters button.active{background:#d9eee6;color:#173a35;border-color:#d9eee6}#users{overflow-y:auto;flex:1} .user{display:block;text-align:left;width:100%;border:0;color:#d1e1e3;background:none;padding:12px 11px;border-radius:9px;margin-bottom:4px}.user.selected{background:#d9eee6;color:#153e35}.user b{font-weight:600}.user small{display:block;font-size:11px;opacity:.7}.aside-foot{font-size:11px;color:#a8bdc0;padding-top:15px;border-top:1px solid #3d565c}main{margin-left:264px;max-width:1600px;padding:30px 40px 70px}.topline{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px;letter-spacing:.3px}.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:20px;background:var(--tint);color:#14685a;font-size:11px}.hero{display:flex;justify-content:space-between;align-items:center;margin:20px 0 25px}h1{font:36px/1.15 var(--serif);letter-spacing:-1px;margin:0 0 7px}h2{font-size:17px;letter-spacing:-.3px;margin:0 0 15px}h3{font-size:14px;margin:0 0 8px}.muted,.sub{color:var(--muted)}.sub{font-size:12px}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 24px}.kpi{padding:17px 20px;background:#fff;border:1px solid var(--line);border-radius:12px}.kpi strong{display:block;font-size:25px;line-height:1.3;letter-spacing:-.7px}.kpi span{font-size:11px;color:var(--muted)}nav{display:flex;gap:25px;border-bottom:1px solid var(--line);margin:12px 0 24px}nav button{border:0;background:none;padding:12px 0;color:var(--muted);border-bottom:3px solid transparent;font-size:13px}nav button.active{border-color:var(--accent);color:var(--accent);font-weight:600}.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:23px;margin-bottom:18px}.wide{grid-column:1/-1}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}.statement{font:24px/1.35 var(--serif);margin:0 0 14px}.preference{border-top:1px solid #edf0f1;padding:13px 0;display:grid;grid-template-columns:85px 1fr;gap:10px}.preference:last-child{padding-bottom:0}.bar{height:5px;background:#edf0ef;border-radius:5px;margin:8px 0}.bar i{height:100%;display:block;background:var(--accent);border-radius:5px}.tiny{font-size:11px;color:var(--muted)}.evidence{border:0;background:transparent;color:var(--accent);padding:0;font-size:11px;text-decoration:underline;text-underline-offset:3px}.tag{display:inline-block;background:#f0f4f5;color:#52676e;border-radius:5px;font-size:11px;padding:3px 7px;margin:3px 4px 3px 0}.cluster{border:1px solid var(--line);border-radius:10px;padding:17px;margin:10px 0}.cluster.main{border-color:#91bfb5;background:#f3faf7}.cluster-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.price{font-size:23px;letter-spacing:-.5px}.note{font-size:12px;background:#f7f5ed;border-left:3px solid #d7b26b;padding:12px 15px;margin:14px 0;color:#746247}.empty{padding:30px 0;color:var(--muted)}.rec{padding:13px 0;border-top:1px solid var(--line)}.rec b{font-size:14px}.timeline{display:flex;align-items:flex-end;gap:8px;height:110px;margin:15px 0 25px}.day{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:9px;color:var(--muted)}.day i{background:#71ada1;width:100%;max-width:35px;border-radius:4px 4px 0 0;min-height:2px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}input,select{border:1px solid var(--line);border-radius:7px;padding:8px 12px;background:white;color:var(--ink)}table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}th{color:var(--muted);font-weight:500;padding:11px 9px;border-bottom:1px solid var(--line);white-space:nowrap}td{padding:13px 9px;vertical-align:top;border-bottom:1px solid #ecf0f1}td small{display:block;color:var(--muted)}.scroll{overflow:auto}.linkbutton{border:0;background:none;color:var(--accent);text-align:left;padding:0}.model{max-width:280px;font-weight:600}.audit-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf0f1;gap:20px}.audit-row span:first-child{color:var(--muted)}.searchrow{padding:13px 0;border-top:1px solid var(--line)}.badge{background:#fff1dc;color:#8e6524;border-radius:4px;padding:3px 6px;font-size:10px}.dialog{position:fixed;inset:0;background:#0d252d88;z-index:5;display:flex;justify-content:center;align-items:center;padding:28px}.dialog-box{max-width:850px;width:100%;max-height:88vh;overflow:auto;background:white;border-radius:16px;padding:28px}.close{float:right;border:1px solid var(--line);border-radius:7px;background:#fff;padding:6px 12px}.no-match{color:#bed2d3;font-size:12px;padding:15px}.footer{color:var(--muted);font-size:11px;margin-top:25px}@media(max-width:1050px){aside{width:225px}main{margin-left:225px;padding:25px}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){aside{position:relative;width:100%;height:240px;padding:16px}.aside-note,.aside-foot{display:none}#users{display:flex;gap:5px;overflow:auto;margin-top:10px}.user{min-width:160px}main{margin:0;padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:30px}nav{gap:16px;overflow:auto}nav button{white-space:nowrap}.hero{display:block}.topline{gap:12px}.panel{padding:18px}.grid{display:block}}
 .fact{padding:10px 0;border-bottom:1px solid #edf0f1}.fact:last-child{border-bottom:0}.fact p{margin:0 0 5px;line-height:1.65}.summary-section{border-top:1px solid var(--line);padding:13px 0}.summary-section summary{cursor:pointer;font-weight:600}.summary-section .fact{margin-left:18px}.price-chart{width:100%;min-width:700px;min-height:210px;display:block}.price-chart circle{cursor:pointer}.price-chart circle:hover{opacity:1;r:5}details summary{cursor:pointer}nav{gap:19px}.rec .tag{font-weight:400}
+.comparison-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.comparison-grid .panel{padding:18px}.comparison-grid .fact p{font-size:13px}.interest-leader{border-top:1px solid var(--line);padding:12px 0}nav{overflow-x:auto}nav button{white-space:nowrap}.ci-table td{white-space:nowrap}@media(max-width:1050px){.comparison-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><aside><div class="brand">AUTO <span>/ OBSERVATORY</span></div><div class="aside-note">История выбора · исследовательский стенд</div><input class="search" id="user-search" aria-label="Поиск пользователя" placeholder="Пользователь, ID или модель"><div class="filters"><button data-filter="all" class="active">Все 100</button><button data-filter="ready">Есть профиль</button><button data-filter="empty">Без карточек</button></div><div id="users"></div><div class="aside-foot">Локально · приватная выборка<br>Никаких внешних запросов</div></aside>
-<main><div class="topline"><span>USED CARS / USER VIEW</span><span id="period"></span><span class="pill">● Локальная версия</span></div><div id="hero"></div><div id="kpis" class="kpis"></div><nav aria-label="Разделы"><button data-tab="summary" class="active">Саммари</button><button data-tab="profile">Параметры</button><button data-tab="models">Модели и сценарии</button><button data-tab="history">История</button><button data-tab="searches">Поиски</button><button data-tab="audit">Качество данных</button></nav><div id="content"></div><div class="footer">User View v2 · Проверяемые саммари истории. Польза альтернатив требует отдельной проверки.</div></main>
+<main><div class="topline"><span>USED CARS / USER VIEW</span><span id="period"></span><span class="pill">● Локальная версия</span></div><div id="hero"></div><div id="kpis" class="kpis"></div><nav aria-label="Разделы"><button data-tab="summary" class="active">Саммари</button><button data-tab="profile">Параметры</button><button data-tab="models">Модели и сценарии</button><button data-tab="comparison">LLM и правила</button><button data-tab="history">История</button><button data-tab="searches">Поиски</button><button data-tab="audit">Качество данных</button></nav><div id="content"></div><div class="footer">User View v3 · Проверяемые факты, исследовательские интервалы и сравнение отбора. Польза для ранжирования не измерена.</div></main>
 <div id="modal"></div><script id="dataset" type="application/json">__USER_VIEW_DATA__</script><script>
 'use strict';
 const DATA = JSON.parse(document.getElementById('dataset').textContent);
 const stateParams = new URLSearchParams(location.hash.slice(1));
 let selected = Math.max(0, Math.min(DATA.users.length - 1, Math.trunc(Number(stateParams.get('u') || 1)) - 1)) || 0,
-  tab = ['summary', 'profile', 'models', 'history', 'searches', 'audit'].includes(stateParams.get('tab')) ? stateParams.get('tab') : 'summary',
+  tab = ['summary', 'profile', 'models', 'comparison', 'history', 'searches', 'audit'].includes(stateParams.get('tab')) ? stateParams.get('tab') : 'summary',
   filter = 'all',
   evidence = null;
 const $ = id => document.getElementById(id),
@@ -107,6 +108,7 @@ function render() {
   if (tab === 'summary') summary(u);
   if (tab === 'profile') profile(u);
   if (tab === 'models') models(u);
+  if (tab === 'comparison') comparison(u);
   if (tab === 'history') renderHistory(u);
   if (tab === 'searches') searches(u);
   if (tab === 'audit') audit(u)
@@ -177,7 +179,7 @@ function factNode(u, f) {
 
 function downloadSummary(u) {
   const byId = Object.fromEntries(u.facts.map(f => [f.id, f]));
-  const text = [u.label, 'История: ' + DATA.period.join(' — '), '', ...u.summary.sections.flatMap(s => [s.title, ...s.fact_ids.map(id => byId[id].text), ''])].join('\n');
+  const text = [u.label, 'История: ' + DATA.period.join(' — '), '', ...u.summary.sections.flatMap(s => [s.title, ...s.fact_ids.map(id => byId[id].text), '']), ...(u.research ? researchSummaryText(u) : [])].join('\n');
   const url = URL.createObjectURL(new Blob([text], {
     type: 'text/plain;charset=utf-8'
   }));
@@ -202,6 +204,7 @@ function downloadMissingRequest() {
 function summary(u) {
   const grid = node('div', null, 'grid');
   $('content').append(grid);
+  if (u.research) grid.append(interestPanel(u));
   const byId = Object.fromEntries(u.facts.map(f => [f.id, f]));
   const p = panel();
   p.classList.add('wide');
@@ -239,15 +242,144 @@ function summary(u) {
   grid.append(scope)
 }
 
+function measure(field, value) {
+  return (field === 'year' ? year(value) : precise(value)) + (value == null ? '' : (unit[field] || ''))
+}
+
+function researchSummaryText(u) {
+  const r = u.research;
+  const rows = ['', 'ДОПОЛНЕНИЕ К ЗАДАНИЮ 22.10', 'Исторические ведущие атрибуты'];
+  if (r.top_interest.status === 'tied') rows.push('Несколько равных лидеров; единственного главного атрибута нет.');
+  r.top_interest.leaders.forEach(x => rows.push(x.label + ': ' + x.values.join(' / ')));
+  if (!r.top_interest.leaders.length) rows.push('Недостаточно оснований для ведущего атрибута.');
+  rows.push(r.top_interest.note, '', '95% ДИ медианы · исследовательская IID-модель');
+  r.numeric_ci.forEach(x => rows.push(x.label + ': ' + (x.status === 'available' ? measure(x.field, x.low) + ' — ' + measure(x.field, x.high) + '; медиана ' + measure(x.field, x.median) : 'Недостаточно данных') + '; известно ' + x.n + '/' + x.total));
+  if (r.numeric_ci.length) rows.push(r.numeric_ci[0].note);
+  return rows
+}
+
+function interestPanel(u) {
+  const r = u.research.top_interest;
+  const p = panel('Интерес по ведущим атрибутам');
+  p.classList.add('wide');
+  p.append(node('p', 'За весь период истории · эвристический приоритет, не причинная важность и не статистическая значимость.', 'sub'));
+  if (!r.leaders.length) p.append(node('p', 'Недостаточно явных фильтров или отличий от фона, чтобы выделить ведущий атрибут. Распространённый признак автоматически главным не становится.', 'sub'));
+  if (r.status === 'tied') p.append(node('span', 'Равный приоритет: ' + r.leaders.length + ' атрибутов', 'tag'));
+  r.leaders.forEach(x => {
+    const row = node('div', null, 'interest-leader');
+    row.append(node('strong', x.label));
+    if (x.source === 'historical_explicit') {
+      row.append(node('span', x.states + '/' + x.total_states + ' конфигураций · ' + x.days + ' дней', 'tag'));
+      const detail = node('details');
+      detail.append(node('summary', 'Значения в исторических поисках'), tags(x.values));
+      row.append(detail, button('Поиски-основания', () => showSearchEvidence(x.search_refs, x.label)));
+    } else {
+      row.append(tags(x.values), node('div', x.count + '/' + x.known + ' известных объявлений · фон ' + Math.round(100 * x.reference_share) + '%', 'tiny'), button('Объявления-основания', () => showEvidence(x.evidence, x.label)));
+    }
+    p.append(row)
+  });
+  const stability = u.research.explicit_stability;
+  if (stability?.status === 'available') {
+    p.append(node('div', 'Чувствительность к дням поиска: тот же набор ведущих атрибутов в ' + stability.same_top_set_removals + '/' + stability.days + ' удалений одного дня.', 'tiny'));
+    if (stability.original_unique) p.append(node('div', 'Исходный единственный лидер остаётся единственным в ' + stability.leaders[0].unique_leader_removals + '/' + stability.days + ' удалений.', 'tiny'));
+    p.append(node('div', 'Это устойчивость приоритета атрибутов, не их значений и не гарантия будущего поведения.', 'tiny'));
+  }
+  if (r.context_status === 'latest_without_constraints') p.append(note('Последний сопоставленный поиск не содержит ограничений. Показанные выше фильтры — исторические, не текущий запрос.'));
+  else if (r.context_status === 'newer_ambiguous_search' || r.context_status === 'latest_needs_review' || r.context_status === 'latest_unmodeled_filters') p.append(note('Последний контекст поиска требует проверки. Исторические значения не объединяются в новый набор обязательных условий.'));
+  else if (r.leaders.some(x => x.source === 'historical_explicit')) p.append(node('p', 'Значения могут относиться к разным конфигурациям поиска. Текущий набор условий показан отдельно ниже во вкладке «Параметры».', 'tiny'));
+  return p
+}
+
+function confidencePanel(u) {
+  const p = panel('Доверительные интервалы медианы · 95%*');
+  p.classList.add('wide');
+  p.append(node('p', 'Оцениваем медиану распределения аналогично наблюдаемых объявлений. Медиана самой конечной выгрузки известна точно. Это не границы предпочтительного диапазона и не бюджет пользователя.', 'sub'));
+  p.append(note('95% — номинальное покрытие при независимых одинаково распределённых наблюдениях (IID). Для истории просмотров эта модель не проверена; расчёт исследовательский.'));
+  const scroll = node('div', null, 'scroll');
+  const table = node('table', null, 'ci-table');
+  const head = node('tr');
+  ['Параметр', 'Медиана истории', '95% ДИ*', 'Известно / история', 'Основания'].forEach(t => head.append(node('th', t)));
+  table.append(head);
+  u.research.numeric_ci.forEach(x => {
+    const row = node('tr');
+    row.append(node('td', x.label), node('td', measure(x.field, x.median)));
+    const cell = node('td');
+    if (x.status === 'available') {
+      cell.append(node('strong', measure(x.field, x.low) + ' — ' + measure(x.field, x.high)), node('small', 'Ранги ' + x.rank_low + '–' + x.rank_high + '; расчётная IID-граница ≈' + (100 * x.iid_coverage_bound).toFixed(1) + '%'));
+      if (x.low === x.high) cell.append(node('small', 'Границы совпали из-за повторяющихся значений; это не полная уверенность.'))
+    } else cell.append(node('span', x.status === 'not_available' ? 'Нет значений' : x.status === 'low_coverage' ? 'Заполнено менее 60%' : 'Нужно ≥10 объявлений'));
+    row.append(cell, node('td', x.n + ' / ' + x.total));
+    const source = node('td');
+    if (x.evidence.length) source.append(button('Открыть', () => showEvidence(x.evidence, x.label + ' · значения для ДИ')));
+    row.append(source);
+    table.append(row)
+  });
+  scroll.append(table);
+  p.append(scroll);
+  p.append(node('p', '* Каждый интервал рассчитан отдельно, общей 95%-гарантии для всех параметров нет. Поздние снимки и пропуски остаются ограничениями. Для адаптивных ценовых кластеров интервалы не строятся. Диапазон, покрывающий 80% объявлений, показан ниже отдельно.', 'tiny'));
+  return p
+}
+
+function comparison(u) {
+  const c = u.research?.overview_comparison;
+  const intro = panel('Чем отличается LLM-отбор от правил');
+  $('content').append(intro);
+  intro.append(node('p', 'Сравниваем замороженный редакторский отбор от 22.10 с двумя эвристиками на том же каталоге фактов. Приоритет факта задан правилами; сам по себе он не является независимой оценкой качества LLM.', 'sub'));
+  if (!c || c.status !== 'available') {
+    intro.append(note(c?.status === 'context_only' ? 'Замороженный обзор содержит только общие ограничения. Содержательную часть сравнивать нельзя.' : 'Для этого профиля нет валидированного LLM-отбора. Сравнение не выполнялось.'));
+    return
+  }
+  intro.append(node('p', 'Общие ограничения вынесены за пределы содержательной части у всех методов. Сравниваем ' + c.budget + ' содержательных фактов; исходный LLM-обзор содержал ' + c.original_llm_count + '.', 'tiny'));
+  intro.append(note('Полезность пока не оценена людьми. Ни покрытие разделов, ни совпадение фактов не доказывают преимущество метода или рост NDCG.'));
+  const grid = node('div', null, 'comparison-grid');
+  $('content').append(grid);
+  const byId = Object.fromEntries(u.facts.map(f => [f.id, f]));
+  [
+    ['LLM-редактор', c.llm_ids, c.llm_sections, c.llm_characters],
+    ['Эвристика: приоритет', c.rule_ids, c.rule_sections, c.rule_characters],
+    ['Эвристика: разнообразие', c.diverse_rule_ids, c.diverse_sections, c.diverse_characters]
+  ].forEach(([title, ids, sections, characters]) => {
+    const p = panel(title);
+    p.append(node('p', ids.length + ' фактов · ' + sections.length + ' разделов · ' + characters + ' символов', 'tiny'));
+    ids.forEach(id => p.append(factNode(u, byId[id])));
+    grid.append(p)
+  });
+  const common = panel('Общий контекст для всех вариантов');
+  c.shared_context_ids.forEach(id => common.append(node('p', byId[id].text, 'sub')));
+  $('content').append(common);
+  const diagnostics = panel('Диагностика отбора');
+  auditRow(diagnostics, 'Совпадение с приоритетной эвристикой · Жаккар', Math.round(100 * c.jaccard) + '%');
+  auditRow(diagnostics, 'Совпадение с разнообразной эвристикой · Жаккар', Math.round(100 * c.diverse_jaccard) + '%');
+  diagnostics.append(node('p', 'Бюджет фактов одинаковый; длина текста различается. Проценты здесь показывают совпадение наборов, не точность саммари.', 'tiny'));
+  $('content').append(diagnostics);
+  const blind = panel('Подготовка слепой экспертной оценки');
+  blind.append(node('p', 'Каждый архив содержит отдельный интерфейс A/B, полный каталог фактов и пустой CSV ответов. Ключ методов в экспертные пакеты не включён. Два архива передавайте разным экспертам, чтобы повторяющиеся варианты не раскрыли источник. Для скачивания архивы должны лежать рядом с HTML; они входят в полный переносимый пакет.', 'sub'));
+  [
+    ['Приоритетный контроль', 'annotation_priority.zip'],
+    ['Контроль разнообразия', 'annotation_diverse.zip']
+  ].forEach(([text, file]) => {
+    const a = node('a', text);
+    a.href = file;
+    a.download = file;
+    a.className = 'tag';
+    blind.append(a)
+  });
+  $('content').append(blind)
+}
+
 function profile(u) {
   const grid = node('div', null, 'grid');
   $('content').append(grid);
+  if (u.research) {
+    grid.append(interestPanel(u));
+    grid.append(confidencePanel(u))
+  }
   const p = panel('Ключевые и вариативные параметры');
   p.append(node('p', 'Приоритет основан на явных фильтрах, концентрации и отличии от остальных пользователей. Это описательная гипотеза, а не причинная важность.', 'sub'));
   u.analysis.importance.forEach(x => {
     const row = node('div', null, 'rec');
     append(row, append(node('div', null, 'cluster-head'), node('strong', x.label), node('span', statusText[x.status] || x.status, 'tag')), node('div', 'В истории: ' + (x.values.join(' / ') || 'Нет значений')), node('div', x.count + ' / ' + x.known + ' известных · заполнено ' + x.known + '/' + x.total, 'tiny'));
-    if (x.reference_share != null) row.append(node('div', 'Доля в истории ' + Math.round(100 * (x.share || 0)) + '% · в остальной выборке ' + Math.round(100 * x.reference_share) + '% (' + x.reference_known + ' уникальных объявлений)', 'tiny'));
+    if (x.reference_share != null) row.append(node('div', 'Доля объявлений с этими значениями: в его истории ' + Math.round(100 * (x.share || 0)) + '% · у остальных ' + Math.round(100 * x.reference_share) + '% (' + x.reference_known + ' уникальных объявлений с известным параметром). Поисковые запросы здесь не считаются.', 'tiny'));
     if (x.evidence.length) row.append(button('Объявления-основания', () => showEvidence(x.evidence, x.label)));
     if (x.explicit) append(row, node('div', 'В поисках: ' + x.explicit.values.join(' / ')), node('div', 'Явно: ' + x.explicit.states + ' конфигураций, ' + x.explicit.days + ' дней', 'tiny'), button('Поиски-основания', () => showSearchEvidence(x.explicit.search_refs, x.label)));
     p.append(row)

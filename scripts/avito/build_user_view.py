@@ -72,6 +72,7 @@ def main():
                 status="not_run", validated_users=0, total_users=len(payload["users"])
             ),
         ),
+        followup=payload["research_audit"],
     )
     write_reports(payload, output)
     (output / "audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2))

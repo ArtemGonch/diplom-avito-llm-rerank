@@ -56,6 +56,11 @@ class OutputTests(unittest.TestCase):
                 "содержание коммуникаций",
                 (out / "missing_data_request.txt").read_text(),
             )
+            self.assertIn("22.10", (out / "followup_report.txt").read_text())
+            audit = json.loads((out / "research_audit.json").read_text())
+            self.assertEqual(audit["compared_users"], 0)
+            self.assertFalse(audit["usefulness_evaluated"])
+            self.assertTrue((out / "summary_annotation_template.csv").is_file())
 
     def test_stale_cache_fails_before_replacing_a_verified_output(self):
         with tempfile.TemporaryDirectory() as t:

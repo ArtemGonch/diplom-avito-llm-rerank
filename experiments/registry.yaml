@@ -7,7 +7,7 @@ project:
   local_path: avito/
   conda_env: diplom_avito
   owner: team
-  updated: "2026-10-22"
+  updated: "2026-10-29"
 
 datasets:
   ml1m:
@@ -196,6 +196,23 @@ experiments:
       verification: names, sizes and parent folder read back; local SHA256 manifests supplied and bundle members checked
     open_data_dependencies: [conversation_contents, vehicle_country_definition, full_candidate_catalog, temporal_contract]
     notes: "100 full profiles; 100/100 validated LLM editorial selections of 515 canonical facts. Explicit filters, LOO descriptive signals, narrow ranges, model-price/common features, cluster status and scenario-based alternatives. Existing raw/display counts retained; technical source provenance added. No Qwen run, model training or ranking-quality claim. Conversations/country unavailable; alternative usefulness not evaluated. Private inputs/generated reports/cache stay ignored."
+
+  avito_user_view_followup_20261022:
+    method: explicit interest priority + median CI + matched-K summary controls
+    dataset: avito_user_history_20260920
+    script: scripts/avito/build_user_view.py
+    status: done
+    task_status: implemented_available_analysis_pending_human_and_ranking_evaluation
+    finished: "2026-10-29"
+    metrics: results/current/metrics/avito_user_view_followup.json
+    execution_report: docs/task_2026-10-22_execution_report.md
+    local_browser: reports/avito_user_view/index.html
+    external_delivery:
+      provider: google_drive
+      status: pending_update
+      drive_link_committed: false
+    open_data_dependencies: [serp_exposures_clicks, communication_summaries, photos_descriptions, temporal_contract, human_annotations]
+    notes: "User View v3 research layer; canonical v2 facts and original 515 LLM selections remain frozen. 37 unique leaders, 34 ties, 29 abstain; 264 marginal median CIs (66x4), IID unverified. Day-deletion available for 30, all leader sets unchanged for 16. Matched body K=489 per method, two blind 100-pair expert packages without labels; usefulness and ranking not evaluated. Literature-informed controls; no new model run/training."
 
 paper_targets:
   ur4rec_ml1m:

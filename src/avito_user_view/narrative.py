@@ -76,7 +76,9 @@ def attach_editor_selections(payload, selections, provenance):
         method="LLM selects canonical fact IDs; no free factual prose or new values",
         provenance=dict(provenance),
     )
-    return result
+    from .research import enrich_research
+
+    return enrich_research(result)
 
 
 def editor_requests(payload):

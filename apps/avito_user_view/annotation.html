@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Слепое сравнение саммари</title><style>
+body{margin:0;background:#f3f5f8;color:#173139;font:15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}main{max-width:1160px;margin:auto;padding:30px 22px}h1{font:32px Georgia,serif;margin:0 0 12px}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px}button,select,textarea{font:inherit;border:1px solid #bcced0;border-radius:7px;padding:8px;background:white;color:#173139}button{cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #65b9aa}.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:22px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#fff;border:1px solid #dce5e8;border-radius:12px;padding:22px;margin:16px 0}.note{background:#f5f1e5;border-left:3px solid #d2aa62;padding:14px;font-size:13px}.muted{color:#667c83;font-size:13px}li{margin-bottom:13px}.ratings{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;align-items:center}.ratings select{width:100%}textarea{box-sizing:border-box;width:100%;min-height:90px}summary{cursor:pointer;font-weight:600}@media(max-width:700px){.grid{grid-template-columns:1fr}main{padding:20px 14px}}
+</style></head><body><main>
+<h1>Слепое сравнение саммари</h1>
+<p class="muted">Сравните два набора наблюдений об одной истории. Источник вариантов скрыт. Для каждого дан одинаковый полный каталог вычисленных фактов.</p>
+<div class="note">Оценивайте точность относительно каталога, релевантность, ясность и пользу для понимания ограничений и следующего уточняющего вопроса. Намерение купить и будущий результат по этим данным не известны. Не открывайте основной интерфейс с именами методов или ключ ответов. Один эксперт получает только один набор сравнений.</div>
+<div class="bar"><button id="prev">← Назад</button><select id="case" aria-label="Сравнение"></select><button id="next">Далее →</button><span id="progress" class="muted"></span><button id="export">Скачать ответы CSV</button></div>
+<div id="context" class="card"></div><div class="grid"><section id="A" class="card"></section><section id="B" class="card"></section></div>
+<section class="card"><h2>Оценка</h2><label>Предпочтение <select id="preference_A_B_tie"><option value="">Не оценено</option><option>A</option><option>B</option><option value="tie">Равны по полезности</option><option value="insufficient">Недостаточно оснований для оценки</option></select></label><div id="ratings" class="ratings"></div><h3>Комментарий</h3><textarea id="notes" aria-label="Комментарий"></textarea><p class="muted">Ответы сохраняются в памяти этой вкладки. Скачайте CSV перед закрытием или обновлением страницы. Пустое поле означает «не оценено», а не ноль. Порядок A/B не является рангом.</p></section>
+<details class="card"><summary>Полный каталог фактов для проверки</summary><div id="reference"></div></details>
+</main><script id="pairs" type="application/json">__BLIND_PAIRS__</script><script>
+'use strict';
+const PAIRS = JSON.parse(document.getElementById('pairs').textContent);
+const $ = id => document.getElementById(id),
+  answers = new Map();
+let current = 0;
+const fields = ['preference_A_B_tie', 'accuracy_A_1_5', 'accuracy_B_1_5', 'relevance_A_1_5', 'relevance_B_1_5', 'actionability_A_1_5', 'actionability_B_1_5', 'clarity_A_1_5', 'clarity_B_1_5', 'notes'];
+
+function node(tag, text) {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  return e
+}
+
+function list(parent, items) {
+  const ul = node('ul');
+  items.forEach(t => ul.append(node('li', t)));
+  parent.append(ul)
+}
+
+function save() {
+  if (!PAIRS.length) return;
+  answers.set(PAIRS[current].comparison_id, Object.fromEntries(fields.map(f => [f, $(f).value])));
+  $('progress').textContent = (current + 1) + ' / ' + PAIRS.length + ' · предпочтение указано: ' + [...answers.values()].filter(x => x.preference_A_B_tie).length
+}
+
+function render() {
+  if (!PAIRS.length) {
+    $('context').textContent = 'Нет сравнений с валидированным LLM-отбором.';
+    return
+  }
+  const p = PAIRS[current];
+  $('case').value = String(current);
+  for (const side of ['A', 'B']) {
+    $(side).replaceChildren(node('h2', 'Вариант ' + side));
+    list($(side), p[side])
+  }
+  $('context').replaceChildren(node('h2', 'Общие ограничения'));
+  list($('context'), p.shared_context);
+  $('reference').replaceChildren();
+  p.reference_facts.forEach(f => {
+    const x = node('p', f.text);
+    $('reference').append(x)
+  });
+  const a = answers.get(p.comparison_id) || {};
+  fields.forEach(f => $(f).value = a[f] || '');
+  $('prev').disabled = current === 0;
+  $('next').disabled = current === PAIRS.length - 1;
+  save()
+}
+
+function csvCell(value) {
+  let s = String(value ?? '');
+  if (/^\s*[=+\-@]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"'
+}
+
+function exportAnswers() {
+  save();
+  const columns = ['comparison_id', 'user_index', ...fields];
+  const rows = PAIRS.map(p => ({
+    comparison_id: p.comparison_id,
+    user_index: p.user_index,
+    ...answers.get(p.comparison_id)
+  }));
+  const text = [columns.map(csvCell).join(','), ...rows.map(r => columns.map(c => csvCell(r[c])).join(','))].join('\r\n');
+  const url = URL.createObjectURL(new Blob(['\ufeff' + text], {
+    type: 'text/csv;charset=utf-8'
+  }));
+  const a = node('a');
+  a.href = url;
+  a.download = 'summary_annotations.csv';
+  a.click();
+  URL.revokeObjectURL(url)
+}
+for (const [key, label] of [
+    ['accuracy', 'Точность'],
+    ['relevance', 'Релевантность'],
+    ['actionability', 'Польза для следующего шага'],
+    ['clarity', 'Ясность']
+  ]) {
+  $('ratings').append(node('span', label));
+  for (const side of ['A', 'B']) {
+    const s = node('select');
+    s.id = key + '_' + side + '_1_5';
+    s.setAttribute('aria-label', label + ' ' + side);
+    const empty = node('option', side + ' · не оценено');
+    empty.value = '';
+    s.append(empty);
+    for (let i = 1; i <= 5; i++) {
+      const o = node('option', side + ' · ' + i);
+      o.value = String(i);
+      s.append(o)
+    }
+    s.onchange = save;
+    $('ratings').append(s)
+  }
+}
+PAIRS.forEach((p, i) => {
+  const o = node('option', 'Пользователь ' + String(p.user_index).padStart(3, '0'));
+  o.value = String(i);
+  $('case').append(o)
+});
+$('case').onchange = () => {
+  save();
+  current = Number($('case').value);
+  render()
+};
+$('prev').onclick = () => {
+  save();
+  if (current > 0) current--;
+  render()
+};
+$('next').onclick = () => {
+  save();
+  if (current < PAIRS.length - 1) current++;
+  render()
+};
+$('preference_A_B_tie').onchange = save;
+$('notes').oninput = save;
+$('export').onclick = exportAnswers;
+render();
+</script></body></html>
