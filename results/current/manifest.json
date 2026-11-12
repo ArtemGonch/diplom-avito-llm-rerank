@@ -1,5 +1,15 @@
 {
-  "generated": "2026-10-29",
+  "generated": "2026-11-12",
+  "avito_search_holdout_20261112": {
+    "status": "done",
+    "path": "metrics/avito_search_holdout_20261112.json",
+    "execution_report": "docs/task_2026-11-12_artem.md",
+    "scope": "retrospective first future search, singleton explicit filter values",
+    "target_users": 32,
+    "target_slots": 46,
+    "ranking_evaluated": false,
+    "llm_evaluated": false
+  },
   "avito_dataset_snapshot": {
     "candidate_rows": 44736,
     "serps": 2000,

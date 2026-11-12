@@ -1,0 +1,305 @@
+{
+  "version": "avito-search-holdout-v1",
+  "cutoff_source_time": "2026-09-13T00:00:00",
+  "cohort_users": 100,
+  "users_without_future_search": 48,
+  "users_ambiguous_first_future": 0,
+  "users_without_singleton_target": 20,
+  "target_users_without_matched_prefix": 12,
+  "target_users": 32,
+  "target_slots": 46,
+  "users_with_repeated_projection": 8,
+  "methods": {
+    "last_explicit": {
+      "predicted": 23,
+      "hits": 10,
+      "users_predicted": 19,
+      "coverage": 0.5,
+      "precision_on_predicted": 0.43478260869565216,
+      "hit_rate_over_all_slots": 0.21739130434782608
+    },
+    "mode_by_day": {
+      "predicted": 17,
+      "hits": 9,
+      "users_predicted": 13,
+      "coverage": 0.3695652173913043,
+      "precision_on_predicted": 0.5294117647058824,
+      "hit_rate_over_all_slots": 0.1956521739130435
+    },
+    "consensus": {
+      "predicted": 16,
+      "hits": 8,
+      "users_predicted": 12,
+      "coverage": 0.34782608695652173,
+      "precision_on_predicted": 0.5,
+      "hit_rate_over_all_slots": 0.17391304347826086
+    },
+    "cohort_mode": {
+      "predicted": 46,
+      "hits": 14,
+      "users_predicted": 32,
+      "coverage": 1.0,
+      "precision_on_predicted": 0.30434782608695654,
+      "hit_rate_over_all_slots": 0.30434782608695654
+    }
+  },
+  "common": {
+    "users": 13,
+    "slots": 17,
+    "last_explicit_user_mean": 0.5384615384615384,
+    "mode_by_day_user_mean": 0.6153846153846154
+  },
+  "common_with_cohort": {
+    "users": 13,
+    "slots": 17,
+    "last_explicit_user_mean": 0.5384615384615384,
+    "mode_by_day_user_mean": 0.6153846153846154,
+    "cohort_mode_user_mean": 0.36538461538461536
+  },
+  "by_field": {
+    "brand": {
+      "last_explicit": {
+        "predicted": 17,
+        "hits": 7,
+        "users_predicted": 17,
+        "coverage": 0.6296296296296297,
+        "precision_on_predicted": 0.4117647058823529,
+        "hit_rate_over_all_slots": 0.25925925925925924
+      },
+      "mode_by_day": {
+        "predicted": 11,
+        "hits": 6,
+        "users_predicted": 11,
+        "coverage": 0.4074074074074074,
+        "precision_on_predicted": 0.5454545454545454,
+        "hit_rate_over_all_slots": 0.2222222222222222
+      },
+      "consensus": {
+        "predicted": 10,
+        "hits": 5,
+        "users_predicted": 10,
+        "coverage": 0.37037037037037035,
+        "precision_on_predicted": 0.5,
+        "hit_rate_over_all_slots": 0.18518518518518517
+      },
+      "cohort_mode": {
+        "predicted": 27,
+        "hits": 4,
+        "users_predicted": 27,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.14814814814814814,
+        "hit_rate_over_all_slots": 0.14814814814814814
+      }
+    },
+    "transmission": {
+      "last_explicit": {
+        "predicted": 2,
+        "hits": 1,
+        "users_predicted": 2,
+        "coverage": 0.6666666666666666,
+        "precision_on_predicted": 0.5,
+        "hit_rate_over_all_slots": 0.3333333333333333
+      },
+      "mode_by_day": {
+        "predicted": 2,
+        "hits": 1,
+        "users_predicted": 2,
+        "coverage": 0.6666666666666666,
+        "precision_on_predicted": 0.5,
+        "hit_rate_over_all_slots": 0.3333333333333333
+      },
+      "consensus": {
+        "predicted": 2,
+        "hits": 1,
+        "users_predicted": 2,
+        "coverage": 0.6666666666666666,
+        "precision_on_predicted": 0.5,
+        "hit_rate_over_all_slots": 0.3333333333333333
+      },
+      "cohort_mode": {
+        "predicted": 3,
+        "hits": 1,
+        "users_predicted": 3,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.3333333333333333,
+        "hit_rate_over_all_slots": 0.3333333333333333
+      }
+    },
+    "engine_type": {
+      "last_explicit": {
+        "predicted": 3,
+        "hits": 2,
+        "users_predicted": 3,
+        "coverage": 0.3333333333333333,
+        "precision_on_predicted": 0.6666666666666666,
+        "hit_rate_over_all_slots": 0.2222222222222222
+      },
+      "mode_by_day": {
+        "predicted": 3,
+        "hits": 2,
+        "users_predicted": 3,
+        "coverage": 0.3333333333333333,
+        "precision_on_predicted": 0.6666666666666666,
+        "hit_rate_over_all_slots": 0.2222222222222222
+      },
+      "consensus": {
+        "predicted": 3,
+        "hits": 2,
+        "users_predicted": 3,
+        "coverage": 0.3333333333333333,
+        "precision_on_predicted": 0.6666666666666666,
+        "hit_rate_over_all_slots": 0.2222222222222222
+      },
+      "cohort_mode": {
+        "predicted": 9,
+        "hits": 4,
+        "users_predicted": 9,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.4444444444444444,
+        "hit_rate_over_all_slots": 0.4444444444444444
+      }
+    },
+    "drive": {
+      "last_explicit": {
+        "predicted": 1,
+        "hits": 0,
+        "users_predicted": 1,
+        "coverage": 0.16666666666666666,
+        "precision_on_predicted": 0,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "mode_by_day": {
+        "predicted": 1,
+        "hits": 0,
+        "users_predicted": 1,
+        "coverage": 0.16666666666666666,
+        "precision_on_predicted": 0,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "consensus": {
+        "predicted": 1,
+        "hits": 0,
+        "users_predicted": 1,
+        "coverage": 0.16666666666666666,
+        "precision_on_predicted": 0,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "cohort_mode": {
+        "predicted": 6,
+        "hits": 4,
+        "users_predicted": 6,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.6666666666666666,
+        "hit_rate_over_all_slots": 0.6666666666666666
+      }
+    },
+    "brand_region": {
+      "last_explicit": {
+        "predicted": 0,
+        "hits": 0,
+        "users_predicted": 0,
+        "coverage": 0.0,
+        "precision_on_predicted": null,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "mode_by_day": {
+        "predicted": 0,
+        "hits": 0,
+        "users_predicted": 0,
+        "coverage": 0.0,
+        "precision_on_predicted": null,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "consensus": {
+        "predicted": 0,
+        "hits": 0,
+        "users_predicted": 0,
+        "coverage": 0.0,
+        "precision_on_predicted": null,
+        "hit_rate_over_all_slots": 0.0
+      },
+      "cohort_mode": {
+        "predicted": 1,
+        "hits": 1,
+        "users_predicted": 1,
+        "coverage": 1.0,
+        "precision_on_predicted": 1,
+        "hit_rate_over_all_slots": 1.0
+      }
+    }
+  },
+  "by_projection": {
+    "repeated": {
+      "last_explicit": {
+        "predicted": 9,
+        "hits": 7,
+        "users_predicted": 8,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.7777777777777778,
+        "hit_rate_over_all_slots": 0.7777777777777778
+      },
+      "mode_by_day": {
+        "predicted": 6,
+        "hits": 6,
+        "users_predicted": 5,
+        "coverage": 0.6666666666666666,
+        "precision_on_predicted": 1,
+        "hit_rate_over_all_slots": 0.6666666666666666
+      },
+      "consensus": {
+        "predicted": 5,
+        "hits": 5,
+        "users_predicted": 4,
+        "coverage": 0.5555555555555556,
+        "precision_on_predicted": 1,
+        "hit_rate_over_all_slots": 0.5555555555555556
+      },
+      "cohort_mode": {
+        "predicted": 9,
+        "hits": 3,
+        "users_predicted": 8,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.3333333333333333,
+        "hit_rate_over_all_slots": 0.3333333333333333
+      }
+    },
+    "unseen": {
+      "last_explicit": {
+        "predicted": 14,
+        "hits": 3,
+        "users_predicted": 11,
+        "coverage": 0.3783783783783784,
+        "precision_on_predicted": 0.21428571428571427,
+        "hit_rate_over_all_slots": 0.08108108108108109
+      },
+      "mode_by_day": {
+        "predicted": 11,
+        "hits": 3,
+        "users_predicted": 8,
+        "coverage": 0.2972972972972973,
+        "precision_on_predicted": 0.2727272727272727,
+        "hit_rate_over_all_slots": 0.08108108108108109
+      },
+      "consensus": {
+        "predicted": 11,
+        "hits": 3,
+        "users_predicted": 8,
+        "coverage": 0.2972972972972973,
+        "precision_on_predicted": 0.2727272727272727,
+        "hit_rate_over_all_slots": 0.08108108108108109
+      },
+      "cohort_mode": {
+        "predicted": 37,
+        "hits": 11,
+        "users_predicted": 24,
+        "coverage": 1.0,
+        "precision_on_predicted": 0.2972972972972973,
+        "hit_rate_over_all_slots": 0.2972972972972973
+      }
+    }
+  },
+  "ranking_evaluated": false,
+  "llm_evaluated": false,
+  "input_sha256": "1765a7aed7b2792f6c53d66212f2848e2ac4c282a1666316fff62257cbddb953",
+  "manifest_verified_files": 28
+}

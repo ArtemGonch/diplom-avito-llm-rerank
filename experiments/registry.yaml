@@ -7,7 +7,7 @@ project:
   local_path: avito/
   conda_env: diplom_avito
   owner: team
-  updated: "2026-10-29"
+  updated: "2026-11-12"
 
 datasets:
   ml1m:
@@ -217,6 +217,16 @@ experiments:
       drive_link_committed: false
     open_data_dependencies: [serp_exposures_clicks, communication_summaries, photos_descriptions, temporal_contract, human_annotations]
     notes: "User View v3 research layer; canonical v2 facts and original 515 LLM selections remain frozen. 37 unique leaders, 34 ties, 29 abstain; 264 marginal median CIs (66x4), IID unverified. Day-deletion available for 30, all leader sets unchanged for 16. Matched body K=489 per method, two blind 100-pair expert packages without labels; usefulness and ranking not evaluated. Literature-informed controls; no new model run/training."
+
+  avito_search_holdout_20261112:
+    method: first future search filter diagnostic
+    dataset: avito_user_history_20260920
+    script: scripts/avito/evaluate_user_view.py
+    status: done
+    finished: "2026-11-12"
+    metrics: results/current/metrics/avito_search_holdout_20261112.json
+    execution_report: docs/task_2026-11-12_artem.md
+    notes: "Retrospective cohort; fixed source-time midpoint, history-only filter values and leave-one-user-out popularity. 32 users and 46 singleton target values; all-method common comparison 13 users and 17 values. No SERP ranking, no LLM evaluation."
 
 paper_targets:
   ur4rec_ml1m:
