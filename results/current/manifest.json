@@ -1,5 +1,16 @@
 {
-  "generated": "2026-11-12",
+  "generated": "2026-11-18",
+  "avito_bx_usedcars_baseline_20261118": {
+    "status": "done",
+    "path": "metrics/avito_bx_usedcars_baseline_20261118.json",
+    "execution_report": "docs/task_2026-11-12_bx_baseline_report.md",
+    "source_groups": 1000,
+    "candidate_rows": 31784,
+    "primary_metric": "NDCG_b0.8(target_contact_s_d7)",
+    "primary_baseline": 0.48385284659867683,
+    "primary_eligible_groups": 18,
+    "scope": "saved BX baseline on the offline TEXT test preview"
+  },
   "avito_search_holdout_20261112": {
     "status": "done",
     "path": "metrics/avito_search_holdout_20261112.json",

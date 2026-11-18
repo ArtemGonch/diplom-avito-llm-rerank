@@ -7,9 +7,16 @@ project:
   local_path: avito/
   conda_env: diplom_avito
   owner: team
-  updated: "2026-11-12"
+  updated: "2026-11-18"
 
 datasets:
+  bx_usedcars_text_preview_20261112:
+    storage: designated_private_google_drive
+    git_tracked: false
+    groups: 1000
+    candidate_rows: 31784
+    split: test
+    task: offline_ranking_baseline_reconciliation
   ml1m:
     path: data/movielens-1m
     task: rerank
@@ -227,6 +234,16 @@ experiments:
     metrics: results/current/metrics/avito_search_holdout_20261112.json
     execution_report: docs/task_2026-11-12_artem.md
     notes: "Retrospective cohort; fixed source-time midpoint, history-only filter values and leave-one-user-out popularity. 32 users and 46 singleton target values; all-method common comparison 13 users and 17 values. No SERP ranking, no LLM evaluation."
+
+  avito_bx_usedcars_baseline_20261118:
+    method: saved BX baseline_score with official exponential NDCG
+    dataset: bx_usedcars_text_preview_20261112
+    script: scripts/avito/evaluate_bx_baseline.py
+    status: done
+    finished: "2026-11-18"
+    metrics: results/current/metrics/avito_bx_usedcars_baseline_20261118.json
+    execution_report: docs/task_2026-11-12_bx_baseline_report.md
+    notes: "All ten saved means and eligible-group counts reproduced. Primary target_contact_s_d7 0.48385284659867683 on 18 groups. Observed target equals max(ux_target, tc_target) on all rows. Preview baseline only."
 
 paper_targets:
   ur4rec_ml1m:

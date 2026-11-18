@@ -1,0 +1,210 @@
+{
+  "protocol": "BX exponential NDCG on full groups",
+  "input_sha256": "eb2add0ce2c114d8088918b85a8730b9b05f21defe81461bd1c96720da055ea3",
+  "input_bytes": 13245668,
+  "rows": 31784,
+  "groups": 1000,
+  "columns": 265,
+  "model_features": 225,
+  "category": "Transport.UsedCars",
+  "rows_with_missing_or_blank_query": 1499,
+  "event_columns": [
+    "all_events",
+    "has_tc_events",
+    "has_u_events",
+    "has_x_events",
+    "tc_events",
+    "u_events",
+    "x_events",
+    "ux_events"
+  ],
+  "primary_label": "target_contact_s_d7",
+  "discount_base": 0.8,
+  "first_rank": 1,
+  "idcg_epsilon": 1e-05,
+  "minimum_group_size": 1,
+  "median_group_size": 35.0,
+  "maximum_group_size": 50,
+  "groups_with_baseline_score_ties": 0,
+  "baseline_score_distinct": 31757,
+  "targets": {
+    "target": {
+      "ndcg": 0.4044839459186125,
+      "eligible_groups": 975,
+      "homogeneous_groups": 25,
+      "no_observed_labels_groups": 0,
+      "groups_with_positive_gain": 985,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 0,
+      "positive_rows": 1556,
+      "distinct_observed_gains": 9,
+      "observed_gains": [
+        0.0,
+        0.01,
+        0.025,
+        0.03,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        1.0
+      ]
+    },
+    "btc_s": {
+      "ndcg": 0.42635591480002516,
+      "eligible_groups": 650,
+      "homogeneous_groups": 179,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 663,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 999,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "fav_s": {
+      "ndcg": 0.4101632786417631,
+      "eligible_groups": 456,
+      "homogeneous_groups": 373,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 463,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 677,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "btc_wo_fav_s": {
+      "ndcg": 0.45474693352586737,
+      "eligible_groups": 260,
+      "homogeneous_groups": 569,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 267,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 386,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "btc_s_d7": {
+      "ndcg": 0.4385147943433651,
+      "eligible_groups": 633,
+      "homogeneous_groups": 196,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 649,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 1108,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "fav_s_d7": {
+      "ndcg": 0.4255383364146693,
+      "eligible_groups": 457,
+      "homogeneous_groups": 372,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 466,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 743,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "btc_wo_fav_s_d7": {
+      "ndcg": 0.4479066744556586,
+      "eligible_groups": 301,
+      "homogeneous_groups": 528,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 311,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 492,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "contact_s": {
+      "ndcg": 0.4765841799729082,
+      "eligible_groups": 113,
+      "homogeneous_groups": 716,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 116,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 165,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "contact_s_d7": {
+      "ndcg": 0.4882869209051207,
+      "eligible_groups": 138,
+      "homogeneous_groups": 691,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 143,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 226,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    },
+    "target_contact_s_d7": {
+      "ndcg": 0.48385284659867683,
+      "eligible_groups": 18,
+      "homogeneous_groups": 811,
+      "no_observed_labels_groups": 171,
+      "groups_with_positive_gain": 21,
+      "eligible_groups_with_score_ties": 0,
+      "missing_rows": 12207,
+      "positive_rows": 24,
+      "distinct_observed_gains": 2,
+      "observed_gains": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "target_components": {
+    "rows_checked": 31784,
+    "equals_max": 31784,
+    "equals_sum": 31602,
+    "ux_target_values": [
+      0.0,
+      0.01,
+      0.025,
+      0.03,
+      0.05,
+      0.1,
+      0.15
+    ],
+    "tc_target_values": [
+      0.0,
+      0.2,
+      1.0
+    ]
+  },
+  "metadata_abs_tolerance": 1e-12,
+  "metadata_max_absolute_error": 5.551115123125783e-17
+}
