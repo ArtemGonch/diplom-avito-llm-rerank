@@ -1,0 +1,95 @@
+{
+  "protocol": "BX UsedCars seven-day history audit and fixed adjacent-pair diagnostics",
+  "archive_sha256": "84e5722513aa56949de71de654dc7d9fd77b85d8f4ef10ec178172bfe6a58226",
+  "original_sha256": "eb2add0ce2c114d8088918b85a8730b9b05f21defe81461bd1c96720da055ea3",
+  "member_checksums_verified": 5,
+  "original_columns_verified": 265,
+  "groups": 1000,
+  "candidates": 31784,
+  "history_events": 19385,
+  "history_event_types": {
+    "btc": 17077,
+    "contact": 2071,
+    "dtb": 237
+  },
+  "groups_with_history": 683,
+  "groups_missing_user_id": 109,
+  "known_user_groups_without_history": 208,
+  "history_window_violations": 0,
+  "candidate_attributes_known": {
+    "price": 31781,
+    "brand": 31532,
+    "model": 31532,
+    "year": 31532,
+    "generation": 31532,
+    "transmission": 31532,
+    "equipment": 27366,
+    "power_hp": 31530,
+    "engine_volume_l": 31530,
+    "mileage_km": 30832
+  },
+  "candidate_price_load_times_known": 3,
+  "history_price_load_times_known": 2,
+  "baseline_labels_reproduced": 10,
+  "baseline_reference_max_absolute_error": 5.551115123125783e-17,
+  "coverage": {
+    "groups_with_btc": 683,
+    "groups_with_dominant_brand": 447,
+    "groups_with_seen_candidate": 179,
+    "groups_with_matching_brand_candidate": 292
+  },
+  "methods": {
+    "seen_btc_item": {
+      "changed_groups": 95,
+      "swapped_pairs": 136,
+      "metrics": {
+        "target_contact_s_d7": {
+          "eligible_groups": 18,
+          "changed_groups_among_eligible": 5,
+          "baseline": 0.48385284659867683,
+          "reranked": 0.48571695840839035,
+          "delta": 0.0018641118097134893,
+          "wins": 1,
+          "ties": 17,
+          "losses": 0
+        },
+        "target": {
+          "eligible_groups": 975,
+          "changed_groups_among_eligible": 95,
+          "baseline": 0.4044839459186125,
+          "reranked": 0.40506406949214774,
+          "delta": 0.0005801235735352924,
+          "wins": 21,
+          "ties": 946,
+          "losses": 8
+        }
+      }
+    },
+    "dominant_btc_brand": {
+      "changed_groups": 120,
+      "swapped_pairs": 310,
+      "metrics": {
+        "target_contact_s_d7": {
+          "eligible_groups": 18,
+          "changed_groups_among_eligible": 4,
+          "baseline": 0.48385284659867683,
+          "reranked": 0.4867655213013542,
+          "delta": 0.002912674702677328,
+          "wins": 1,
+          "ties": 17,
+          "losses": 0
+        },
+        "target": {
+          "eligible_groups": 975,
+          "changed_groups_among_eligible": 119,
+          "baseline": 0.4044839459186125,
+          "reranked": 0.4051668218211201,
+          "delta": 0.0006828759025076682,
+          "wins": 18,
+          "ties": 946,
+          "losses": 11
+        }
+      }
+    }
+  }
+}

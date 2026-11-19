@@ -7,7 +7,7 @@ project:
   local_path: avito/
   conda_env: diplom_avito
   owner: team
-  updated: "2026-11-18"
+  updated: "2026-11-19"
 
 datasets:
   bx_usedcars_text_preview_20261112:
@@ -17,6 +17,15 @@ datasets:
     candidate_rows: 31784
     split: test
     task: offline_ranking_baseline_reconciliation
+  bx_usedcars_text_history_20261119:
+    storage: designated_private_google_drive
+    git_tracked: false
+    groups: 1000
+    candidate_rows: 31784
+    history_rows: 19385
+    history_days: 7
+    split: test_preview
+    task: history_enrichment_and_personalization_diagnostic
   ml1m:
     path: data/movielens-1m
     task: rerank
@@ -244,6 +253,16 @@ experiments:
     metrics: results/current/metrics/avito_bx_usedcars_baseline_20261118.json
     execution_report: docs/task_2026-11-12_bx_baseline_report.md
     notes: "All ten saved means and eligible-group counts reproduced. Primary target_contact_s_d7 0.48385284659867683 on 18 groups. Observed target equals max(ux_target, tc_target) on all rows. Preview baseline only."
+
+  avito_bx_usedcars_history_20261119:
+    method: fixed adjacent-pair promotion using BTC history
+    dataset: bx_usedcars_text_history_20261119
+    script: scripts/avito/evaluate_bx_history.py
+    status: done
+    finished: "2026-11-19"
+    metrics: results/current/metrics/avito_bx_usedcars_history_20261119.json
+    execution_report: docs/task_2026-11-19_bx_history_report.md
+    notes: "Preserves all original candidate rows and baseline metrics. History and ten attributes audited. Two fixed rules evaluated on 18 primary and 975 dense groups. Preview diagnostic only."
 
 paper_targets:
   ur4rec_ml1m:

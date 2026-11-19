@@ -1,5 +1,17 @@
 {
-  "generated": "2026-11-18",
+  "generated": "2026-11-19",
+  "avito_bx_usedcars_history_20261119": {
+    "status": "done",
+    "path": "metrics/avito_bx_usedcars_history_20261119.json",
+    "execution_report": "docs/task_2026-11-19_bx_history_report.md",
+    "source_groups": 1000,
+    "candidate_rows": 31784,
+    "history_events": 19385,
+    "groups_with_history": 683,
+    "primary_label": "target_contact_s_d7",
+    "primary_eligible_groups": 18,
+    "scope": "fixed BTC-history rules on the same offline BX preview"
+  },
   "avito_bx_usedcars_baseline_20261118": {
     "status": "done",
     "path": "metrics/avito_bx_usedcars_baseline_20261118.json",
