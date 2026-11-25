@@ -1,4 +1,4 @@
-"""Train the same compact classifier with either human labels or human + Qwen labels."""
+"""Train the same compact classifier with either reference labels or reference + Qwen labels."""
 
 from collections import Counter
 import hashlib
@@ -40,17 +40,17 @@ def train(catalog, propose, args, read_rows):
     human = read_rows(args.train)
     expected = {key for key, row in by_id.items() if row["split"] == "train"}
     if not expected or len(human) != len(expected) or {r["id"] for r in human} != expected:
-        raise ValueError("The human training set must match the frozen train split")
+        raise ValueError("The reference training set must match the frozen train split")
     if any(hashlib.sha256(r["query"].encode()).hexdigest() != by_id[r["id"]]["query_sha256"]
            for r in human):
-        raise ValueError("Human training query differs from its frozen family")
+        raise ValueError("Reference training query differs from its frozen family")
     pseudo = read_rows(args.pseudo) if args.pseudo else []
     if args.pseudo and not pseudo:
         raise ValueError("Expected reviewed model labels")
     reserved = {row["family_key"] for row in by_id.values()}
     pseudo_keys = {family_key(row["query"]) for row in pseudo}
     if pseudo_keys & reserved or len(pseudo_keys) != len(pseudo):
-        raise ValueError("Model labels must be unique and outside the human packet")
+        raise ValueError("Model labels must be unique and outside the reference packet")
     if any(row.get("status") != "reviewed" for row in pseudo):
         raise ValueError("Mark accepted model output reviewed before using it for training")
     examples, missed = labeled_examples(catalog, propose, human + pseudo)
@@ -79,7 +79,7 @@ def train(catalog, propose, args, read_rows):
     args.out.mkdir(parents=True, exist_ok=False)
     model.save_pretrained(args.out)
     tokenizer.save_pretrained(args.out)
-    return {"human_queries": len(human), "pseudo_queries": len(pseudo), "steps": args.steps,
+    return {"reference_queries": len(human), "pseudo_queries": len(pseudo), "steps": args.steps,
             "examples": dict(counts), "gold_filters_outside_options": missed, "device": device}
 
 

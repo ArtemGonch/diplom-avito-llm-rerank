@@ -16,7 +16,7 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from avito_text2filter.study import (
-    SEED, assemble, build_packet, evaluate, family_key, latency_summary, selected_options,
+    SEED, assemble, build_packet, evaluate, family_key, latency_summary, paired_exact_filters, selected_options,
 )
 
 
@@ -193,10 +193,19 @@ def main():
     p = sub.add_parser("score")
     for name in ("gold", "predictions", "manifest"):
         p.add_argument(f"--{name}", type=Path, required=True)
+    p = sub.add_parser("compare")
+    for name in ("gold", "control", "augmented", "manifest"):
+        p.add_argument(f"--{name}", type=Path, required=True)
     args = parser.parse_args()
 
     if args.command == "score":
         output = evaluate(read_rows(args.gold), read_rows(args.predictions), read_rows(args.manifest))
+    elif args.command == "compare":
+        gold, manifest = read_rows(args.gold), read_rows(args.manifest)
+        control, augmented = read_rows(args.control), read_rows(args.augmented)
+        output = {"control": evaluate(gold, control, manifest),
+                  "augmented": evaluate(gold, augmented, manifest),
+                  "paired_exact_filters": paired_exact_filters(gold, control, augmented, manifest)}
     elif not args.archive:
         parser.error("--archive is required for this command")
     elif args.command == "packet":

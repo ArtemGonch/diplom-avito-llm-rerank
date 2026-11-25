@@ -1,0 +1,257 @@
+{
+  "protocol": "offline text2filter agreement with independent model annotation",
+  "annotation_model": "gpt-6.2-astra",
+  "annotation_reasoning_effort": "xhigh",
+  "source_split_counts": {
+    "train": 80,
+    "dev": 40,
+    "test": 120
+  },
+  "split_sha256": "dd3967f19d15b6ab8fa97bb3ccfdcaf11d4af033bff82c67766659126c178679",
+  "annotation_agreement": {
+    "repeated": 30,
+    "agree_filters": 27,
+    "agree_unresolved": 27,
+    "conflicts": 3
+  },
+  "pseudo_label_review": {
+    "qwen_generated": 500,
+    "qwen_model_errors": 7,
+    "qwen_with_valid_options": 247,
+    "eligible_with_filters": 244,
+    "eligible_without_filters": 3,
+    "audited": 80,
+    "rejected": 46,
+    "accepted": 34,
+    "queries": 34,
+    "applicable_queries": 32,
+    "filters": 42,
+    "queries_with_unresolved": 26
+  },
+  "input_sha256": {
+    "frozen_train_reference": "e4e7dc72a9790421ea75103e4742c1a8f17d295531ffc10b958c8808a6516e84",
+    "frozen_dev_reference": "9b0173c43189f698a5aa9cbd35131cda8c3100c62c8c98d5d4630af5ac097960",
+    "adjudicated_test_reference": "83df504466d14d3d675be8ac3e51d67691b173901f3e681d65d798a1e7fb91dc",
+    "audited_qwen_training": "6d59dbc599757279c16930fd426c07009bf5908f6ec757918e661504a64e2f8c"
+  },
+  "model_revisions": {
+    "bert": "cointegrated/rubert-tiny2@e8ed3b0c8bbf4fb6984c3de043bf7d2f4e5969ae",
+    "qwen": "mlx-community/Qwen3-4B-4bit@4dcb3d101c2a062e5c1d4bb173588c54ea6c4d25"
+  },
+  "candidate_coverage": {
+    "queries": 120,
+    "gold_filters": 163,
+    "gold_filters_in_options": 105,
+    "options": 112,
+    "test_with_options": 69
+  },
+  "training": {
+    "control": {
+      "reference_queries": 80,
+      "pseudo_queries": 0,
+      "steps": 300,
+      "examples": {
+        "1": 64,
+        "0": 2
+      },
+      "gold_filters_outside_options": 46,
+      "device": "mps"
+    },
+    "augmented": {
+      "reference_queries": 80,
+      "pseudo_queries": 34,
+      "steps": 300,
+      "examples": {
+        "1": 106,
+        "0": 4
+      },
+      "gold_filters_outside_options": 46,
+      "device": "mps"
+    }
+  },
+  "metrics": {
+    "test": {
+      "rules": {
+        "queries": 120,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.6239611165883185,
+          "exact_with_unresolved": 0.20352970313534396,
+          "filter_precision": 0.9419012200789758,
+          "filter_recall": 0.6622303912925939,
+          "coverage": 0.6731954982115724,
+          "false_apply_on_empty": 0.11942554145453096
+        },
+        "traffic": {
+          "exact_filters": 0.72315639032621,
+          "exact_with_unresolved": 0.3775281898569047,
+          "filter_precision": 0.9613466549444695,
+          "filter_recall": 0.6094566359102965,
+          "coverage": 0.3895878958612719,
+          "false_apply_on_empty": 0.006209509236810122
+        },
+        "latency_ms": {
+          "p50": 0.02354200023546582,
+          "p95": 0.08008300028450321
+        }
+      },
+      "qwen": {
+        "queries": 120,
+        "model_fallback_queries": 1,
+        "families": {
+          "exact_filters": 0.5750615590514425,
+          "exact_with_unresolved": 0.13689399459899682,
+          "filter_precision": 0.952466270528901,
+          "filter_recall": 0.5992324600068174,
+          "coverage": 0.6528440996185004,
+          "false_apply_on_empty": 0.0549599502819147
+        },
+        "traffic": {
+          "exact_filters": 0.7035646675692585,
+          "exact_with_unresolved": 0.35594053197065884,
+          "filter_precision": 0.9629483134806189,
+          "filter_recall": 0.580663076845982,
+          "coverage": 0.3864468399167737,
+          "false_apply_on_empty": 0.0018558497848949198
+        },
+        "latency_ms": {
+          "p50": 387.4140829998396,
+          "p95": 557.9569999999876
+        }
+      },
+      "bert_control": {
+        "queries": 120,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.6243897676235107,
+          "exact_with_unresolved": 0.2039583541705362,
+          "filter_precision": 0.9306575908652889,
+          "filter_recall": 0.6734375918285789,
+          "coverage": 0.6883164016174431,
+          "false_apply_on_empty": 0.11942554145453096
+        },
+        "traffic": {
+          "exact_filters": 0.7292585202026881,
+          "exact_with_unresolved": 0.38363031973338274,
+          "filter_precision": 0.9605630508538384,
+          "filter_recall": 0.6193111065470418,
+          "coverage": 0.39043871017536247,
+          "false_apply_on_empty": 0.006209509236810122
+        },
+        "latency_ms": {
+          "p50": 4.249583999808237,
+          "p95": 9.486334000030183
+        }
+      },
+      "bert_augmented": {
+        "queries": 120,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.6243897676235107,
+          "exact_with_unresolved": 0.2039583541705362,
+          "filter_precision": 0.9306575908652889,
+          "filter_recall": 0.6734375918285789,
+          "coverage": 0.6883164016174431,
+          "false_apply_on_empty": 0.11942554145453096
+        },
+        "traffic": {
+          "exact_filters": 0.7292585202026881,
+          "exact_with_unresolved": 0.38363031973338274,
+          "filter_precision": 0.9605630508538384,
+          "filter_recall": 0.6193111065470418,
+          "coverage": 0.39043871017536247,
+          "false_apply_on_empty": 0.006209509236810122
+        },
+        "latency_ms": {
+          "p50": 3.063791999920795,
+          "p95": 6.338333999792667
+        }
+      }
+    },
+    "dev": {
+      "rules": {
+        "queries": 40,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.525,
+          "exact_with_unresolved": 0.125,
+          "filter_precision": 0.825,
+          "filter_recall": 0.5892857142857143,
+          "coverage": 0.6,
+          "false_apply_on_empty": 0.13333333333333333
+        },
+        "latency_ms": {
+          "p50": 0.023708000298938714,
+          "p95": 0.07687500010433723
+        }
+      },
+      "qwen": {
+        "queries": 40,
+        "model_fallback_queries": 3,
+        "families": {
+          "exact_filters": 0.525,
+          "exact_with_unresolved": 0.075,
+          "filter_precision": 0.8421052631578947,
+          "filter_recall": 0.5714285714285714,
+          "coverage": 0.6,
+          "false_apply_on_empty": 0.06666666666666667
+        },
+        "latency_ms": {
+          "p50": 506.8532090003828,
+          "p95": 860.9059169998545
+        }
+      },
+      "bert_control": {
+        "queries": 40,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.525,
+          "exact_with_unresolved": 0.125,
+          "filter_precision": 0.8095238095238095,
+          "filter_recall": 0.6071428571428571,
+          "coverage": 0.65,
+          "false_apply_on_empty": 0.2
+        },
+        "latency_ms": {
+          "p50": 4.163583000263316,
+          "p95": 7.7373330000227725
+        }
+      },
+      "bert_augmented": {
+        "queries": 40,
+        "model_fallback_queries": 0,
+        "families": {
+          "exact_filters": 0.525,
+          "exact_with_unresolved": 0.125,
+          "filter_precision": 0.8095238095238095,
+          "filter_recall": 0.6071428571428571,
+          "coverage": 0.65,
+          "false_apply_on_empty": 0.2
+        },
+        "latency_ms": {
+          "p50": 3.633625000020402,
+          "p95": 6.761957999970036
+        }
+      }
+    }
+  },
+  "paired_bert_exact_filters": {
+    "wins": 0,
+    "ties": 120,
+    "losses": 0,
+    "families": {
+      "difference": 0.0,
+      "bootstrap_95": [
+        0.0,
+        0.0
+      ]
+    },
+    "traffic": {
+      "difference": 0.0,
+      "bootstrap_95": [
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

@@ -284,9 +284,11 @@ experiments:
     method: rules, grounded Qwen and compact BERT candidate validation
     dataset: avito_usedcars_text_queries_20261119
     script: scripts/avito/text2filter.py
-    status: planned
+    status: done
+    finished: "2026-11-25"
+    metrics: results/current/metrics/avito_text2filter_astra_20261125.json
     execution_report: docs/avito_text2filter.md
-    notes: "Prototype, blind annotation split and local tooling ready. Human annotation and final comparison pending."
+    notes: "Model-annotated reference: GPT-6.2 Astra xhigh, frozen 80/40/120 split, 30 repeated test judgments. Controlled comparison of two ruBERT variants at 300 steps. Adding 34 audited Qwen examples produced the same outputs on the 120 test requests."
 
 paper_targets:
   ur4rec_ml1m:

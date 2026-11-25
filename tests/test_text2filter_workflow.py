@@ -71,3 +71,27 @@ class StudyTests(unittest.TestCase):
         residual, = parsed["unresolved"]
         self.assertEqual(residual["evidence"], "с люком")
         self.assertEqual(query[residual["start"]:residual["end"]], residual["evidence"])
+
+
+class PairedStudyTests(unittest.TestCase):
+    def test_paired_differences_keep_census_fixed_and_estimate_both_weights(self):
+        from avito_text2filter.study import paired_exact_filters
+
+        def rows(accepted):
+            return [{"id": i, "filters": filters} for i, filters in enumerate(accepted)]
+
+        brand = {"attr_id": "110000", "value_id": "10"}
+        gold = rows([[brand], [brand], []])
+        control = rows([[], [], []])
+        augmented = rows([[brand], [brand], [brand]])
+        manifest = [
+            {"id": 0, "split": "test", "study": {"stratum": "top", "probability": 1, "family_count": 20}},
+            {"id": 1, "split": "test", "study": {"stratum": "tail", "probability": .1, "family_count": 2}},
+            {"id": 2, "split": "test", "study": {"stratum": "tail", "probability": .1, "family_count": 2}},
+        ]
+        report = paired_exact_filters(gold, control, augmented, manifest)
+        self.assertEqual(report["wins"], 2)
+        self.assertEqual(report["losses"], 1)
+        self.assertAlmostEqual(report["families"]["difference"], 1 / 21)
+        self.assertAlmostEqual(report["traffic"]["difference"], 1 / 3)
+        self.assertEqual(report, paired_exact_filters(gold, control, augmented, manifest))

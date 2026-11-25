@@ -117,18 +117,18 @@ def evaluate(gold, predicted, manifest):
         if a.get("status") == "pending" or a.get("status") == "disputed" or not all(
             isinstance(a.get(field), list) for field in ("filters", "unresolved")
         ):
-            raise ValueError("Human annotations are incomplete")
+            raise ValueError("Reference annotations are incomplete")
         fallback_queries += b.get("status") == "model_error"
         query = a["query"]
         if "query_sha256" in record and hashlib.sha256(query.encode()).hexdigest() != record["query_sha256"]:
-            raise ValueError("Human annotation differs from the frozen query")
+            raise ValueError("Reference annotation differs from the frozen query")
         if b.get("query", query) != query:
-            raise ValueError("Prediction text differs from the human annotation")
+            raise ValueError("Prediction text differs from the reference annotation")
         for row in a["filters"] + a["unresolved"]:
             start, end = row["start"], row["end"]
             if not (type(start) is type(end) is int and 0 <= start < end <= len(query)
                     and query[start:end] == row["evidence"]):
-                raise ValueError("Human evidence must refer to the original query")
+                raise ValueError("Reference evidence must refer to the original query")
         expected = {filter_key(row) for row in a["filters"]}
         actual = {filter_key(row) for row in b["filters"]}
         def residual(row):
@@ -224,3 +224,40 @@ def assemble(baseline, choices):
         "filters": sorted(choices, key=lambda row: (row["start"], row["end"])),
         "unresolved": sorted(unresolved + withheld, key=lambda row: (row["start"], row["end"])),
     }
+
+
+def paired_exact_filters(gold, control, augmented, manifest):
+    """Compare exact filter sets on a fixed sample and bootstrap within its strata."""
+    predictions = [{row["id"]: row for row in rows} for rows in (control, augmented)]
+    test = {row["id"]: row["study"] for row in manifest if row["split"] == "test"}
+    by_stratum = defaultdict(list)
+    for row in gold:
+        key = row["id"]
+        sample = test[key]
+        target = {filter_key(item) for item in row["filters"]}
+        a, b = (target == {filter_key(item) for item in result[key]["filters"]}
+                for result in predictions)
+        inverse = 1 / sample["probability"]
+        by_stratum[sample["stratum"]].append((int(b) - int(a), inverse, inverse * sample["family_count"]))
+
+    def mean(rows, weight):
+        return math.fsum(row[0] * row[weight] for row in rows) / math.fsum(
+            row[weight] for row in rows)
+
+    original = [row for stratum in by_stratum.values() for row in stratum]
+    # The high-frequency census contributes unchanged to every resample.
+    full = [row for rows in by_stratum.values() for row in rows if row[1] == 1]
+    sampled = [[row for row in rows if row[1] != 1] for rows in by_stratum.values()]
+    rng = random.Random(SEED)
+    draws = [[], []]
+    for _ in range(2_000):
+        rows = full + [row for stratum in sampled for row in rng.choices(stratum, k=len(stratum))]
+        for index in range(2):
+            draws[index].append(mean(rows, index + 1))
+    result = {label: sum(row[0] == meaning for row in original)
+              for label, meaning in (("wins", 1), ("ties", 0), ("losses", -1))}
+    for index, name in enumerate(("families", "traffic")):
+        values = sorted(draws[index])
+        result[name] = {"difference": mean(original, index + 1),
+                        "bootstrap_95": [values[49], values[1949]]}
+    return result

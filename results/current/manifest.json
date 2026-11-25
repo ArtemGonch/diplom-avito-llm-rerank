@@ -8,9 +8,13 @@
     "scope": "saved BX baseline, strict reconciliation on normalized offline TEXT test preview"
   },
   "avito_text2filter_20261125": {
-    "status": "planned",
+    "status": "done",
+    "path": "metrics/avito_text2filter_astra_20261125.json",
     "execution_report": "docs/avito_text2filter.md",
-    "scope": "rules and constrained inference implemented, comparative human test pending"
+    "scope": "offline agreement with GPT-6.2 Astra xhigh on 120 frozen UsedCars test queries",
+    "annotation_source": "independent language model",
+    "reference_queries_for_training": 80,
+    "accepted_qwen_training_queries": 34
   },
   "avito_bx_usedcars_history_20261119": {
     "status": "done",
