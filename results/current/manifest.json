@@ -1,5 +1,17 @@
 {
-  "generated": "2026-11-19",
+  "generated": "2026-11-25",
+  "avito_bx_usedcars_normalized_20261125": {
+    "status": "done",
+    "path": "metrics/avito_bx_usedcars_normalized_20261125.json",
+    "source_groups": 1000,
+    "candidate_rows": 31784,
+    "scope": "saved BX baseline, strict reconciliation on normalized offline TEXT test preview"
+  },
+  "avito_text2filter_20261125": {
+    "status": "planned",
+    "execution_report": "docs/avito_text2filter.md",
+    "scope": "rules and constrained inference implemented, comparative human test pending"
+  },
   "avito_bx_usedcars_history_20261119": {
     "status": "done",
     "path": "metrics/avito_bx_usedcars_history_20261119.json",

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разбор запроса · Авто</title>
+<style>
+:root{color-scheme:light;--paper:#f6f7f2;--ink:#182720;--muted:#4e6357;--line:#cbd6cc;--accent:#075841;--white:#fff;--warn:#775010}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Geist",system-ui,sans-serif}
+main{max-width:920px;margin:auto;padding:clamp(28px,6vw,72px) 20px}
+header{padding-bottom:28px;border-bottom:1px solid var(--line)}
+h1{font-size:clamp(36px,8vw,72px);line-height:1.02;letter-spacing:-.055em;margin:0 0 14px}
+p{margin:0;color:var(--muted)}form{margin:27px 0}
+label{display:block;margin-bottom:7px;font-weight:650}
+.field{display:flex;gap:10px}input{flex:1;min-width:0;background:var(--white);border:1px solid #a7bbae;border-radius:10px;padding:13px 15px;color:var(--ink)}
+button,input{font:inherit}button{cursor:pointer}
+.primary{border:0;border-radius:10px;background:var(--accent);color:white;font-weight:660;padding:11px 17px}
+.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.example{border:1px solid var(--line);border-radius:20px;color:var(--accent);background:transparent;padding:5px 11px;font-size:13px}
+section{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+article{border:1px solid var(--line);background:var(--white);border-radius:13px;padding:19px 20px}
+h2{margin:0;font-size:17px;letter-spacing:-.01em}ul{list-style:none;margin:10px 0 0;padding:0}
+li{padding:11px 0;border-bottom:1px solid var(--line);display:grid;gap:3px}li:last-child{border:0}
+li span{color:var(--muted);font-size:13px;overflow-wrap:anywhere}aside{min-height:25px;color:#97381e}
+#warnings strong{color:var(--warn)}code{font-family:ui-monospace,monospace}
+@media(max-width:600px){section{grid-template-columns:1fr}.field{display:grid}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Разбор запроса</h1><p>Фильтры для поиска автомобилей с пробегом</p></header>
+<form>
+<label for="query">Поисковый запрос</label>
+<div class="field"><input id="query" maxlength="1000" value="автомат до 1,5 млн без ДТП" autocomplete="off"><button class="primary">Разобрать</button></div>
+<div class="examples" aria-label="Примеры запросов">
+<button type="button" class="example">автомат до 1,5 млн без ДТП</button>
+<button type="button" class="example">Toyota, пробег 50–100 тыс. км</button>
+<button type="button" class="example">не дизель, от 2020 года</button>
+</div>
+</form>
+<aside id="error" role="alert"></aside>
+<section aria-live="polite"><article><h2>Применимые фильтры</h2><ul id="filters"></ul></article><article><h2>Нужно проверить</h2><ul id="warnings"></ul></article></section>
+</main>
+<script>
+const form = document.querySelector('form');
+const field = document.querySelector('#query');
+const error = document.querySelector('#error');
+const number = new Intl.NumberFormat('ru-RU');
+const explanations = {
+  ambiguous: 'Уточните значение', negated: 'Уточните исключение',
+  alternative: 'Уточните один вариант', conflict: 'Уточните противоречивые условия',
+};
+const units = {price:' ₽',2687:' км',110011:' л. с.',110012:' л'};
+function value(row) {
+  if (row.value_name !== undefined) return row.value_name;
+  const unit = units[row.attr_id] || '';
+  const f = n => (row.attr_id === '164669' ? String(n) : number.format(n)) + unit;
+  if (row.min === row.max) return f(row.min);
+  if (row.min === null) return 'до ' + f(row.max);
+  if (row.max === null) return 'от ' + f(row.min);
+  return f(row.min) + ' – ' + f(row.max);
+}
+function render(target, rows, formatter, empty) {
+  target.replaceChildren();
+  if (!rows.length) {
+    const item = document.createElement('li');
+    item.textContent = empty;
+    target.append(item);
+  }
+  for (const row of rows) {
+    const item = document.createElement('li');
+    const title = document.createElement('strong');
+    const note = document.createElement('span');
+    [title.textContent, note.textContent] = formatter(row);
+    item.append(title, note);
+    target.append(item);
+  }
+}
+let previous;
+async function submit() {
+  if (previous) previous.abort();
+  const controller = new AbortController();
+  previous = controller;
+  error.textContent = '';
+  try {
+    const response = await fetch('/parse', {method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:field.value}), signal:controller.signal});
+    if (!response.ok) throw new Error();
+    const result = await response.json();
+    render(document.querySelector('#filters'), result.filters,
+      row => [row.attr_name + ' · ' + value(row), '«' + row.evidence + '»'], 'Фильтры не найдены');
+    render(document.querySelector('#warnings'), result.unresolved,
+      row => ['«' + row.evidence + '»', explanations[row.reason] || 'Проверьте условие в объявлении'], 'Все найденные условия разобраны');
+  } catch (e) {
+    if (e.name !== 'AbortError') error.textContent = 'Не удалось разобрать запрос. Повторите попытку.';
+  }
+}
+form.addEventListener('submit', e => {e.preventDefault(); submit()});
+for (const button of document.querySelectorAll('.example')) {
+  button.addEventListener('click', () => {field.value = button.textContent; submit()});
+}
+submit();
+</script>
+</body>
+</html>
