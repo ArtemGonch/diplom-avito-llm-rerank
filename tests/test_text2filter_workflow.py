@@ -151,3 +151,38 @@ class StudentSamplingTests(unittest.TestCase):
         self.assertEqual(sum(row[0].startswith("ref") for row in result), 8)
         self.assertEqual(sum(row[2] for row in result), 8)
         self.assertEqual(len(training_batch(random.Random(4), ref, {0: [], 1: []})), 16)
+
+
+class AuditedPairTests(unittest.TestCase):
+    def test_unverified_options_are_ignored_instead_of_treated_as_negatives(self):
+        from avito_text2filter.student import labeled_examples
+
+        def option(value):
+            return {"attr_id":"110000","attr_name":"Марка","value_id":value,
+                    "value_name":value,"evidence":"марка"}
+        options = [option("yes"), option("no"), option("unverified")]
+        rows = [{"query":"марка","status":"audited_pairs",
+                 "filters":[options[0]],"verified_rejections":[options[1]]}]
+        result,missed = labeled_examples(None, lambda *_: ({}, options), rows)
+        self.assertEqual([target for _,_,target in result], [1,0])
+        self.assertEqual(missed,0)
+
+    def test_audited_pair_rejects_contradictory_labels(self):
+        from avito_text2filter.student import labeled_examples
+
+        row={"attr_id":"110000","attr_name":"Марка","value_id":"5"}
+        source={"query":"марка","status":"audited_pairs","filters":[row],"verified_rejections":[row]}
+        with self.assertRaises(ValueError):
+            labeled_examples(None,lambda *_: ({},[]),[source])
+
+
+    def test_v3_does_not_overrepeat_one_verified_negative_in_each_batch(self):
+        import random
+        from avito_text2filter.student import training_batch
+
+        reference = {0: [("ref-negative", "", 0)], 1: [("ref-positive", "", 1)]}
+        weak = {0: [("one-weak-negative", "", 0)], 1: [("one-weak-positive", "", 1)]}
+        batch = training_batch(random.Random(4), reference, weak, distinct_weak=True)
+        self.assertEqual(len(batch), 16)
+        self.assertEqual(sum(row[0] == "one-weak-negative" for row in batch), 1)
+        self.assertEqual(sum(row[0] == "one-weak-positive" for row in batch), 1)

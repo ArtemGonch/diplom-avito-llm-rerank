@@ -24,6 +24,10 @@ class Text2FilterTests(unittest.TestCase):
             ("110000", "Марка", "7", "Volvo"),
             ("110000", "Марка", "8", "OMODA"),
             ("110000", "Марка", "9", "Mercedes-Benz"),
+            ("110000", "Марка", "101", "BMW"),
+            ("110000", "Марка", "102", "Ferrari"),
+            ("110000", "Марка", "103", "ГАЗ"),
+            ("110000", "Марка", "104", "Peugeot"),
             ("110001", "Модель", "10", "Camry"),
             ("110001", "Модель", "11", "Honda Accord"),
             ("110001", "Модель", "12", "2114"),
@@ -34,6 +38,13 @@ class Text2FilterTests(unittest.TestCase):
             ("110001", "Модель", "17", "C5"),
             ("110001", "Модель", "18", "C5"),
             ("110001", "Модель", "19", "GL-класс"),
+            ("110001", "Модель", "111", "5 серия"),
+            ("110001", "Модель", "112", "Venza"),
+            ("110001", "Модель", "113", "F12berlinetta"),
+            ("110001", "Модель", "114", "C-класс"),
+            ("110001", "Модель", "115", "ГАЗель Next"),
+            ("110001", "Модель", "116", "Land Cruiser"),
+            ("110001", "Модель", "117", "3008"),
             ("110010", "Комплектация", "101", "Sorento"),
             ("110002", "Год выпуска", "50001", "2018"),
             ("110003", "Тип кузова", "20", "Седан"),
@@ -226,6 +237,56 @@ class Text2FilterTests(unittest.TestCase):
                 baseline = self.catalog.parse(query)
                 self.assertTrue(any(row["reason"] == "conflict" for row in baseline["unresolved"]))
                 self.assertFalse(self.model_options(query))
+
+    def v3_options(self, query):
+        rows = self.catalog.model_candidates_v3(query, self.catalog.parse(query))
+        self.assert_evidence(query, rows)
+        return {
+            (row["attr_id"], row.get("value_id", (row.get("min"), row.get("max"))), row["evidence"])
+            for row in rows
+        }
+
+    def test_v3_links_glued_make_and_model_with_independent_offsets(self):
+        query = "🚙 бмве39 3.0 миханика"
+        self.assertFalse(self.model_options(query))
+        self.assertEqual(self.v3_options(query), {
+            ("110000", "101", "бмв"), ("110001", "111", "е39"),
+            ("110012", (3.0, 3.0), "3.0"), ("110008", "61", "миханика"),
+        })
+        self.assertEqual(self.v3_options("тойтавенза"), {
+            ("110000", "1", "тойта"), ("110001", "112", "венза"),
+        })
+        self.assertFalse(self.v3_options("киавенза"))
+
+    def test_v3_conditions_short_aliases_on_catalog_make(self):
+        self.assertEqual(self.v3_options("Ferrari F12"), {("110001", "113", "F12")})
+        self.assertEqual(self.v3_options("Mercedes с 180"), {("110001", "114", "с 180")})
+        self.assertEqual(self.v3_options("Газель Next"), {("110000", "103", "Газель")})
+        for query in ("F12", "Honda F12", "с 180", "OMODA C5", "Ferrari C5 F12", "Mercedes с 180 км"):
+            with self.subTest(query=query):
+                self.assertFalse(self.v3_options(query))
+
+    def test_v3_requires_an_identified_model_for_unmarked_numeric_context(self):
+        self.assertIn(("110012", (2.5, 2.5), "2,5"), self.v3_options("Toyota Camry 2,5 автомат"))
+        self.assertIn(("110012", (1.6, 1.6), "1'6"), self.v3_options("Toyota Camry 2013 1'6"))
+        self.assertIn(("164669", (2008, 2008), "2008"), self.v3_options("Toyota Land Cruiser 2008"))
+        for query in (
+            "Toyota 1.6", "Camry до 1.6", "Camry 1.6 млн", "Camry 1.6.2013",
+            "Camry 1.6/2.0", "Camry 1.6 до 2.0", "Camry 1.6 кВт", "Camry 1.6 м", "Camry\n1.6",
+            "2008", "Peugeot 3008 2008",
+        ):
+            with self.subTest(query=query):
+                self.assertFalse(any(attr in {"110012", "164669"} for attr, _, _ in self.v3_options(query)))
+
+    def test_v3_preserves_negation_alternatives_and_conflicts(self):
+        for query in (
+            "не бмве39", "кроме Газель", "Ferrari F12 или Toyota", "BMW, Toyota, бмве39",
+            "Toyota, Ferrari F12", "Camry без двигателя 1.6", "запчасти на Camry 1.6",
+        ):
+            with self.subTest(query=query):
+                self.assertEqual(self.v3_options(query), {
+                    (attr, value_id, evidence) for attr, value_id, evidence in self.model_options(query)
+                })
 
 
 if __name__ == "__main__":

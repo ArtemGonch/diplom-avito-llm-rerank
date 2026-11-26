@@ -1,5 +1,14 @@
 {
   "generated": "2026-11-26",
+  "avito_text2filter_v3_20261126": {
+    "status": "done",
+    "path": "metrics/avito_text2filter_v3_20261126.json",
+    "execution_report": "docs/avito_text2filter.md",
+    "scope": "80 unseen UsedCars query families with blinded Astra annotations",
+    "selected_variant": "v3_verified_qwen_calibrated",
+    "selected_threshold": 0.995,
+    "controlled_exact_matches": [49, 57]
+  },
   "avito_text2filter_v2_20261126": {
     "status": "done",
     "path": "metrics/avito_text2filter_v2_20261126.json",

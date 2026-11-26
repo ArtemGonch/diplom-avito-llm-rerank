@@ -21,21 +21,30 @@ def labeled_examples(catalog, propose, rows):
         if not isinstance(row["filters"], list) or row.get("status") in {"pending", "disputed", "model_error"}:
             raise ValueError("Training requires reviewed labels")
         gold = {filter_key(f) for f in row["filters"]}
+        rejections = None
+        if row.get("status") == "audited_pairs":
+            rejections = {filter_key(f) for f in row["verified_rejections"]}
+            if gold & rejections:
+                raise ValueError("A candidate cannot have both audited labels")
         _, options = propose(catalog, row["query"])
         keys = {filter_key(option) for option in options}
         missed += len(gold - keys)
         for option in options:
-            examples.append((row["query"], description(option), int(filter_key(option) in gold)))
+            key = filter_key(option)
+            if rejections is None or key in gold or key in rejections:
+                examples.append((row["query"], description(option), int(key in gold)))
     return examples, missed
 
 
-def training_batch(rng, reference, weak):
+def training_batch(rng, reference, weak, *, distinct_weak=False):
     """Keep half of each label's batch tied to the reference when weak pairs exist."""
     examples = []
     for label in (0, 1):
         if reference[label] and weak[label]:
-            examples.extend(rng.choices(reference[label], k=4))
-            examples.extend(rng.choices(weak[label], k=4))
+            weak_count = min(4, len(weak[label])) if distinct_weak else 4
+            examples.extend(rng.choices(reference[label], k=8 - weak_count))
+            choose_weak = rng.sample if distinct_weak else rng.choices
+            examples.extend(choose_weak(weak[label], k=weak_count))
         else:
             examples.extend(rng.choices(reference[label] or weak[label], k=8))
     return examples
@@ -66,8 +75,10 @@ def train(catalog, propose, args, read_rows):
     eligible = {"reviewed"}
     if args.linker == "v2":
         eligible.add("qwen_consensus")
+    if args.linker == "v3":
+        eligible.add("audited_pairs")
     if any(row.get("status") not in eligible for row in pseudo):
-        raise ValueError("Expected audited labels or two agreeing Qwen selections")
+        raise ValueError("Expected reviewed examples for this linker")
     reference_examples, reference_missed = labeled_examples(catalog, propose, human)
     weak_examples, weak_missed = labeled_examples(catalog, propose, pseudo)
     examples = reference_examples + weak_examples
@@ -87,8 +98,10 @@ def train(catalog, propose, args, read_rows):
     if args.linker == "v1":
         reference = {label: reference[label] + weak[label] for label in (0, 1)}
         weak = {0: [], 1: []}
+    if args.linker == "v3":
+        weak = {label: list(dict.fromkeys(weak[label])) for label in (0, 1)}
     for _ in range(args.steps):
-        batch = training_batch(rng, reference, weak)
+        batch = training_batch(rng, reference, weak, distinct_weak=args.linker == "v3")
         left, right, targets = zip(*batch, strict=True)
         inputs = tokenizer(list(left), list(right), padding=True, truncation=True,
                            max_length=128, return_tensors="pt").to(device)

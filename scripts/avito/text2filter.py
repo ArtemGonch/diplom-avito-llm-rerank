@@ -64,12 +64,19 @@ def proposals(catalog, query):
     options = baseline["filters"] + catalog.candidates(query)
     return baseline, options[:20]
 
+def _unique_options(rows):
+    identities = [(filter_key(row), row["start"], row["end"]) for row in rows]
+    return list(dict(zip(identities, rows, strict=True)).values())[:20]
+
 
 def proposals_v2(catalog, query):
     baseline = catalog.parse(query)
-    options = baseline["filters"] + catalog.model_candidates(query, baseline)
-    identities = [(filter_key(row), row["start"], row["end"]) for row in options]
-    return baseline, list(dict(zip(identities, options, strict=True)).values())[:20]
+    return baseline, _unique_options(baseline["filters"] + catalog.model_candidates(query, baseline))
+
+
+def proposals_v3(catalog, query):
+    baseline = catalog.parse(query)
+    return baseline, _unique_options(baseline["filters"] + catalog.model_candidates_v3(query, baseline))
 
 
 _LEGACY_PROMPT = (
@@ -93,7 +100,7 @@ _TEACHER_PROMPTS = (
 
 
 def qwen_runner(catalog, model_path, propose=proposals, consensus=False):
-    allow_linked = propose is proposals_v2
+    allow_linked = propose in (proposals_v2, proposals_v3)
     from mlx_lm import generate, load
     from mlx_lm.sample_utils import make_sampler
 
@@ -200,7 +207,7 @@ def serve(catalog, port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path)
-    parser.add_argument("--linker", choices=("v1", "v2"), default="v1")
+    parser.add_argument("--linker", choices=("v1", "v2", "v3"), default="v1")
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("parse")
     p.add_argument("query")
@@ -252,7 +259,7 @@ def main():
     else:
         from avito_text2filter import Catalog
         catalog = Catalog.from_zip(args.archive)
-        propose = proposals_v2 if args.linker == "v2" else proposals
+        propose = {"v1": proposals, "v2": proposals_v2, "v3": proposals_v3}[args.linker]
         if args.command == "serve":
             serve(catalog, args.port)
             return
@@ -280,7 +287,7 @@ def main():
                 if not 0 <= args.threshold <= 1:
                     parser.error("--threshold must be in [0, 1]")
                 infer = student_runner(catalog, args.student, propose, assemble, args.threshold,
-                                       allow_linked=args.linker == "v2")
+                                       allow_linked=args.linker != "v1")
             if not rows:
                 raise ValueError("No input queries")
             infer("автомат до 1,5 млн без ДТП")  # warm up outside the timed sample

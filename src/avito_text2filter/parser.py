@@ -119,6 +119,24 @@ _MODEL_MAKES = {
     "ВАЗ (LADA)": "2113 Samara|2114 Samara|2115 Samara|Granta|Kalina|Largus|Priora|Vesta|XRAY",
 }
 
+# V3 aliases still resolve through the catalog label, including its duplicate IDs.
+_V3_ALIASES = {
+    _MAKE: {"Toyota": "тойта", "ГАЗ": "газель|газели", "Iveco": "ивеко", "Maybach": "майбах"},
+    _MODEL: {
+        "5 серия": "e39|е39|e 39|е 39",
+        "C-класс": "c180|с180|c 180|с 180|c200|с200|c 200|с 200|c220|с220|c 220|с 220",
+        "M-класс": "ml|мл", "Daily": "дейли|дэйли", "F12berlinetta": "f12",
+        "Jolion": "джулион|джулиан", "Tiggo (T11)": "тигго т11|тигго т 11|tiggo t11|tiggo t 11",
+        "ГАЗель 2705": "газель газ 2705|газ 2705", "2121 (4x4) Фора": "212180 фора|2121 фора",
+    },
+    "110007": {"Полный": "4 wd|4 x 4|4 х 4"},
+    "110008": {"Механика": "миханика"},
+}
+_V3_MODEL_MAKES = {
+    "Chery": "Tiggo (T11)", "Ferrari": "F12berlinetta", "Iveco": "Daily", "Mercedes-Benz": "C-класс",
+    "Peugeot": "2008|3008", "ГАЗ": "ГАЗель 2705|ГАЗель Next", "ВАЗ (LADA)": "2121 (4x4) Фора",
+}
+
 _TOKEN = re.compile(r"[^\W_]+", re.UNICODE)
 _GLUE = re.compile(r"[\s.()\[\]’'\-‐‑‒–—]*\Z")
 _FILLERS = set("а в во с со к на по за для и у мне мой хочу ищу купить машина машину авто автомобиль автомобили нужна нужен новое новый бу б у только пожалуйста лучше что нужен нужна можно без".split())
@@ -147,6 +165,10 @@ _CODE = re.compile(r"(?=.{2,9}$)(?=.*[a-z])(?=.*\d)[a-z0-9]+")
 _CONTEXTUAL_TERMS = {"at", "mt", "li", "волга"}
 _VEHICLE_IDENTITY = {_MAKE, _MODEL}
 _MODEL_OPTION_LIMIT = 12
+_V3_VOLUME = re.compile(r"[0-8][.,'’][0-9](?![\w.,'’/+-])")
+_V3_OTHER_QUANTITY = re.compile(r"\s*(?:(?:до|по|[-–—−])\s*\d|%|(?:кг|тонн[а-я]*|м|см|мм)\b)", re.I)
+_V3_SPACE = re.compile(r"[^\S\r\n]+")
+_V3_MODEL_SEPARATOR = re.compile(r"[^\S\r\n]*(?:[-–—][^\S\r\n]*)?")
 
 _NUM = r"(?:[0-9]{1,3}(?P<group>[.,])(?:[0-9]{3}(?P=group)){1,3}[0-9]{3}|(?:[0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})+|[0-9]{1,12})(?:[.,][0-9]{1,6})?)"
 _SCALE = r"(?:миллиард(?:а|ов)?|млрд\.?|миллион(?:а|ов)?|млн\.?|тысяч(?:а|и|у)?|тыс\.?|[kк])"
@@ -352,6 +374,44 @@ class Catalog:
             if len(makes[_key(make)]) == 1:
                 for model in models.split("|"):
                     self._model_makes[_key(model)] = next(iter(makes[_key(make)]))
+        self._v3_model_makes = self._model_makes.copy()
+        for make, models in _V3_MODEL_MAKES.items():
+            if len(makes[_key(make)]) == 1:
+                self._v3_model_makes.update(dict.fromkeys(map(_key, models.split("|")), next(iter(makes[_key(make)]))))
+
+        v3_aliases = defaultdict(set)
+        for attr_id, aliases in _V3_ALIASES.items():
+            variants = {_key(label): alias for label, alias in aliases.items()}
+            for value in fields[attr_id]:
+                for alias in variants.get(_key(value.value_name), "").split("|"):
+                    if alias:
+                        v3_aliases[_key(alias)].add(value)
+        self._v3_terms = defaultdict(dict)
+        for term, values in v3_aliases.items():
+            attrs = {value.attr_id for value in values}
+            options = values | {value for value in expanded[term] if value.attr_id in attrs}
+            self._v3_terms[term[0]][term] = tuple(sorted(options))
+
+        make_terms = defaultdict(set)
+        model_terms = []
+        for term in expanded.keys() | v3_aliases.keys():
+            compact = "".join(term)
+            values = expanded[term] | v3_aliases[term]
+            for attr in _VEHICLE_IDENTITY:
+                matches = {value for value in values if value.attr_id == attr}
+                if len(matches) != 1:
+                    continue
+                value = next(iter(matches))
+                if attr == _MAKE and len(compact) >= 3:
+                    make_terms[value].add(compact)
+                elif attr == _MODEL and len(compact) >= 2 and not compact.isdecimal():
+                    model_terms.append((compact, value))
+        glued = defaultdict(set)
+        for term, model in model_terms:
+            owner = self._v3_model_makes.get(_key(model.value_name))
+            for make in make_terms.get(owner, ()):
+                glued[make + term].add((len(make), owner, model))
+        self._v3_glued = {term: next(iter(values)) for term, values in glued.items() if len(values) == 1}
 
     @classmethod
     def from_zip(cls, path: str | Path):
@@ -363,8 +423,8 @@ class Catalog:
                     raise ValueError("Invalid attribute_values.csv columns")
                 return cls(reader)
 
-    def _closed_mentions(self, query, *, expanded=False):
-        lookup = self._model_terms if expanded else self._terms
+    def _closed_mentions(self, query, *, expanded=False, v3_aliases=False):
+        lookup = self._v3_terms if v3_aliases else self._model_terms if expanded else self._terms
         tokens = list(_TOKEN.finditer(query))
         normalized = [_normalize(token.group()) for token in tokens]
         mentions = []
@@ -391,7 +451,7 @@ class Catalog:
                 source = tokens[index].group()
                 if len(term) == 1 and not hint and (word in _FILLERS or word in _CUES or len(word) == 1 or (
                     len(word) == 2 and source.isalpha() and not source.isupper() and word != "vw"
-                    and not (expanded and word in _CONTEXTUAL_TERMS)
+                    and not (expanded and word in _CONTEXTUAL_TERMS) and not v3_aliases
                 )):
                     continue
                 if len(term) == 1 and word.isdecimal() and (len(word) < 3 or hint != "110001" and word.startswith("0")):
@@ -622,13 +682,138 @@ class Catalog:
                 add(row)
         return sorted(list(proposals.values())[:_MODEL_OPTION_LIMIT], key=_proposal_key)
 
+    def model_candidates_v3(self, query: str, baseline: dict) -> list[dict]:
+        """Extend v2 proposals with catalog-backed aliases and contextual numeric values."""
+        previous = self.model_candidates(query, baseline)
+        known = baseline["filters"] + previous
+        clauses = list(_clauses(query))
+        parts = [clause for clause in clauses if _PART_REQUEST.search(query, clause.start, clause.end)]
+        blocked = [row for row in baseline["unresolved"] if row["reason"] in {
+            "alternative", "negated", "unsupported", "invalid_range", "conflict",
+        }]
+        blocked.extend(row for row in baseline["filters"] if "value_id" not in row)
+        occupied = defaultdict(set)
+        for row in known:
+            occupied[row["attr_id"]].add(row.get("value_id"))
+        for row in baseline["unresolved"]:
+            if row["reason"] not in {"ambiguous", "conflict"}:
+                continue
+            options = defaultdict(set)
+            for item in row.get("candidates", ()):
+                options[item["attr_id"]].add(item["value_id"])
+            for attr, ids in options.items():
+                if row["reason"] == "conflict" or len(ids) > 1:
+                    occupied[attr].update(ids)
+
+        def available(row):
+            return not _intersects(row, blocked) and (row["attr_id"] in _VEHICLE_IDENTITY or not any(
+                clause.start <= row["start"] < clause.end for clause in parts
+            ))
+
+        def compatible(row):
+            ids = occupied[row["attr_id"]]
+            return not ids or ids == {row["value_id"]}
+
+        aliases = []
+        for start, end, values, _ in self._closed_mentions(query, v3_aliases=True):
+            for attr in {value.attr_id for value in values}:
+                options = [value for value in values if value.attr_id == attr]
+                if len(options) == 1:
+                    row = options[0].grounded(query, start, end)
+                    if available(row) and compatible(row):
+                        aliases.append(row)
+
+        direct_makes = [row for row in known + aliases if row["attr_id"] == _MAKE]
+        grounded = []
+        for row in aliases:
+            attr = row["attr_id"]
+            if attr == _MODEL:
+                owner = self._v3_model_makes.get(_key(row["value_name"]))
+                if owner is None or not any(
+                    make["value_id"] == owner.value_id and (
+                        make["start"] == row["start"] and make["end"] < row["end"]
+                        or make["end"] <= row["start"]
+                        and _V3_MODEL_SEPARATOR.fullmatch(query, make["end"], row["start"])
+                    )
+                    for make in direct_makes
+                ):
+                    continue
+            grounded.append(row)
+
+        for match in _TOKEN.finditer(query):
+            word = _normalize(match.group())
+            if len(word) != len(match.group()) or word not in self._v3_glued:
+                continue
+            split, make, model = self._v3_glued[word]
+            boundary = match.start() + split
+            pair = [make.grounded(query, match.start(), boundary), model.grounded(query, boundary, match.end())]
+            if all(available(row) and compatible(row) for row in pair):
+                grounded.extend(pair)
+
+        by_attr = defaultdict(set)
+        for row in grounded:
+            by_attr[row["attr_id"]].add(row["value_id"])
+        linked = [row for row in grounded if len(by_attr[row["attr_id"]]) == 1]
+        numerics = self._v3_numbers(query, baseline, known + linked, occupied, available)
+        proposals = {(row["attr_id"], row["value_id"]): row for row in previous}
+        for row in sorted(linked, key=lambda row: (row["start"], -row["end"], row["attr_id"])):
+            if not occupied[row["attr_id"]]:
+                proposals.setdefault((row["attr_id"], row["value_id"]), row)
+        return sorted([*proposals.values(), *numerics], key=_proposal_key)
+
+    def _v3_numbers(self, query, baseline, known, occupied, available):
+        if any(row["reason"] == "conflict" and not row.get("candidates") for row in baseline["unresolved"]):
+            return []
+        models = [row for row in known if row["attr_id"] == _MODEL]
+        if len({row["value_id"] for row in models}) != 1:
+            return []
+        model = max(models, key=lambda row: row["end"])
+        owner = self._v3_model_makes.get(_key(model["value_name"]))
+        gap = _V3_SPACE.match(query, model["end"])
+        if not gap:
+            return []
+        start = gap.end()
+        result = []
+
+        def exact(attr, start, end, value):
+            row = {**_span(query, start, end), "attr_id": attr, "attr_name": self._names.get(attr), "min": value, "max": value}
+            if row["attr_name"] and not occupied[attr] and available(row) and not _intersects(row, known):
+                result.append(row)
+
+        year = next((row for row in baseline["unresolved"] if row["start"] == start and row["reason"] == "ambiguous"
+                     and re.fullmatch(r"(?:18|19|20)\d{2}", row["evidence"])), None)
+        if year and owner:
+            term = (year["evidence"],)
+            options = {value for value in self._terms[term[0]].get(term, ()) if value.attr_id == _MODEL}
+            if len(options) == 1:
+                numeric_model = next(iter(options))
+                numeric_owner = self._v3_model_makes.get(_key(numeric_model.value_name))
+                if numeric_owner and owner != numeric_owner and int(year["evidence"]) >= 1886:
+                    exact(_YEAR, start, year["end"], int(year["evidence"]))
+        anchor_year = next((row for row in known + result if row["start"] == start and row["attr_id"] == _YEAR
+                            and row["evidence"].isdecimal()), None)
+        if anchor_year:
+            gap = _V3_SPACE.match(query, anchor_year["end"])
+            if not gap:
+                return result
+            start = gap.end()
+        volume = _V3_VOLUME.match(query, start)
+        if volume and not _V3_OTHER_QUANTITY.match(query, volume.end()):
+            # Reuse the typed-amount grammar to exclude currency and measurement suffixes.
+            literal = volume.group()
+            dotted = literal[0] + "." + literal[-1]
+            amount = _AMOUNT.match(query[:start] + dotted + query[volume.end():], start)
+            if amount and amount.end() == volume.end() and float(dotted) >= 0.5:
+                exact(_LITERS, start, volume.end(), float(dotted))
+        return result
+
 
 def _sort_span(row):
     return row["start"], row["end"]
 
 
 def _proposal_key(row):
-    return row["start"], row["end"], row["attr_id"], row["value_id"]
+    return row["start"], row["end"], row["attr_id"], row.get("value_id", "")
 
 
 def _field_id(field):

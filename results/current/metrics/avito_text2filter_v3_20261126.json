@@ -1,0 +1,475 @@
+{
+  "annotation_model": "GPT-6.2 Astra xhigh",
+  "design": {
+    "eligible_strata": {
+      "rank1_400": 221,
+      "rank401_4000": 3143,
+      "tail_repeat": 33922,
+      "singleton": 31469
+    },
+    "excluded_previous_families": 1232,
+    "test_rows": 80
+  },
+  "annotator_agreement": {
+    "test_queries": 80,
+    "rechecked": 16,
+    "agreement_exact_filters": 16,
+    "disputed_for_blind_arbitration": 0
+  },
+  "reference_audit": {
+    "queries_reviewed": 84,
+    "confirmed_predicted": 136,
+    "confirmed_rejected": 1,
+    "mistaken_teacher_accepts": 8,
+    "mistaken_teacher_rejections": 19,
+    "astra_additional_not_offered_v2": 40,
+    "qwen_rows_used": 83,
+    "astra_corrected_rows_used": 84
+  },
+  "dev_selection": {
+    "model_choice": "v3_verified_qwen",
+    "best_llm_model": "v3_verified_qwen",
+    "shared_threshold": 0.5,
+    "reference_queries": 78,
+    "objective": [
+      "max_min_delta_vs_v2_control",
+      "sum_delta",
+      "exact_by_family",
+      "closest_to_0.5"
+    ],
+    "dimensions": [
+      "family_exact",
+      "traffic_exact",
+      "family_precision",
+      "family_recall"
+    ]
+  },
+  "eval_thresholds": {
+    "v3_control": 0.5,
+    "v3_verified_qwen": 0.5,
+    "v3_corrected_astra": 0.5,
+    "v3_verified_qwen_calibrated": 0.995
+  },
+  "metrics": {
+    "v2_control": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.575993745909389,
+        "exact_with_unresolved": 0.1000000000000001,
+        "filter_precision": 0.9364722303651308,
+        "filter_recall": 0.7149878564916848,
+        "coverage": 0.5475536324630941,
+        "false_apply_on_empty": 0.08272670475012056
+      },
+      "traffic": {
+        "exact_filters": 0.5182207932436337,
+        "exact_with_unresolved": 0.06906449479385275,
+        "filter_precision": 0.937558875100063,
+        "filter_recall": 0.6281323669591614,
+        "coverage": 0.5779090285879835,
+        "false_apply_on_empty": 0.1252740292475716
+      },
+      "latency_ms": {
+        "p50": 3.3003339999595482,
+        "p95": 8.27049999998053
+      }
+    },
+    "v2_qwen": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.5742098756454082,
+        "exact_with_unresolved": 0.07533124863646287,
+        "filter_precision": 0.9548316748837582,
+        "filter_recall": 0.7138392917761736,
+        "coverage": 0.5475536324630941,
+        "false_apply_on_empty": 0.08272670475012056
+      },
+      "traffic": {
+        "exact_filters": 0.5158852838897502,
+        "exact_with_unresolved": 0.06470847289406245,
+        "filter_precision": 0.9397207740008913,
+        "filter_recall": 0.6262080933545932,
+        "coverage": 0.5779090285879835,
+        "false_apply_on_empty": 0.1252740292475716
+      },
+      "latency_ms": {
+        "p50": 1.0498749998077983,
+        "p95": 2.677666999716166
+      }
+    },
+    "v3_control": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.6548927350738132,
+        "exact_with_unresolved": 0.1542302378008874,
+        "filter_precision": 0.9404430150134335,
+        "filter_recall": 0.7658913269551234,
+        "coverage": 0.5723830994109523,
+        "false_apply_on_empty": 0.08272670475012056
+      },
+      "traffic": {
+        "exact_filters": 0.7967852604608185,
+        "exact_with_unresolved": 0.34109492916135314,
+        "filter_precision": 0.953686027334361,
+        "filter_recall": 0.8614235223311225,
+        "coverage": 0.5890263099382399,
+        "false_apply_on_empty": 0.1252740292475716
+      },
+      "latency_ms": {
+        "p50": 1.4737920000698068,
+        "p95": 3.6396249997778796
+      }
+    },
+    "v3_verified_qwen": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.6548927350738132,
+        "exact_with_unresolved": 0.1542302378008874,
+        "filter_precision": 0.9404430150134335,
+        "filter_recall": 0.7658913269551234,
+        "coverage": 0.5723830994109523,
+        "false_apply_on_empty": 0.08272670475012056
+      },
+      "traffic": {
+        "exact_filters": 0.7967852604608185,
+        "exact_with_unresolved": 0.34109492916135314,
+        "filter_precision": 0.953686027334361,
+        "filter_recall": 0.8614235223311225,
+        "coverage": 0.5890263099382399,
+        "false_apply_on_empty": 0.1252740292475716
+      },
+      "latency_ms": {
+        "p50": 1.6132499995364924,
+        "p95": 3.4527079997133114
+      }
+    },
+    "v3_corrected_astra": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.6548927350738132,
+        "exact_with_unresolved": 0.1542302378008874,
+        "filter_precision": 0.9404430150134335,
+        "filter_recall": 0.7658913269551234,
+        "coverage": 0.5723830994109523,
+        "false_apply_on_empty": 0.08272670475012056
+      },
+      "traffic": {
+        "exact_filters": 0.7967852604608185,
+        "exact_with_unresolved": 0.34109492916135314,
+        "filter_precision": 0.953686027334361,
+        "filter_recall": 0.8614235223311225,
+        "coverage": 0.5890263099382399,
+        "false_apply_on_empty": 0.1252740292475716
+      },
+      "latency_ms": {
+        "p50": 1.4922919999662554,
+        "p95": 3.080542000134301
+      }
+    },
+    "v3_verified_qwen_calibrated": {
+      "queries": 80,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.6344542215111632,
+        "exact_with_unresolved": 0.1542302378008874,
+        "filter_precision": 0.9782994001232275,
+        "filter_recall": 0.7352733916465211,
+        "coverage": 0.5205992291469718,
+        "false_apply_on_empty": 0.00684606727624614
+      },
+      "traffic": {
+        "exact_filters": 0.8085220055704224,
+        "exact_with_unresolved": 0.34109492916135314,
+        "filter_precision": 0.9732859564423797,
+        "filter_recall": 0.8543752585866643,
+        "coverage": 0.5622009865833583,
+        "false_apply_on_empty": 0.07088005191000772
+      },
+      "latency_ms": {
+        "p50": 1.21733400010271,
+        "p95": 2.788707999570761
+      }
+    }
+  },
+  "pairwise_exact": {
+    "v3_control_vs_v2_control": {
+      "wins": 7,
+      "ties": 73,
+      "losses": 0,
+      "families": {
+        "difference": 0.07889898916442442,
+        "bootstrap_95": [
+          0.00701767144207694,
+          0.16269071340266164
+        ]
+      },
+      "traffic": {
+        "difference": 0.2785644672171856,
+        "bootstrap_95": [
+          0.022306846012808152,
+          0.5579106651162895
+        ]
+      }
+    },
+    "v3_verified_qwen_vs_v2_control": {
+      "wins": 7,
+      "ties": 73,
+      "losses": 0,
+      "families": {
+        "difference": 0.07889898916442442,
+        "bootstrap_95": [
+          0.00701767144207694,
+          0.16269071340266164
+        ]
+      },
+      "traffic": {
+        "difference": 0.2785644672171856,
+        "bootstrap_95": [
+          0.022306846012808152,
+          0.5579106651162895
+        ]
+      }
+    },
+    "v3_corrected_astra_vs_v2_control": {
+      "wins": 7,
+      "ties": 73,
+      "losses": 0,
+      "families": {
+        "difference": 0.07889898916442442,
+        "bootstrap_95": [
+          0.00701767144207694,
+          0.16269071340266164
+        ]
+      },
+      "traffic": {
+        "difference": 0.2785644672171856,
+        "bootstrap_95": [
+          0.022306846012808152,
+          0.5579106651162895
+        ]
+      }
+    },
+    "v3_verified_qwen_calibrated_vs_v2_control": {
+      "wins": 10,
+      "ties": 68,
+      "losses": 2,
+      "families": {
+        "difference": 0.05846047560177442,
+        "bootstrap_95": [
+          -0.06147625627227111,
+          0.17332412188204496
+        ]
+      },
+      "traffic": {
+        "difference": 0.2903012123267895,
+        "bootstrap_95": [
+          0.03229902744255166,
+          0.5662356768007013
+        ]
+      }
+    },
+    "v3_verified_qwen_vs_v3_control": {
+      "wins": 0,
+      "ties": 80,
+      "losses": 0,
+      "families": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      },
+      "traffic": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "v3_verified_qwen_vs_v2_qwen": {
+      "wins": 8,
+      "ties": 71,
+      "losses": 1,
+      "families": {
+        "difference": 0.08068285942840521,
+        "bootstrap_95": [
+          -0.015906479528761543,
+          0.1798596465711585
+        ]
+      },
+      "traffic": {
+        "difference": 0.2808999765710691,
+        "bootstrap_95": [
+          0.023712148016229978,
+          0.5599136308395213
+        ]
+      }
+    },
+    "v3_corrected_astra_vs_v3_control": {
+      "wins": 0,
+      "ties": 80,
+      "losses": 0,
+      "families": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      },
+      "traffic": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "v3_corrected_astra_vs_v2_qwen": {
+      "wins": 8,
+      "ties": 71,
+      "losses": 1,
+      "families": {
+        "difference": 0.08068285942840521,
+        "bootstrap_95": [
+          -0.015906479528761543,
+          0.1798596465711585
+        ]
+      },
+      "traffic": {
+        "difference": 0.2808999765710691,
+        "bootstrap_95": [
+          0.023712148016229978,
+          0.5599136308395213
+        ]
+      }
+    },
+    "v3_corrected_astra_vs_v3_verified_qwen": {
+      "wins": 0,
+      "ties": 80,
+      "losses": 0,
+      "families": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      },
+      "traffic": {
+        "difference": 0.0,
+        "bootstrap_95": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "v3_verified_qwen_calibrated_vs_v2_qwen": {
+      "wins": 11,
+      "ties": 66,
+      "losses": 3,
+      "families": {
+        "difference": 0.06024434586575522,
+        "bootstrap_95": [
+          -0.0658868445931205,
+          0.18246672969238603
+        ]
+      },
+      "traffic": {
+        "difference": 0.292636721680673,
+        "bootstrap_95": [
+          0.03325240214607161,
+          0.5673606620917098
+        ]
+      }
+    }
+  },
+  "candidate_coverage": {
+    "v2": {
+      "reference_filters": 101,
+      "offered_reference_filters": 72,
+      "options": 80
+    },
+    "v3": {
+      "reference_filters": 101,
+      "offered_reference_filters": 80,
+      "options": 88
+    }
+  },
+  "training": {
+    "v3_control": {
+      "reference_queries": 80,
+      "pseudo_queries": 0,
+      "steps": 300,
+      "examples": {
+        "1": 106,
+        "0": 2
+      },
+      "reference_pairs": {
+        "1": 106,
+        "0": 2
+      },
+      "weak_pairs": {},
+      "gold_filters_outside_options": 4,
+      "device": "mps"
+    },
+    "v3_verified_qwen": {
+      "reference_queries": 80,
+      "pseudo_queries": 83,
+      "steps": 300,
+      "examples": {
+        "1": 242,
+        "0": 3
+      },
+      "reference_pairs": {
+        "1": 106,
+        "0": 2
+      },
+      "weak_pairs": {
+        "1": 136,
+        "0": 1
+      },
+      "gold_filters_outside_options": 4,
+      "device": "mps"
+    },
+    "v3_corrected_astra": {
+      "reference_queries": 80,
+      "pseudo_queries": 84,
+      "steps": 300,
+      "examples": {
+        "1": 273,
+        "0": 11
+      },
+      "reference_pairs": {
+        "1": 106,
+        "0": 2
+      },
+      "weak_pairs": {
+        "1": 167,
+        "0": 9
+      },
+      "gold_filters_outside_options": 32,
+      "device": "mps"
+    }
+  },
+  "sha256": {
+    "test_manifest.jsonl": "d7ba1a3b1b5c7e7213466cb8f5d9d63e32431954e62db6cfe674e3443484f58a",
+    "final_reference.jsonl": "4ac6589f3826df3191e3312027dd664d35e3274dfd7eb2c8341fc43089a0a5f3",
+    "verified_qwen_train.jsonl": "e57c8d58b65d249ee918d8d59c828a563f3ce96d617fe0fb693270164f263836",
+    "corrected_astra_train.jsonl": "ab82a27339492d51e3c600b7cf5211abf37410a4dbb8da08b8cf9eb7e69ad62e",
+    "dev_selection.json": "e133b8747a27efa816c10c3d5971e879f803fdc243342dcef0ed9ee5599eb879"
+  },
+  "raw_exact_matches": {
+    "v2_control": 49,
+    "v3_verified_qwen_calibrated": 57
+  },
+  "traffic_delta_concentration": {
+    "largest_positive_family_contribution": 0.21101389613619112,
+    "three_largest_positive_family_contribution": 0.2620623199290185,
+    "largest_family_fraction_of_net_gain": 0.7268791419949521
+  }
+}
