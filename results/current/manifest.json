@@ -1,5 +1,10 @@
 {
   "generated": "2026-11-26",
+  "avito_bx_usedcars_notext_400k": {
+    "status": "planned",
+    "execution_report": "docs/avito_bx_notext.md",
+    "scope": "ZIP input and fixed-pool embedding evaluation readiness. Full NOTEXT metrics pending download and input validation."
+  },
   "avito_text2filter_v4_20261126": {
     "status": "done",
     "path": "metrics/avito_text2filter_v4_20261126.json",

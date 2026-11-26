@@ -32,6 +32,12 @@ datasets:
     history_days: 7
     split: test_preview
     task: history_enrichment_and_personalization_diagnostic
+  bx_usedcars_notext_400k:
+    storage: designated_private_google_drive
+    git_tracked: false
+    archive_bytes: 3794834688
+    expected_groups: 400000
+    task: offline_ranking_baseline_and_embeddings_cg
   ml1m:
     path: data/movielens-1m
     task: rerank
@@ -279,6 +285,14 @@ experiments:
     metrics: results/current/metrics/avito_bx_usedcars_normalized_20261125.json
     execution_report: docs/avito_text2filter.md
     notes: "Exact row and ten-target reconciliation with the existing offline test pilot. No new ranking quality claim."
+
+  avito_bx_usedcars_notext_400k:
+    method: saved BX baseline and exact-cosine comparison inside the supplied candidate pool
+    dataset: bx_usedcars_notext_400k
+    script: scripts/avito/evaluate_bx_baseline.py
+    status: planned
+    execution_report: docs/avito_bx_notext.md
+    notes: "Archive intake and metric runners validated independently on the old TEXT pilot and synthetic vectors. Full NOTEXT metrics await archive download and verified input schema."
 
   avito_text2filter_20261125:
     method: rules, grounded Qwen and compact BERT candidate validation

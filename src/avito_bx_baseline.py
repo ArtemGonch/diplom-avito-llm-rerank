@@ -11,8 +11,10 @@ from contextlib import closing
 from itertools import chain, groupby
 from numbers import Real
 from pathlib import Path
+from shutil import copyfileobj
 from statistics import median
 from tempfile import TemporaryDirectory
+from zipfile import ZipFile
 
 
 SHA256 = "eb2add0ce2c114d8088918b85a8730b9b05f21defe81461bd1c96720da055ea3"
@@ -440,3 +442,37 @@ def audit_candidates(paths=(), *, split_paths=(), original=None):
         "score_tie_break": "source_row_index ascending",
         **result,
     }
+
+
+def list_archive_members(path):
+    with ZipFile(path) as archive:
+        return [
+            {"name": entry.filename, "bytes": entry.file_size, "compressed_bytes": entry.compress_size}
+            for entry in archive.infolist()
+            if not entry.is_dir()
+        ]
+
+
+def audit_candidate_archive(path, members=(), *, split_members=(), original=None):
+    """Read only explicitly selected Parquet members and retain their source split."""
+    requested = [*((None, name) for name in members), *split_members]
+    names = [name for _, name in requested]
+    if not names or len(set(names)) != len(names):
+        raise ValueError("Expected archive members without a repeated candidate member")
+
+    with ZipFile(path) as archive, TemporaryDirectory(prefix="bx-archive-") as directory:
+        available = Counter(entry.filename for entry in archive.infolist() if not entry.is_dir())
+        for name in names:
+            if available[name] != 1 or not name.lower().endswith(".parquet"):
+                raise ValueError(f"Unknown candidate member, duplicate in ZIP, or not Parquet: {name}")
+
+        paths, split_paths = [], []
+        for index, (split, name) in enumerate(requested):
+            destination = Path(directory) / f"candidates-{index}.parquet"
+            with archive.open(name) as source, destination.open("xb") as sink:
+                copyfileobj(source, sink, length=1024 * 1024)
+            if split is None:
+                paths.append(destination)
+            else:
+                split_paths.append((split, destination))
+        return audit_candidates(paths, split_paths=split_paths, original=original)

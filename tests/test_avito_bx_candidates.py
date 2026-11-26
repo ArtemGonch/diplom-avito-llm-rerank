@@ -4,12 +4,14 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from zipfile import ZipFile
 
 import pyarrow as pa
 from pyarrow import parquet
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from avito_bx_baseline import ABS_TOLERANCE, PRIMARY_LABEL, audit_candidates, audit_label
+from avito_bx_baseline import audit_candidate_archive, list_archive_members
 
 
 TARGETS = (
@@ -109,6 +111,28 @@ class BXCandidateTests(unittest.TestCase):
             audit_candidates([embedded]),
             audit_candidates(split_paths=[("test", implicit)]),
         )
+
+    def test_archive_reads_only_selected_candidates_and_checks_explicit_split(self):
+        rows = [("test", "g", 1, 25, {PRIMARY_LABEL: 0}),
+                ("test", "g", 2, 10, {PRIMARY_LABEL: 1})]
+        path = self.write("implicit", rows, original=True)
+        archive = self.directory / "bundle.zip"
+        member = "nested/heldout/candidates.parquet"
+        with ZipFile(archive, "w") as zipped:
+            zipped.write(path, member)
+            zipped.writestr("history.parquet", b"not needed for baseline")
+        summary = list_archive_members(archive)
+        self.assertEqual([row["name"] for row in summary], [member, "history.parquet"])
+        self.assertEqual(summary[0]["bytes"], path.stat().st_size)
+        reference = audit_candidates(split_paths=[("test", path)])
+        result = audit_candidate_archive(archive, split_members=[("test", member)])
+        self.assertEqual(result, reference)
+        with self.assertRaisesRegex(ValueError, "explicit candidate split"):
+            audit_candidate_archive(archive, members=[member])
+        with self.assertRaisesRegex(ValueError, "repeated candidate member"):
+            audit_candidate_archive(archive, members=[member], split_members=[("test", member)])
+        with self.assertRaisesRegex(ValueError, "Unknown candidate member"):
+            audit_candidate_archive(archive, members=["absent.parquet"])
 
     def test_reconciles_all_keys_scores_and_labels(self):
         gains = dict.fromkeys(TARGETS, 1.0)
