@@ -95,3 +95,59 @@ class PairedStudyTests(unittest.TestCase):
         self.assertAlmostEqual(report["families"]["difference"], 1 / 21)
         self.assertAlmostEqual(report["traffic"]["difference"], 1 / 3)
         self.assertEqual(report, paired_exact_filters(gold, control, augmented, manifest))
+
+
+class TeacherConsensusTests(unittest.TestCase):
+    def test_consensus_requires_a_valid_agreeing_set_in_both_orders(self):
+        from avito_text2filter.study import consensus_choices
+
+        options = [{"attr_id": "price", "min": 5}, {"attr_id": "year", "max": 9},
+                   {"attr_id": "body", "value_id": "12"}]
+        self.assertEqual(consensus_choices('{"accept":[2,0]}', '{"accept":[2,0]}', options),
+                         [options[0], options[2]])
+        self.assertEqual(consensus_choices('{"accept":[]}', '{"accept":[]}', options), [])
+        self.assertIsNone(consensus_choices('{"accept":[0]}', '{"accept":[0]}', options))
+        for response in ('garbage', '{"accept":[99]}'):
+            with self.assertRaises(ValueError):
+                consensus_choices('{"accept":[0]}', response, options)
+
+    def test_v2_can_keep_grounded_make_and_model_on_one_span(self):
+        from avito_text2filter.study import assemble
+
+        base = {"filters": [], "unresolved": [
+            {"reason": "ambiguous", "start": 0, "end": 4, "evidence": "тест"},
+            {"reason": "negated", "start": 5, "end": 6, "evidence": "x"},
+        ]}
+        model = {"attr_id": "110001", "value_id": "10", "start": 0, "end": 4, "evidence": "тест"}
+        make = {**model, "attr_id": "110000", "value_id": "11"}
+        with self.assertRaises(ValueError):
+            assemble(base, [make, model])
+        result = assemble(base, [make, model], allow_linked=True)
+        self.assertEqual(len(result["filters"]), 2)
+        self.assertEqual([row["reason"] for row in result["unresolved"]], ["negated"])
+
+    def test_teacher_input_may_not_reuse_reference_families(self):
+        from avito_text2filter.study import ensure_disjoint_queries
+
+        manifest = [{"family_key": "тойота rav4"}]
+        ensure_disjoint_queries([{"id": "a", "query": " Honda  Civic "}], manifest)
+        for rows in (
+            [{"id": "a", "query": "ТОЙОТА   RAV4"}],
+            [{"id": "a", "query": "Honda"}, {"id": "b", "query": "honda"}],
+            [{"id": "x", "query": "Honda"}, {"id": "x", "query": "BMW"}],
+        ):
+            with self.assertRaises(ValueError):
+                ensure_disjoint_queries(rows, manifest)
+
+
+class StudentSamplingTests(unittest.TestCase):
+    def test_weak_pairs_are_balanced_and_do_not_replace_reference_pairs(self):
+        import random
+        from avito_text2filter.student import training_batch
+
+        ref = {0: [("ref-negative", "", 0)], 1: [("ref-positive", "", 1)]}
+        weak = {0: [("weak-negative", "", 0)] * 1000, 1: [("weak-positive", "", 1)] * 1000}
+        result = training_batch(random.Random(4), ref, weak)
+        self.assertEqual(sum(row[0].startswith("ref") for row in result), 8)
+        self.assertEqual(sum(row[2] for row in result), 8)
+        self.assertEqual(len(training_batch(random.Random(4), ref, {0: [], 1: []})), 16)

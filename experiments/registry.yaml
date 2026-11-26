@@ -290,6 +290,16 @@ experiments:
     execution_report: docs/avito_text2filter.md
     notes: "Model-annotated reference: GPT-6.2 Astra xhigh, frozen 80/40/120 split, 30 repeated test judgments. Controlled comparison of two ruBERT variants at 300 steps. Adding 34 audited Qwen examples produced the same outputs on the 120 test requests."
 
+  avito_text2filter_v2_20261126:
+    method: expanded catalog linking and consensus Qwen labels for ruBERT
+    dataset: avito_usedcars_text_queries_20261119
+    script: scripts/avito/text2filter.py
+    status: done
+    finished: "2026-11-26"
+    metrics: results/current/metrics/avito_text2filter_v2_20261126.json
+    execution_report: docs/avito_text2filter.md
+    notes: "78 previously unseen families judged by Astra xhigh. Matched v2 control and 284 accepted Qwen inputs, both at threshold 0.5. V2 improves macro exact match of the Qwen-trained BERT relative to v1. The v2 reference-only control has the higher macro and traffic-weighted estimates."
+
 paper_targets:
   ur4rec_ml1m:
     source: "UR4Rec Table 6, DLCM backbone"

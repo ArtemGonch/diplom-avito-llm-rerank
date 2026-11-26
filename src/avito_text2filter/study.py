@@ -17,6 +17,13 @@ def family_key(text):
     return " ".join(unicodedata.normalize("NFKC", text).casefold().replace("ё", "е").split())
 
 
+def ensure_disjoint_queries(rows, manifest):
+    reserved = {row["family_key"] for row in manifest}
+    families = {family_key(row["query"]) for row in rows}
+    if (not rows or "" in families or len(families) != len(rows)
+            or len({row["id"] for row in rows}) != len(rows) or families & reserved):
+        raise ValueError("Expected unique, nonempty queries outside the frozen reference families")
+
 def build_packet(archive):
     """Return the private sampling manifest and blank reviewer inputs."""
     families = defaultdict(Counter)
@@ -81,6 +88,13 @@ def selected_options(response, options):
     if len(set(indexes)) != len(indexes):
         raise ValueError("Duplicate option")
     return [options[i] for i in sorted(indexes)]
+
+
+def consensus_choices(first_response, reverse_response, options):
+    """Accept choices only when two prompt variants select the same grounded rows."""
+    first = selected_options(first_response, options)
+    reverse = selected_options(reverse_response, options[::-1])[::-1]
+    return first if first == reverse else None
 
 
 def filter_key(row):
@@ -175,9 +189,13 @@ def latency_summary(timings):
             for name, level in (("p50", .5), ("p95", .95))}
 
 
-def assemble(baseline, choices):
-    spans = {(row["start"], row["end"]) for row in choices}
-    if len(spans) != len(choices):
+def assemble(baseline, choices, allow_linked=False):
+    by_span = defaultdict(list)
+    for row in choices:
+        by_span[row["start"], row["end"]].append(row["attr_id"])
+    if any(len(attrs) > 1 and not (
+        allow_linked and sorted(attrs) == ["110000", "110001"]
+    ) for attrs in by_span.values()):
         raise ValueError("Several proposed filters for one fragment")
     values = {}
     for row in choices:
@@ -196,6 +214,9 @@ def assemble(baseline, choices):
     ]
     unresolved = []
     for row in baseline["unresolved"]:
+        if (allow_linked and row["reason"] == "ambiguous"
+                and (row["start"], row["end"]) in by_span):
+            continue
         if row["reason"] not in {"unrecognized", "unqualified"}:
             unresolved.append(row)
             continue

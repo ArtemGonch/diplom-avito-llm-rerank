@@ -18,16 +18,30 @@ class Text2FilterTests(unittest.TestCase):
             ("110000", "Марка", "1", "Toyota"),
             ("110000", "Марка", "2", "Honda"),
             ("110000", "Марка", "3", "ВАЗ (LADA)"),
+            ("110000", "Марка", "4", "Hyundai"),
+            ("110000", "Марка", "5", "Solaris"),
+            ("110000", "Марка", "6", "Kia"),
+            ("110000", "Марка", "7", "Volvo"),
+            ("110000", "Марка", "8", "OMODA"),
+            ("110000", "Марка", "9", "Mercedes-Benz"),
             ("110001", "Модель", "10", "Camry"),
             ("110001", "Модель", "11", "Honda Accord"),
             ("110001", "Модель", "12", "2114"),
             ("110001", "Модель", "13", "2008"),
+            ("110001", "Модель", "14", "Solaris"),
+            ("110001", "Модель", "15", "Sorento"),
+            ("110001", "Модель", "16", "XC60"),
+            ("110001", "Модель", "17", "C5"),
+            ("110001", "Модель", "18", "C5"),
+            ("110001", "Модель", "19", "GL-класс"),
+            ("110010", "Комплектация", "101", "Sorento"),
             ("110002", "Год выпуска", "50001", "2018"),
             ("110003", "Тип кузова", "20", "Седан"),
             ("110005", "Поколение", "30", "VII (2011—2014)"),
             ("110006", "Тип двигателя", "40", "Бензин"),
             ("110006", "Тип двигателя", "41", "Дизель"),
             ("110007", "Привод", "50", "Полный"),
+            ("110007", "Привод", "51", "Передний"),
             ("110008", "Коробка передач", "60", "Автомат"),
             ("110008", "Коробка передач", "61", "Механика"),
             ("110011", "Мощность двигателя, л. с.", "", ""),
@@ -168,6 +182,50 @@ class Text2FilterTests(unittest.TestCase):
             with self.subTest(unsafe=unsafe):
                 self.assertFalse(self.catalog.candidates(unsafe))
         self.assertFalse(self.catalog.candidates("до 150"))
+
+    def model_options(self, query):
+        rows = self.catalog.model_candidates(query, self.catalog.parse(query))
+        self.assert_evidence(query, rows)
+        return {(row["attr_id"], row["value_id"], row["evidence"]) for row in rows}
+
+    def test_expanded_model_linking_is_opt_in_and_can_infer_a_known_make(self):
+        query = "🚘 Соренто без ДТП"
+        self.assertFalse(self.catalog.parse(query)["filters"])
+        self.assertFalse(self.catalog.candidates(query))
+        self.assertEqual(self.model_options(query), {
+            ("110000", "6", "Соренто"), ("110001", "15", "Соренто"),
+        })
+
+    def test_model_linking_uses_known_make_context_without_breaking_catalog_id_ties(self):
+        self.assertEqual(self.model_options("Hyundai Solaris"), {("110001", "14", "Solaris")})
+        self.assertEqual(self.model_options("Киа Sorento"), {("110001", "15", "Sorento")})
+        self.assertFalse(self.model_options("OMODA C5"))
+
+    def test_model_linking_handles_code_notation_without_reinterpreting_numbers(self):
+        cases = {
+            "Volvo хс 60, 2020": {("110001", "16", "хс 60")},
+            "Mercedes GL-350": {("110001", "19", "GL-350")},
+            "Volvo 60 км": set(),
+            "2008": set(),
+        }
+        for query, expected in cases.items():
+            with self.subTest(query=query):
+                self.assertEqual(self.model_options(query), expected)
+
+    def test_model_linking_scopes_part_descriptors_and_negative_or_alternative_mentions(self):
+        self.assertEqual(self.model_options("передний бампер на Киа Соренто"), {("110001", "15", "Соренто")})
+        self.assertEqual(self.model_options("без ДТП, Киа Соренто, только не автомат"), {("110001", "15", "Соренто")})
+        for query in ("не Соренто", "Соренто или Camry", "кроме GL350", "передний бампер"):
+            with self.subTest(query=query):
+                self.assertFalse(self.model_options(query))
+
+
+    def test_model_linking_never_turns_conflicts_into_positive_options(self):
+        for query in ("Toyota Honda", "Toyota Honda омода", "коробка автомат, механика"):
+            with self.subTest(query=query):
+                baseline = self.catalog.parse(query)
+                self.assertTrue(any(row["reason"] == "conflict" for row in baseline["unresolved"]))
+                self.assertFalse(self.model_options(query))
 
 
 if __name__ == "__main__":

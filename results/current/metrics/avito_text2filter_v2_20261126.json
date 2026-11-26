@@ -1,0 +1,349 @@
+{
+  "test_annotation": {
+    "model": "GPT-6.2 Astra xhigh",
+    "count": 78,
+    "initial": {
+      "checked_twice": 16,
+      "exact_filters_agreement": 16,
+      "arbitrated": 0
+    },
+    "effective": {
+      "checked_twice": 15,
+      "exact_filters_agreement": 15
+    }
+  },
+  "test_population_scope": "source families after excluding old reference and historical Qwen inputs",
+  "test_screening": {
+    "excluded_historical_pilot_queries": 2,
+    "primary_queries": 78,
+    "population_excluded_all_historical_teacher_trials": true,
+    "eligible": {
+      "frequent": 180,
+      "middle": 2424,
+      "tail_repeat": 35037,
+      "singleton": 31562
+    },
+    "sample_counts": {
+      "frequent": 18,
+      "middle": 20,
+      "tail_repeat": 20,
+      "singleton": 20
+    }
+  },
+  "fingerprints": {
+    "test_manifest_sha256": "d072a63296e8cb9e69de65e5c84615f5c2403a1dd4f469eb00d24e48f6346d32",
+    "frozen_test_reference_sha256": "7bb3214df50c0a3ea5b4670fbb95bb8809958d20937b59922a700af601bc1dbb",
+    "dev_reference_sha256": "97fb6796fdf35327d253c05538857e797c778b36f16c2879aec838812f0593e6",
+    "qwen_training_sha256": "c4c3e55a96804a7fe2634ba9f3ff3ee2b183ae7f8e26c18d4995fd13bb81175a"
+  },
+  "revisions": {
+    "bert": "e8ed3b0c8bbf4fb6984c3de043bf7d2f4e5969ae",
+    "qwen": "4dcb3d101c2a062e5c1d4bb173588c54ea6c4d25"
+  },
+  "candidate_coverage": {
+    "v1": {
+      "covered_filters": 66,
+      "reference_filters": 100,
+      "options": 70
+    },
+    "v2": {
+      "covered_filters": 74,
+      "reference_filters": 100,
+      "options": 80
+    }
+  },
+  "dev_calibration": {
+    "dev_queries": 40,
+    "primary_threshold_selected_on_control_only": 0.5,
+    "augmented_threshold_dev_calibration": 0.5,
+    "scores": {
+      "control": {
+        "0.2": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.35": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.5": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.65": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.8": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.9": {
+          "exact_filters": 0.8,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.864406779661017,
+          "filter_recall": 0.9107142857142857,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        }
+      },
+      "augmented": {
+        "0.2": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.35": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.5": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.65": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.8": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        },
+        "0.9": {
+          "exact_filters": 0.825,
+          "exact_with_unresolved": 0.225,
+          "filter_precision": 0.8813559322033898,
+          "filter_recall": 0.9285714285714286,
+          "coverage": 0.725,
+          "false_apply_on_empty": 0.26666666666666666
+        }
+      }
+    }
+  },
+  "weak_supervision": {
+    "accepted": 284,
+    "changed_options": 8,
+    "changed_consensus_rows": 3,
+    "with_filters": 284,
+    "status_counts": {
+      "model_error": 38,
+      "qwen_consensus": 287,
+      "qwen_disagreement": 55
+    }
+  },
+  "weak_reference_audit": {
+    "sampling": "enriched for rows where Qwen selected only part of the available options",
+    "strata": {
+      "all_options_selected": {
+        "queries": 12,
+        "full_exact": 5,
+        "exact_among_options": 11,
+        "gold_filters": 26,
+        "gold_in_options": 18,
+        "true_positive": 18,
+        "false_positive": 1,
+        "false_negative": 0
+      },
+      "some_options_rejected": {
+        "queries": 8,
+        "full_exact": 1,
+        "exact_among_options": 1,
+        "gold_filters": 23,
+        "gold_in_options": 21,
+        "true_positive": 14,
+        "false_positive": 2,
+        "false_negative": 7
+      }
+    }
+  },
+  "training": {
+    "control": {
+      "reference_queries": 80,
+      "pseudo_queries": 0,
+      "steps": 300,
+      "examples": {
+        "1": 101,
+        "0": 2
+      },
+      "reference_pairs": {
+        "1": 101,
+        "0": 2
+      },
+      "weak_pairs": {},
+      "gold_filters_outside_options": 9,
+      "device": "mps"
+    },
+    "augmented": {
+      "reference_queries": 80,
+      "pseudo_queries": 284,
+      "steps": 300,
+      "examples": {
+        "1": 565,
+        "0": 22
+      },
+      "reference_pairs": {
+        "1": 101,
+        "0": 2
+      },
+      "weak_pairs": {
+        "1": 464,
+        "0": 20
+      },
+      "gold_filters_outside_options": 9,
+      "device": "mps"
+    }
+  },
+  "fresh_metrics": {
+    "v1_augmented": {
+      "queries": 78,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.605628368712339,
+        "exact_with_unresolved": 0.1345339074895598,
+        "filter_precision": 0.9077295026171865,
+        "filter_recall": 0.6396573994295002,
+        "coverage": 0.5700186408103696,
+        "false_apply_on_empty": 0.1275110089986598
+      },
+      "traffic": {
+        "exact_filters": 0.7113204388935743,
+        "exact_with_unresolved": 0.33182480065224984,
+        "filter_precision": 0.9827681057257664,
+        "filter_recall": 0.6765196579970797,
+        "coverage": 0.5117537855761563,
+        "false_apply_on_empty": 0.022673650770987992
+      },
+      "latency_ms": {
+        "p50": 1.09283299980234,
+        "p95": 2.721583000038663
+      }
+    },
+    "v2_control": {
+      "queries": 78,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.682564339696256,
+        "exact_with_unresolved": 0.18615522448448776,
+        "filter_precision": 0.8980116428039352,
+        "filter_recall": 0.7118069182739851,
+        "coverage": 0.594573934656012,
+        "false_apply_on_empty": 0.1275110089986598
+      },
+      "traffic": {
+        "exact_filters": 0.7392213542489208,
+        "exact_with_unresolved": 0.35380773669763704,
+        "filter_precision": 0.9805456285188351,
+        "filter_recall": 0.7124102808225642,
+        "coverage": 0.519741883743976,
+        "false_apply_on_empty": 0.022673650770987992
+      },
+      "latency_ms": {
+        "p50": 1.1943750000682485,
+        "p95": 2.0785420001629973
+      }
+    },
+    "v2_qwen": {
+      "queries": 78,
+      "model_fallback_queries": 0,
+      "families": {
+        "exact_filters": 0.6789170989696978,
+        "exact_with_unresolved": 0.18250798375792968,
+        "filter_precision": 0.896306773196046,
+        "filter_recall": 0.7092767104089883,
+        "coverage": 0.594429432250047,
+        "false_apply_on_empty": 0.1275110089986598
+      },
+      "traffic": {
+        "exact_filters": 0.7083526660972265,
+        "exact_with_unresolved": 0.32293904854594274,
+        "filter_precision": 0.961365114747536,
+        "filter_recall": 0.6860947433361778,
+        "coverage": 0.5120059630773626,
+        "false_apply_on_empty": 0.022673650770987992
+      },
+      "latency_ms": {
+        "p50": 1.1188339999534946,
+        "p95": 2.040083999872877
+      }
+    }
+  },
+  "paired_exact_filters": {
+    "weak_data_at_shared_threshold": {
+      "wins": 0,
+      "ties": 75,
+      "losses": 3,
+      "families": {
+        "difference": -0.0036472407265580975,
+        "bootstrap_95": [
+          -0.008901348207447656,
+          0.0
+        ]
+      },
+      "traffic": {
+        "difference": -0.03086868815169431,
+        "bootstrap_95": [
+          -0.07447408726612452,
+          0.0
+        ]
+      }
+    },
+    "v2_qwen_vs_v1_qwen": {
+      "wins": 5,
+      "ties": 70,
+      "losses": 3,
+      "families": {
+        "difference": 0.07328873025735877,
+        "bootstrap_95": [
+          -0.0001445024059650593,
+          0.15197607040157218
+        ]
+      },
+      "traffic": {
+        "difference": -0.0029677727963478384,
+        "bootstrap_95": [
+          -0.05219717083680085,
+          0.039459377285578225
+        ]
+      }
+    }
+  }
+}

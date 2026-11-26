@@ -29,6 +29,18 @@ def labeled_examples(catalog, propose, rows):
     return examples, missed
 
 
+def training_batch(rng, reference, weak):
+    """Keep half of each label's batch tied to the reference when weak pairs exist."""
+    examples = []
+    for label in (0, 1):
+        if reference[label] and weak[label]:
+            examples.extend(rng.choices(reference[label], k=4))
+            examples.extend(rng.choices(weak[label], k=4))
+        else:
+            examples.extend(rng.choices(reference[label] or weak[label], k=8))
+    return examples
+
+
 def train(catalog, propose, args, read_rows):
     import torch
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -51,9 +63,14 @@ def train(catalog, propose, args, read_rows):
     pseudo_keys = {family_key(row["query"]) for row in pseudo}
     if pseudo_keys & reserved or len(pseudo_keys) != len(pseudo):
         raise ValueError("Model labels must be unique and outside the reference packet")
-    if any(row.get("status") != "reviewed" for row in pseudo):
-        raise ValueError("Mark accepted model output reviewed before using it for training")
-    examples, missed = labeled_examples(catalog, propose, human + pseudo)
+    eligible = {"reviewed"}
+    if args.linker == "v2":
+        eligible.add("qwen_consensus")
+    if any(row.get("status") not in eligible for row in pseudo):
+        raise ValueError("Expected audited labels or two agreeing Qwen selections")
+    reference_examples, reference_missed = labeled_examples(catalog, propose, human)
+    weak_examples, weak_missed = labeled_examples(catalog, propose, pseudo)
+    examples = reference_examples + weak_examples
     counts = Counter(c for _, _, c in examples)
     if set(counts) != {0, 1} or args.steps < 1:
         raise ValueError("Training needs both positive and negative linked examples and at least one step")
@@ -65,10 +82,13 @@ def train(catalog, propose, args, read_rows):
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     model.to(device).train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-5)
-    negatives = [x for x in examples if x[2] == 0]
-    positives = [x for x in examples if x[2] == 1]
+    reference = {label: [ex for ex in reference_examples if ex[2] == label] for label in (0, 1)}
+    weak = {label: [ex for ex in weak_examples if ex[2] == label] for label in (0, 1)}
+    if args.linker == "v1":
+        reference = {label: reference[label] + weak[label] for label in (0, 1)}
+        weak = {0: [], 1: []}
     for _ in range(args.steps):
-        batch = rng.choices(negatives, k=8) + rng.choices(positives, k=8)
+        batch = training_batch(rng, reference, weak)
         left, right, targets = zip(*batch, strict=True)
         inputs = tokenizer(list(left), list(right), padding=True, truncation=True,
                            max_length=128, return_tensors="pt").to(device)
@@ -80,10 +100,13 @@ def train(catalog, propose, args, read_rows):
     model.save_pretrained(args.out)
     tokenizer.save_pretrained(args.out)
     return {"reference_queries": len(human), "pseudo_queries": len(pseudo), "steps": args.steps,
-            "examples": dict(counts), "gold_filters_outside_options": missed, "device": device}
+            "examples": dict(counts),
+            "reference_pairs": dict(Counter(c for _, _, c in reference_examples)),
+            "weak_pairs": dict(Counter(c for _, _, c in weak_examples)),
+            "gold_filters_outside_options": reference_missed + weak_missed, "device": device}
 
 
-def student_runner(catalog, model_path, propose, assemble):
+def student_runner(catalog, model_path, propose, assemble, threshold=0.5, allow_linked=False):
     import torch
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -101,12 +124,14 @@ def student_runner(catalog, model_path, propose, assemble):
             probabilities = model(**inputs).logits.softmax(dim=-1)[:, 1].tolist()
         ranked = sorted(zip(probabilities, options, strict=True), key=lambda item: -item[0])
         choices = []
-        attributes, spans = set(), set()
+        attributes, spans = set(), {}
         for probability, row in ranked:
             attr, span = row["attr_id"], (row["start"], row["end"])
-            if probability >= 0.5 and attr not in attributes and span not in spans:
+            if (probability >= threshold and attr not in attributes
+                    and (span not in spans or (allow_linked
+                         and {spans[span], attr} == {"110000", "110001"}))):
                 attributes.add(attr)
-                spans.add(span)
+                spans[span] = attr
                 choices.append(row)
-        return assemble(baseline, choices)
+        return assemble(baseline, choices, allow_linked=allow_linked)
     return infer

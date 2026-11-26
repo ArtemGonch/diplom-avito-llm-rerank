@@ -19,6 +19,8 @@ _LITERS = "110012"
 _MONEY = "price"
 _MILEAGE = "2687"
 _POWER = "110011"
+_MAKE = "110000"
+_MODEL = "110001"
 
 # Aliases point to catalog labels. They do not introduce IDs or break catalog ties.
 _ALIASES = {
@@ -70,6 +72,53 @@ _ALIASES = {
     },
 }
 
+# Additional spellings used by the model linker. Targets are catalog labels, never IDs.
+_MODEL_ALIASES = {
+    _MAKE: {
+        "Bestune": "бестун|бестуне", "Changan": "чанган|чаньган", "Daewoo": "дэу|деу|дайву",
+        "Dongfeng": "донгфенг|донфенг", "EXEED": "эксид|ексид", "GAC": "гак", "Higer": "хайгер|хигер",
+        "Jetour": "джетур", "Li Auto": "ли авто|лисян|li", "OMODA": "омода", "Rox": "рокс|рох",
+        "Tank": "танк", "Volga": "волга", "Voyah": "воя|войя", "Zeekr": "зикр|зикер",
+    },
+    _MODEL: {
+        "3 серия": "bmw 3|бмв 3", "5 серия": "bmw 5|бмв 5", "7 серия": "bmw 7|бмв 7",
+        "Caddy": "кадди|кэдди", "Cerato": "церато|цератто|серато", "CLS-класс": "цлс|cls",
+        "E-класс AMG": "e63 amg|е63 амг|e 63 amg", "GL-класс": "gl350|gl450|gl500|gl550|гл350",
+        "GLS-класс": "gls350|gls400|gls450|gls500|gls580|глс500",
+        "Grand Vitara": "гранд витара", "Jolion": "джолион|жолион",
+        "L7": "li 7|ли 7", "L8": "li 8|ли 8", "L9": "li 9|ли 9",
+        "Land Cruiser": "ленд крузер|ланд крузер|ленд круизер|крузак",
+        "Land Cruiser Prado": "ленд крузер прадо|ланд крузер прадо|прадо",
+        "Mark II": "марк 2|марк ii|mark 2", "Navara": "навара|наварра",
+        "Nexia": "нексия", "Outlander": "аутлендер|аутлэндер", "Pajero": "паджеро",
+        "RAV4": "раф 4|раф4|равчик", "Sorento": "соренто", "Sorento Prime": "соренто прайм", "Space Star": "спейс стар|спайс стар",
+        "Sportage": "спортэйдж|спортейж|спортридж|спотридж", "Teramont": "терамонт|террамонт",
+        "Teramont Pro": "терамонт про|террамонт про", "Teramont X": "терамонт икс|террамонт икс",
+        "Tiggo 7 Pro": "тигго 7 про|tiggo 7 про", "Tiggo 7 Pro Max": "тигго 7 про макс|tiggo 7 про max|tiggo 7 про макс",
+        "Tiggo 8 Pro": "тигго 8 про|tiggo 8 про", "Tiggo 8 Pro Max": "тигго 8 про макс|tiggo 8 про max|tiggo 8 про макс",
+        "Tugella": "тугела|тугелла", "Venza": "венза",
+    },
+    "110006": {"Дизель": "дизельные|diesel|cdi|tdi", "Гибрид": "hybrid|e-power", "Газ": "с гбо|на гбо"},
+    "110008": {"Автомат": "at", "Механика": "mt"},
+}
+
+# Common make/model relationships curated by name. The source CSV has no hierarchy.
+_MODEL_MAKES = {
+    "Audi": "A4|A6|Q5|Q7", "Bestune": "T77|T55|T99", "BMW": "3 серия|5 серия|7 серия|X3|X5|X6|X7",
+    "Chery": "Tiggo 4|Tiggo 4 Pro|Tiggo 7|Tiggo 7 Pro|Tiggo 7 Pro Max|Tiggo 8|Tiggo 8 Pro|Tiggo 8 Pro Max",
+    "Daewoo": "Matiz|Nexia", "Dodge": "Ram", "Ford": "Focus|Mondeo|Kuga", "Geely": "Atlas|Coolray|Monjaro|Tugella",
+    "HAVAL": "Jolion|F7|F7x|Dargo", "Honda": "Accord|Civic|CR-V|Fit", "Hyundai": "Creta|Elantra|Santa Fe|Solaris|Tucson",
+    "Kia": "Ceed|Cerato|K5|Optima|Rio|Sorento|Sorento Prime|Soul|Sportage",
+    "Li Auto": "L7|L8|L9", "Mazda": "CX-30|CX-5|CX-50|CX-7|CX-9",
+    "Mercedes-Benz": "CLS-класс|E-класс AMG|GL-класс|GLS-класс|GLE-класс|GLC-класс|M-класс",
+    "Mitsubishi": "Outlander|Pajero|Space Star", "Nissan": "Almera|Juke|Navara|Qashqai|X-Trail",
+    "Renault": "Duster|Kaptur|Logan|Sandero", "Skoda": "Fabia|Kodiaq|Octavia|Rapid|Superb",
+    "Suzuki": "Grand Vitara|Jimny|Swift", "Toyota": "Camry|Corolla|Highlander|Land Cruiser|Land Cruiser Prado|Mark II|RAV4|Venza",
+    "Volkswagen": "Caddy|Passat|Polo|Teramont|Teramont Pro|Teramont X|Tiguan|Touareg",
+    "Volga": "C50|K40|K50", "Volvo": "XC40|XC60|XC70|XC90",
+    "ВАЗ (LADA)": "2113 Samara|2114 Samara|2115 Samara|Granta|Kalina|Largus|Priora|Vesta|XRAY",
+}
+
 _TOKEN = re.compile(r"[^\W_]+", re.UNICODE)
 _GLUE = re.compile(r"[\s.()\[\]’'\-‐‑‒–—]*\Z")
 _FILLERS = set("а в во с со к на по за для и у мне мой хочу ищу купить машина машину авто автомобиль автомобили нужна нужен новое новый бу б у только пожалуйста лучше что нужен нужна можно без".split())
@@ -88,6 +137,16 @@ _UNSUPPORTED = re.compile(
     r"не\s+(?:бит[а-яё]*|крашен[а-яё]*|китай[а-яё]*)|один\s+(?:хозяин|владелец)|"
     r"от\s+(?:собственника|владельца)|кредит(?:а|е)?|рассрочк[а-яё]+|после\s+дтп)\b", re.I,
 )
+_PART_REQUEST = re.compile(
+    r"\b(?:запчаст[а-яё]*|разборк[а-яё]*|реш[её]тк[а-яё]*|бампер[а-яё]*|амортизатор[а-яё]*|"
+    r"радиатор[а-яё]*|диск[а-яё]*|колодк[а-яё]*|подшипник[а-яё]*|электрокорректор[а-яё]*|"
+    r"фар(?:а|ы|у|ой|ами)|(?:ремонт|замена)\s+(?:двигател[а-яё]*|коробк[а-яё]*))\b", re.I,
+)
+_CODE_LETTERS = str.maketrans("авекмнорстух", "abekmhopctyx")
+_CODE = re.compile(r"(?=.{2,9}$)(?=.*[a-z])(?=.*\d)[a-z0-9]+")
+_CONTEXTUAL_TERMS = {"at", "mt", "li", "волга"}
+_VEHICLE_IDENTITY = {_MAKE, _MODEL}
+_MODEL_OPTION_LIMIT = 12
 
 _NUM = r"(?:[0-9]{1,3}(?P<group>[.,])(?:[0-9]{3}(?P=group)){1,3}[0-9]{3}|(?:[0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})+|[0-9]{1,12})(?:[.,][0-9]{1,6})?)"
 _SCALE = r"(?:миллиард(?:а|ов)?|млрд\.?|миллион(?:а|ов)?|млн\.?|тысяч(?:а|и|у)?|тыс\.?|[kк])"
@@ -130,6 +189,11 @@ def _normalize(text):
 
 def _key(text):
     return tuple(_normalize(match.group()) for match in _TOKEN.finditer(text))
+
+
+def _model_code(words):
+    code = "".join(words).translate(_CODE_LETTERS)
+    return code if _CODE.fullmatch(code) else None
 
 
 def _span(query, start, end):
@@ -261,6 +325,34 @@ class Catalog:
                     swapped = word[:index] + word[index + 1] + word[index] + word[index + 2 :]
                     self._nearby[swapped].add(word)
 
+        expanded = defaultdict(set)
+        codes = defaultdict(set)
+        for term, values in labels.items():
+            expanded[term].update(value for value in values if value.attr_id not in {"110005", "110010"})
+        for attr_id, aliases in _MODEL_ALIASES.items():
+            variants = {_key(label): aliases for label, aliases in aliases.items()}
+            for value in fields[attr_id]:
+                for alias in variants.get(_key(value.value_name), "").split("|"):
+                    if alias:
+                        expanded[_key(alias)].add(value)
+        self._model_terms = defaultdict(dict)
+        for term, values in expanded.items():
+            if not term or not values:
+                continue
+            self._model_terms[term[0]][term] = tuple(sorted(values))
+            code = _model_code(term)
+            if code:
+                codes[code].update(value for value in values if value.attr_id == _MODEL)
+        self._model_codes = {code: tuple(sorted(values)) for code, values in codes.items() if values}
+        makes = defaultdict(set)
+        for value in fields[_MAKE]:
+            makes[_key(value.value_name)].add(value)
+        self._model_makes = {}
+        for make, models in _MODEL_MAKES.items():
+            if len(makes[_key(make)]) == 1:
+                for model in models.split("|"):
+                    self._model_makes[_key(model)] = next(iter(makes[_key(make)]))
+
     @classmethod
     def from_zip(cls, path: str | Path):
         with ZipFile(path) as archive, archive.open("attribute_values.csv") as member:
@@ -271,12 +363,21 @@ class Catalog:
                     raise ValueError("Invalid attribute_values.csv columns")
                 return cls(reader)
 
-    def _closed_mentions(self, query):
+    def _closed_mentions(self, query, *, expanded=False):
+        lookup = self._model_terms if expanded else self._terms
         tokens = list(_TOKEN.finditer(query))
         normalized = [_normalize(token.group()) for token in tokens]
         mentions = []
         for index, word in enumerate(normalized):
-            for term, options in self._terms.get(word, {}).items():
+            terms = lookup.get(word, {})
+            if expanded:
+                terms = dict(terms)
+                for length in range(1, min(3, len(tokens) - index) + 1):
+                    term = tuple(normalized[index:index + length])
+                    options = self._model_codes.get(_model_code(term))
+                    if options:
+                        terms.setdefault(term, options)
+            for term, options in terms.items():
                 end_index = index + len(term)
                 if term != tuple(normalized[index:end_index]):
                     continue
@@ -290,6 +391,7 @@ class Catalog:
                 source = tokens[index].group()
                 if len(term) == 1 and not hint and (word in _FILLERS or word in _CUES or len(word) == 1 or (
                     len(word) == 2 and source.isalpha() and not source.isupper() and word != "vw"
+                    and not (expanded and word in _CONTEXTUAL_TERMS)
                 )):
                     continue
                 if len(term) == 1 and word.isdecimal() and (len(word) < 3 or hint != "110001" and word.startswith("0")):
@@ -408,7 +510,9 @@ class Catalog:
 
     def candidates(self, query: str) -> list[dict]:
         """Return additional grounded proposals a model may select by index."""
-        parsed = self.parse(query)
+        return self._additional_candidates(query, self.parse(query))
+
+    def _additional_candidates(self, query, parsed):
         clauses = list(_clauses(query))
         occupied = {row["attr_id"] for row in parsed["filters"]}
         occupied.update(value["attr_id"] for row in parsed["unresolved"] if row["reason"] in {"ambiguous", "conflict"} for value in row.get("candidates", []))
@@ -432,6 +536,91 @@ class Catalog:
                     value = options[0].grounded(query, *match.span())
                     proposals[_proposal_key(value)] = value
         return [proposals[key] for key in sorted(proposals)]
+
+    def model_candidates(self, query: str, baseline: dict) -> list[dict]:
+        """Return additional closed-value options for the expanded student linker."""
+        blocked = [
+            row for row in baseline["unresolved"]
+            if row["reason"] in {"alternative", "negated", "unsupported", "invalid_range", "conflict"}
+        ]
+        conflicted_attributes = {
+            item["attr_id"]
+            for row in blocked if row["reason"] == "conflict"
+            for item in row.get("candidates", ())
+        }
+        blocked.extend(row for row in baseline["filters"] if "value_id" not in row)
+        parts = [clause for clause in _clauses(query) if _PART_REQUEST.search(query, clause.start, clause.end)]
+        by_span = defaultdict(lambda: defaultdict(set))
+        for start, end, values, hint in self._closed_mentions(query, expanded=True):
+            if _intersects(_span(query, start, end), blocked):
+                continue
+            if query[start:end].isdecimal() and hint != _MODEL:
+                continue
+            for value in values:
+                by_span[start, end][value.attr_id].add(value)
+
+        def in_part_request(start):
+            return any(clause.start <= start < clause.end for clause in parts)
+
+        mentions = [
+            (start, end, next(iter(options)))
+            for (start, end), attrs in by_span.items()
+            for attr, options in attrs.items()
+            if len(options) == 1 and (attr in _VEHICLE_IDENTITY or not in_part_request(start))
+        ]
+        explicit_makes = [(start, end, value) for start, end, value in mentions if value.attr_id == _MAKE]
+        vehicle_context = any(value.attr_id in _VEHICLE_IDENTITY for _, _, value in mentions)
+        has_engine_volume = any(row["attr_id"] == _LITERS for row in baseline["filters"])
+        catalog_makes = {
+            (start, end): self._model_makes.get(_key(value.value_name))
+            for start, end, value in mentions if value.attr_id == _MODEL
+        }
+
+        proposals = {}
+        existing = {(row["attr_id"], row.get("value_id")) for row in baseline["filters"]}
+
+        def add(row):
+            key = row["attr_id"], row["value_id"]
+            if row["attr_id"] not in conflicted_attributes and key not in existing:
+                proposals.setdefault(key, row)
+
+        longer = defaultdict(list)
+        for start, end, value in sorted(mentions, key=lambda item: (item[0], -item[1], item[2])):
+            term = _normalize(query[start:end])
+            attr = value.attr_id
+            if term in {"at", "mt"} and not (vehicle_context or has_engine_volume):
+                continue
+            if term in {"li", "волга"} and value not in catalog_makes.values():
+                continue
+            if attr == _MAKE and any(
+                start <= left <= end and right > end and owner != value
+                for (left, right), owner in catalog_makes.items() if owner
+            ):
+                continue
+            if any(left <= start and end <= right for left, right in longer[attr]):
+                continue
+            if _MAKE in by_span[start, end] and _MODEL in by_span[start, end]:
+                owner = catalog_makes.get((start, end))
+                known_model = owner is not None and any(
+                    right <= start and make == owner for _, right, make in explicit_makes
+                )
+                if attr == _MAKE and known_model:
+                    continue
+                if attr == _MODEL and not known_model:
+                    continue
+            add(value.grounded(query, start, end))
+            longer[attr].append((start, end))
+            if attr == _MODEL:
+                owner = catalog_makes[start, end]
+                if owner and not any(not (start <= left and right <= end) or make == owner
+                                     for left, right, make in explicit_makes):
+                    add(owner.grounded(query, start, end))
+
+        previous = self._additional_candidates(query, baseline)
+        for row in previous:
+            if not in_part_request(row["start"]) and not _intersects(row, blocked):
+                add(row)
+        return sorted(list(proposals.values())[:_MODEL_OPTION_LIMIT], key=_proposal_key)
 
 
 def _sort_span(row):

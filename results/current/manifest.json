@@ -1,5 +1,13 @@
 {
-  "generated": "2026-11-25",
+  "generated": "2026-11-26",
+  "avito_text2filter_v2_20261126": {
+    "status": "done",
+    "path": "metrics/avito_text2filter_v2_20261126.json",
+    "execution_report": "docs/avito_text2filter.md",
+    "scope": "offline exact filter match on 78 unseen UsedCars query families with Astra reference",
+    "accepted_qwen_training_queries": 284,
+    "comparison": "v1 Qwen, v2 reference only and v2 Qwen on a common holdout"
+  },
   "avito_bx_usedcars_normalized_20261125": {
     "status": "done",
     "path": "metrics/avito_bx_usedcars_normalized_20261125.json",

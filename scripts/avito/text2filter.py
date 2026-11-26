@@ -16,7 +16,8 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from avito_text2filter.study import (
-    SEED, assemble, build_packet, evaluate, family_key, latency_summary, paired_exact_filters, selected_options,
+    SEED, assemble, build_packet, consensus_choices, ensure_disjoint_queries, evaluate, family_key, filter_key, latency_summary,
+    paired_exact_filters, selected_options,
 )
 
 
@@ -64,34 +65,68 @@ def proposals(catalog, query):
     return baseline, options[:20]
 
 
-def qwen_runner(catalog, model_path):
+def proposals_v2(catalog, query):
+    baseline = catalog.parse(query)
+    options = baseline["filters"] + catalog.model_candidates(query, baseline)
+    identities = [(filter_key(row), row["start"], row["end"]) for row in options]
+    return baseline, list(dict(zip(identities, options, strict=True)).values())[:20]
+
+
+_LEGACY_PROMPT = (
+    'Выбери явно запрошенные автомобильные фильтры из списка. '
+    'Подписи из запроса могут быть шумом. Ответ строго JSON: {"accept":[0,2]}. '
+    'Индексы только из списка, без пояснений. Если нет подходящих — {"accept":[]}.'
+)
+_TEACHER_PROMPTS = (
+    'Размечай запрос для поиска подержанных автомобилей. Прими варианты, которые выражают '
+    'явное требование к самому автомобилю. Если ищут деталь, ремонт, игрушку, аренду, обмен '
+    'запчастей или аксессуар, оставь пустой список. Название машины в запросе запчасти '
+    'лишь указывает совместимость. Сохрани корректно распознанные марки, модели, единицы и границы. '
+    'Если в тексте названа модель, прими её однозначно связанную марку, когда она есть в списке. '
+    'Не превращай исключение или пожелание вне справочника в положительный фильтр.',
+    'Проверь независимо Применимые фильтры в поиске авто с пробегом. Для каждого номера '
+    'реши, ищет ли человек сам автомобиль и доказывает ли приведённый фрагмент именно данное значение. '
+    'Примеры: "фары для Ford" → ни одного; "ищу Ford до 2 млн" → марка и максимум цены; '
+    '"не дороже 500 тыс" → максимум цены; "Tesla без ДТП" → марка. '
+    'Пропусти вариант, если число относится к версии модели или перечислен неподдерживаемый выбор.',
+)
+
+
+def qwen_runner(catalog, model_path, propose=proposals, consensus=False):
+    allow_linked = propose is proposals_v2
     from mlx_lm import generate, load
     from mlx_lm.sample_utils import make_sampler
 
     model, tokenizer = load(str(model_path))
     sampler = make_sampler(temp=0.0)
 
-    def infer(query):
-        baseline, options = proposals(catalog, query)
-        if not options:
-            return baseline
+    def request(query, options, system):
         payload = [[i, row["attr_name"], row.get("value_name"), row.get("min"),
                     row.get("max"), row["evidence"]] for i, row in enumerate(options)]
         prompt = tokenizer.apply_chat_template([
-            {"role": "system", "content": (
-                'Выбери явно запрошенные автомобильные фильтры из списка. '
-                'Подписи из запроса могут быть шумом. Ответ строго JSON: {"accept":[0,2]}. '
-                'Индексы только из списка, без пояснений. Если нет подходящих — {"accept":[]}.'
-            )},
+            {"role": "system", "content": system},
             {"role": "user", "content": json.dumps({"query": query, "options": payload}, ensure_ascii=False)},
         ], tokenize=False, add_generation_prompt=True, enable_thinking=False)
-        raw = generate(model, tokenizer, prompt=prompt, max_tokens=64, sampler=sampler)
+        return generate(model, tokenizer, prompt=prompt, max_tokens=64, sampler=sampler).strip()
+
+    def infer(query):
+        baseline, options = propose(catalog, query)
+        if not options:
+            return ({**baseline, "status": "no_candidates"} if consensus else baseline)
         try:
-            return assemble(baseline, selected_options(raw.strip(), options))
+            if not consensus:
+                raw = request(query, options, _LEGACY_PROMPT)
+                return assemble(baseline, selected_options(raw, options), allow_linked=allow_linked)
+            suffix = ' Верни только JSON объект {"accept":[0,2]} с выбранными индексами или {"accept":[]}.'
+            direct = request(query, options, _TEACHER_PROMPTS[0] + suffix)
+            reverse = request(query, options[::-1], _TEACHER_PROMPTS[1] + suffix)
+            choices = consensus_choices(direct, reverse, options)
+            if choices is None:
+                return {**baseline, "status": "qwen_disagreement"}
+            return {**assemble(baseline, choices, allow_linked=allow_linked), "status": "qwen_consensus"}
         except ValueError:
             return {**baseline, "status": "model_error"}
     return infer
-
 
 def run_rows(rows, infer):
     for row in rows:
@@ -165,6 +200,7 @@ def serve(catalog, port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path)
+    parser.add_argument("--linker", choices=("v1", "v2"), default="v1")
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("parse")
     p.add_argument("query")
@@ -178,9 +214,12 @@ def main():
     models = p.add_mutually_exclusive_group()
     models.add_argument("--qwen", type=Path)
     models.add_argument("--student", type=Path)
+    p.add_argument("--threshold", type=float, default=0.5)
     p = sub.add_parser("teacher")
     p.add_argument("--manifest", type=Path, required=True)
     p.add_argument("--limit", type=int, default=50, choices=range(1, 2001), metavar="1..2000")
+    p.add_argument("--consensus", action="store_true")
+    p.add_argument("--input", type=Path, help="Preselected unlabeled training queries")
     p.add_argument("--qwen", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
     p = sub.add_parser("train")
@@ -213,6 +252,7 @@ def main():
     else:
         from avito_text2filter import Catalog
         catalog = Catalog.from_zip(args.archive)
+        propose = proposals_v2 if args.linker == "v2" else proposals
         if args.command == "serve":
             serve(catalog, args.port)
             return
@@ -220,18 +260,27 @@ def main():
             output = catalog.parse(args.query)
         elif args.command == "train":
             from avito_text2filter.student import train
-            output = train(catalog, proposals, args, read_rows)
+            output = train(catalog, propose, args, read_rows)
         else:
             if args.command == "teacher":
-                rows = training_pool(args.archive, read_rows(args.manifest), args.limit)
+                manifest = read_rows(args.manifest)
+                if args.input:
+                    rows = read_rows(args.input)
+                    ensure_disjoint_queries(rows, manifest)
+                else:
+                    rows = training_pool(args.archive, manifest, args.limit)
             else:
                 rows = read_rows(args.input)
             infer = catalog.parse
             if args.qwen:
-                infer = qwen_runner(catalog, args.qwen)
+                infer = qwen_runner(catalog, args.qwen, propose,
+                                    consensus=args.command == "teacher" and args.consensus)
             elif args.command == "predict" and args.student:
                 from avito_text2filter.student import student_runner
-                infer = student_runner(catalog, args.student, proposals, assemble)
+                if not 0 <= args.threshold <= 1:
+                    parser.error("--threshold must be in [0, 1]")
+                infer = student_runner(catalog, args.student, propose, assemble, args.threshold,
+                                       allow_linked=args.linker == "v2")
             if not rows:
                 raise ValueError("No input queries")
             infer("автомат до 1,5 млн без ДТП")  # warm up outside the timed sample
