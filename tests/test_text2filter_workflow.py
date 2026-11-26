@@ -186,3 +186,32 @@ class AuditedPairTests(unittest.TestCase):
         self.assertEqual(len(batch), 16)
         self.assertEqual(sum(row[0] == "one-weak-negative" for row in batch), 1)
         self.assertEqual(sum(row[0] == "one-weak-positive" for row in batch), 1)
+
+
+class V4ProposalTests(unittest.TestCase):
+    def test_v4_options_use_the_guarded_baseline(self):
+        import runpy
+
+        q = "Toyota Camry 2.5%"
+        unreliable = {"attr_id": "110012", "attr_name": "Объём двигателя", "min": 2.5,
+                      "max": 2.5, "start": 13, "end": 16, "evidence": "2.5"}
+
+        class Catalog:
+            def parse(self, query):
+                return {"filters": [unreliable], "unresolved": []}
+
+            def baseline_v4(self, query, baseline):
+                return {"filters": [], "unresolved": [
+                    {**unreliable, "reason": "unsupported"}
+                ]}
+
+            def model_candidates_v4(self, query, baseline):
+                if baseline["filters"]:
+                    raise AssertionError("The linker received the unguarded baseline")
+                return []
+
+        script = Path(__file__).resolve().parents[1] / "scripts/avito/text2filter.py"
+        propose = runpy.run_path(str(script))["proposals_v4"]
+        baseline, options = propose(Catalog(), q)
+        self.assertFalse(options)
+        self.assertEqual(baseline["unresolved"][0]["reason"], "unsupported")

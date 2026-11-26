@@ -79,6 +79,11 @@ def proposals_v3(catalog, query):
     return baseline, _unique_options(baseline["filters"] + catalog.model_candidates_v3(query, baseline))
 
 
+def proposals_v4(catalog, query):
+    baseline = catalog.baseline_v4(query, catalog.parse(query))
+    return baseline, _unique_options(baseline["filters"] + catalog.model_candidates_v4(query, baseline))
+
+
 _LEGACY_PROMPT = (
     'Выбери явно запрошенные автомобильные фильтры из списка. '
     'Подписи из запроса могут быть шумом. Ответ строго JSON: {"accept":[0,2]}. '
@@ -100,7 +105,7 @@ _TEACHER_PROMPTS = (
 
 
 def qwen_runner(catalog, model_path, propose=proposals, consensus=False):
-    allow_linked = propose in (proposals_v2, proposals_v3)
+    allow_linked = propose in (proposals_v2, proposals_v3, proposals_v4)
     from mlx_lm import generate, load
     from mlx_lm.sample_utils import make_sampler
 
@@ -207,7 +212,7 @@ def serve(catalog, port):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path)
-    parser.add_argument("--linker", choices=("v1", "v2", "v3"), default="v1")
+    parser.add_argument("--linker", choices=("v1", "v2", "v3", "v4"), default="v1")
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("parse")
     p.add_argument("query")
@@ -259,7 +264,7 @@ def main():
     else:
         from avito_text2filter import Catalog
         catalog = Catalog.from_zip(args.archive)
-        propose = {"v1": proposals, "v2": proposals_v2, "v3": proposals_v3}[args.linker]
+        propose = {"v1": proposals, "v2": proposals_v2, "v3": proposals_v3, "v4": proposals_v4}[args.linker]
         if args.command == "serve":
             serve(catalog, args.port)
             return

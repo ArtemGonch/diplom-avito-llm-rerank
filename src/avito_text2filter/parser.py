@@ -137,6 +137,21 @@ _V3_MODEL_MAKES = {
     "Peugeot": "2008|3008", "ГАЗ": "ГАЗель 2705|ГАЗель Next", "ВАЗ (LADA)": "2121 (4x4) Фора",
 }
 
+_V4_ALIASES = {
+    _MAKE: {"JAECOO": "джику|джейку", "Jetta": "jeeta", "Mitsubishi": "мицубиси", "TENET": "тенет"},
+    _MODEL: {
+        "Freelander": "фриландер|фрилэндер", "GLE-класс AMG": "gle 53 amg|гле 53 амг",
+        "Grand Vitara": "грант витара", "Hilux Surf": "сюрф|хайлюкс сюрф",
+        "Lancer": "лансер|ланцер", "T7": "т 7|т7",
+    },
+    "110003": {"Лифтбек": "лифтбэк", "Минивэн": "минивэны|минивены"},
+}
+_V4_MODEL_MAKES = {
+    "Land Rover": "Freelander", "Mercedes-Benz": "GLE-класс AMG", "Mitsubishi": "Lancer",
+    "Suzuki": "Grand Vitara", "TENET": "T7", "Toyota": "Hilux Surf",
+}
+_V4_STANDALONE_MODELS = {"GLE-класс AMG", "Grand Vitara", "Lancer"}
+
 _TOKEN = re.compile(r"[^\W_]+", re.UNICODE)
 _GLUE = re.compile(r"[\s.()\[\]’'\-‐‑‒–—]*\Z")
 _FILLERS = set("а в во с со к на по за для и у мне мой хочу ищу купить машина машину авто автомобиль автомобили нужна нужен новое новый бу б у только пожалуйста лучше что нужен нужна можно без".split())
@@ -169,6 +184,19 @@ _V3_VOLUME = re.compile(r"[0-8][.,'’][0-9](?![\w.,'’/+-])")
 _V3_OTHER_QUANTITY = re.compile(r"\s*(?:(?:до|по|[-–—−])\s*\d|%|(?:кг|тонн[а-я]*|м|см|мм)\b)", re.I)
 _V3_SPACE = re.compile(r"[^\S\r\n]+")
 _V3_MODEL_SEPARATOR = re.compile(r"[^\S\r\n]*(?:[-–—][^\S\r\n]*)?")
+_V4_VOLUME = re.compile(r"[0-8][.,'’][0-9](?!\w|[.,'’]\d)")
+_V4_NUMBER_GAP = re.compile(r"""[^\S\r\n]*(?:[»”"’')\]][^\S\r\n]*)*[,:]?[^\S\r\n]*(?:[«„“"‘'(\[][^\S\r\n]*)*""")
+_V4_QUANTITY_GAP = re.compile(r"""[^\S\r\n]*(?:[»”"’')\].,:;!?][^\S\r\n]*)*(?:[«„“"‘'(\[][^\S\r\n]*)*""")
+_V4_QUANTITY_LINK = re.compile(rf"(?:(?:{_ALT_WORD}|\b(?:и|до|по|на)\b)|[-‐‑‒–—−/|&+])[^\S\r\n]*", re.I)
+_V4_VOLUME_ALTERNATIVE_PREFIX = re.compile(
+    r"(?<![\w.])[0-8][.,'’][0-9][^\S\r\n]*(?:(?:и|или|либо)\b|[&+])[^\S\r\n]*\Z", re.I,
+)
+_V4_PART_REQUEST = re.compile(
+    r"\b(?:крыл(?:о|ья|ьев|а)|двер(?:ь|и|ей)|детал(?:ь|и|ей)|комплектующ[а-яё]*|"
+    r"лампочк[а-яё]*|двигател[а-яё]*\s+(?:для|на|в\s+сборе))\b", re.I,
+)
+_V4_BRACKETS = {"(": ")", "[": "]", "{": "}"}
+_V4_BRACKET = re.compile(r"[()\[\]{}]")
 
 _NUM = r"(?:[0-9]{1,3}(?P<group>[.,])(?:[0-9]{3}(?P=group)){1,3}[0-9]{3}|(?:[0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})+|[0-9]{1,12})(?:[.,][0-9]{1,6})?)"
 _SCALE = r"(?:миллиард(?:а|ов)?|млрд\.?|миллион(?:а|ов)?|млн\.?|тысяч(?:а|и|у)?|тыс\.?|[kк])"
@@ -179,6 +207,14 @@ _HORSEPOWER = r"(?:л\s*[./]?\s*с\.?|лошадин(?:ые|ых|ая)\s+сил(
 _VOLUME = r"(?:литр(?:а|ов)?|л\.?|l)"
 _YEAR_UNIT = r"(?:года\s+выпуска|год(?:а|ов)?|г\.\s*в\.?|г\.?)"
 _UNSUPPORTED_UNIT = r"(?:км\s*/\s*ч|квт|kw|куб\.\s*см|см[³3])"
+_V4_PERCENT = r"(?:[%％‰]|(?:процент[а-яё]*|проц\.?|percent(?:age)?)(?!\w))"
+_V4_PERCENT_SUFFIX = re.compile(_V4_PERCENT, re.I)
+_V4_PERCENT_PREFIX = re.compile(r"[%％‰][^\S\r\n]*\Z")
+_V4_OTHER_QUANTITY = re.compile(
+    rf"{_V4_PERCENT}|[₽$€£¥₸₴₹]|(?:{_SCALE}|{_CURRENCY}|{_FOREIGN}|{_UNSUPPORTED_UNIT}|{_DISTANCE}|"
+    r"миль|мил(?:я|и)|miles?|kg|кг|тонн[а-яё]*|мм|см|дм|м|мл|грамм[а-яё]*|гектар[а-яё]*|"
+    r"cc|kwh|кубик[а-яё]*|галлон[а-яё]*|бар|byn|kzt|aed|cny|gbp|jpy|uah|юан[а-яё]*|тенге)(?!\w)", re.I,
+)
 _AMOUNT = re.compile(
     rf"(?<![\w.,])(?:(?P<presymbol>[₽$€£])[^\S\n]*)?(?P<number>{_NUM})(?:[^\S\n]*(?P<scale>{_SCALE})(?!\w))?"
     rf"(?:[^\S\n]*(?:(?P<money>{_CURRENCY})|(?P<unsupported>{_UNSUPPORTED_UNIT}|{_FOREIGN})|(?P<mileage>{_DISTANCE})|"
@@ -310,6 +346,62 @@ def _one_edit(left, right):
     return min(left, right, key=len) in _edits(max(left, right, key=len))
 
 
+def _v4_scopes(query):
+    clauses = list(_clauses(query))
+    parts = [_span(query, clause.start, clause.end) for clause in clauses if (
+        _PART_REQUEST.search(query, clause.start, clause.end)
+        or _V4_PART_REQUEST.search(query, clause.start, clause.end)
+    )]
+    negatives = []
+    groups = []
+    for bracket in _V4_BRACKET.finditer(query):
+        char = bracket.group()
+        if char in _V4_BRACKETS:
+            clause = next(clause for clause in clauses if clause.start <= bracket.start() < clause.end)
+            prefix = query[clause.start:bracket.start()].rstrip()
+            interior = query[bracket.end():clause.end].lstrip()
+            negative = any(marker.end() == len(prefix) for marker in _NEG.finditer(prefix)) or (
+                _NEG.match(interior) is not None and _UNSUPPORTED.match(interior) is None
+            )
+            part = _intersects(_span(query, *bracket.span()), parts)
+            groups.append((_V4_BRACKETS[char], bracket.start(), negative, part))
+        elif groups and groups[-1][0] == char:
+            _, start, negative, part = groups.pop()
+            group = _span(query, start, bracket.end())
+            if negative:
+                negatives.append(group)
+            if part:
+                parts.append(group)
+    for _, start, negative, part in groups:
+        group = _span(query, start, len(query))
+        if negative:
+            negatives.append(group)
+        if part:
+            parts.append(group)
+    return negatives, parts
+
+
+def _v4_percentage(query, row):
+    tail = _V4_QUANTITY_GAP.match(query, row["end"]).end()
+    return _V4_PERCENT_SUFFIX.match(query, tail) or _V4_PERCENT_PREFIX.search(query, 0, row["start"])
+
+
+def _v4_unsafe_quantity_tail(query, row, known, *, implicit=False):
+    end = row["end"]
+    tail = _V4_QUANTITY_GAP.match(query, end).end()
+    link = _V4_QUANTITY_LINK.match(query, tail)
+    if link and link.group().strip().casefold() not in {"и", "на", "&"}:
+        return True
+    next_start = _V4_QUANTITY_GAP.match(query, link.end()).end() if link else tail
+    if any(other["start"] == next_start and other["attr_id"] != row["attr_id"] for other in known):
+        return False
+    if _V4_OTHER_QUANTITY.match(query, next_start) or query[next_start:next_start + 1].isdigit():
+        return True
+    return implicit and next_start < len(query) and _TOKEN.match(query, next_start) is not None and not any(
+        char in query[end:tail] for char in ",.;!?"
+    )
+
+
 class Catalog:
     """Read the source names and string IDs directly from the UsedCars archive."""
 
@@ -413,6 +505,24 @@ class Catalog:
                 glued[make + term].add((len(make), owner, model))
         self._v3_glued = {term: next(iter(values)) for term, values in glued.items() if len(values) == 1}
 
+        v4_aliases = defaultdict(set)
+        for attr, aliases in _V4_ALIASES.items():
+            variants = {_key(label): words for label, words in aliases.items()}
+            for value in fields[attr]:
+                for alias in variants.get(_key(value.value_name), "").split("|"):
+                    if alias:
+                        v4_aliases[_key(alias)].add(value)
+        self._v4_terms = defaultdict(dict)
+        for term, values in v4_aliases.items():
+            attrs = {value.attr_id for value in values}
+            matches = expanded[term] | v3_aliases[term]
+            self._v4_terms[term[0]][term] = tuple(sorted(values | {value for value in matches if value.attr_id in attrs}))
+        self._v4_model_makes = self._v3_model_makes.copy()
+        for make, models in _V4_MODEL_MAKES.items():
+            values = makes[_key(make)]
+            if len(values) == 1:
+                self._v4_model_makes.update(dict.fromkeys(map(_key, models.split("|")), next(iter(values))))
+
     @classmethod
     def from_zip(cls, path: str | Path):
         with ZipFile(path) as archive, archive.open("attribute_values.csv") as member:
@@ -423,8 +533,10 @@ class Catalog:
                     raise ValueError("Invalid attribute_values.csv columns")
                 return cls(reader)
 
-    def _closed_mentions(self, query, *, expanded=False, v3_aliases=False):
+    def _closed_mentions(self, query, *, expanded=False, v3_aliases=False, v4_aliases=False):
         lookup = self._v3_terms if v3_aliases else self._model_terms if expanded else self._terms
+        if v4_aliases:
+            lookup = self._v4_terms
         tokens = list(_TOKEN.finditer(query))
         normalized = [_normalize(token.group()) for token in tokens]
         mentions = []
@@ -451,7 +563,7 @@ class Catalog:
                 source = tokens[index].group()
                 if len(term) == 1 and not hint and (word in _FILLERS or word in _CUES or len(word) == 1 or (
                     len(word) == 2 and source.isalpha() and not source.isupper() and word != "vw"
-                    and not (expanded and word in _CONTEXTUAL_TERMS) and not v3_aliases
+                    and not (expanded and word in _CONTEXTUAL_TERMS) and not (v3_aliases or v4_aliases)
                 )):
                     continue
                 if len(term) == 1 and word.isdecimal() and (len(word) < 3 or hint != "110001" and word.startswith("0")):
@@ -806,6 +918,132 @@ class Catalog:
             if amount and amount.end() == volume.end() and float(dotted) >= 0.5:
                 exact(_LITERS, start, volume.end(), float(dotted))
         return result
+
+    def baseline_v4(self, query: str, baseline: dict) -> dict:
+        """Preserve v4 evidence when an older filter falls in a blocked context."""
+        negatives, parts = _v4_scopes(query)
+        filters, unresolved = [], list(baseline["unresolved"])
+        for row in baseline["filters"]:
+            if _intersects(row, negatives):
+                unresolved.append(_unresolved(query, row["start"], row["end"], "negated"))
+            elif (
+                row["attr_id"] not in _VEHICLE_IDENTITY | {_YEAR} and _intersects(row, parts)
+                or "value_id" not in row and _v4_percentage(query, row)
+                or row["attr_id"] == _LITERS and (
+                    _V4_VOLUME_ALTERNATIVE_PREFIX.search(query, 0, row["start"])
+                    or _v4_unsafe_quantity_tail(query, row, baseline["filters"])
+                )
+            ):
+                unresolved.append(_unresolved(query, row["start"], row["end"], "unsupported"))
+            else:
+                filters.append(row)
+        return {**baseline, "filters": filters, "unresolved": sorted(unresolved, key=_sort_span)}
+
+    def model_candidates_v4(self, query: str, baseline: dict) -> list[dict]:
+        """Propose catalog aliases and a single well-supported contextual volume."""
+        negatives, parts = _v4_scopes(query)
+        blocked = negatives + [row for row in baseline["unresolved"] if row["reason"] in {
+            "alternative", "negated", "unsupported", "invalid_range", "conflict",
+        }]
+
+        def available(row):
+            return not _intersects(row, blocked) and (
+                row["attr_id"] in _VEHICLE_IDENTITY or not _intersects(row, parts)
+            )
+
+        previous = [row for row in self.model_candidates_v3(query, baseline) if (
+            row["attr_id"] != _LITERS and available(row) and ("value_id" in row or not _v4_percentage(query, row))
+        )]
+        linked = self._v4_linked_aliases(query, baseline, previous, available)
+        previous = [row for row in previous if not any(
+            row["attr_id"] == alias["attr_id"] and row["start"] >= alias["start"] and row["end"] <= alias["end"]
+            for alias in linked
+        )]
+        known = baseline["filters"] + previous + linked
+        volume = self._v4_contextual_volume(query, baseline, known, available, parts)
+        if volume:
+            linked.append(volume)
+        return sorted(previous + linked, key=_proposal_key)
+
+    def _v4_linked_aliases(self, query, baseline, previous, available):
+        reserved = defaultdict(set)
+        for row in baseline["unresolved"]:
+            options = defaultdict(set)
+            for item in row.get("candidates", ()):
+                options[item["attr_id"]].add(item["value_id"])
+            for attr, ids in options.items():
+                if row["reason"] == "conflict" or len(ids) > 1:
+                    reserved[attr].update(ids)
+        accepted = baseline["filters"]
+
+        def compatible(row):
+            attr = row["attr_id"]
+            ids = reserved[attr] | {other.get("value_id") for other in accepted if other["attr_id"] == attr}
+            ids.update(other["value_id"] for other in previous if other["attr_id"] == attr and not (
+                row["start"] <= other["start"] and other["end"] <= row["end"]
+                and (row["start"], row["end"]) != (other["start"], other["end"])
+            ))
+            return not ids or ids == {row["value_id"]}
+
+        aliases = []
+        for start, end, values, _ in self._closed_mentions(query, v4_aliases=True):
+            for attr in {value.attr_id for value in values}:
+                options = [value for value in values if value.attr_id == attr]
+                if len(options) == 1:
+                    row = options[0].grounded(query, start, end)
+                    if available(row) and compatible(row):
+                        aliases.append(row)
+        makes = [row for row in accepted + previous + aliases if row["attr_id"] == _MAKE]
+        matches = defaultdict(dict)
+        for row in sorted(aliases, key=lambda item: (item["start"], -item["end"], item["attr_id"])):
+            attr = row["attr_id"]
+            if attr == _MODEL:
+                owner = self._v4_model_makes.get(_key(row["value_name"]))
+                if not owner or any(make["value_id"] != owner.value_id for make in makes):
+                    continue
+                if not makes:
+                    if row["value_name"] not in _V4_STANDALONE_MODELS or reserved[_MAKE]:
+                        continue
+                    make = owner.grounded(query, row["start"], row["end"])
+                    matches[_MAKE].setdefault(owner.value_id, make)
+            matches[attr].setdefault(row["value_id"], row)
+        existing = {(row["attr_id"], row.get("value_id")) for row in accepted}
+        return [row for attr, rows in matches.items() if len(rows) == 1 for value, row in rows.items()
+                if (attr, value) not in existing]
+
+    def _v4_contextual_volume(self, query, baseline, known, available, parts):
+        if _LITERS not in self._names or any(row["attr_id"] == _LITERS for row in known) or any(
+            row["reason"] == "conflict" and not row.get("candidates") for row in baseline["unresolved"]
+        ):
+            return None
+        models = [row for row in known if row["attr_id"] == _MODEL]
+        if len({row["value_id"] for row in models}) != 1:
+            return None
+        model = max(models, key=lambda row: row["end"])
+        owner = self._v4_model_makes.get(_key(model["value_name"]))
+        if _intersects(model, parts) or owner and any(
+            row["attr_id"] == _MAKE and row["value_id"] != owner.value_id for row in known
+        ):
+            return None
+
+        anchor = model
+        start = _V4_NUMBER_GAP.match(query, anchor["end"]).end()
+        year = next((row for row in known if row["start"] == start and row["attr_id"] == _YEAR
+                     and row["evidence"].isdecimal()), None)
+        if year:
+            anchor = year
+            start = _V4_NUMBER_GAP.match(query, anchor["end"]).end()
+        volume = _V4_VOLUME.match(query, start)
+        if not volume or start == anchor["end"]:
+            return None
+        literal = volume.group()
+        value = float(literal[0] + "." + literal[-1])
+        row = {**_span(query, start, volume.end()), "attr_id": _LITERS, "attr_name": self._names[_LITERS], "min": value, "max": value}
+        if value >= 0.5 and available(row) and not _intersects(row, known) and not _v4_unsafe_quantity_tail(
+            query, row, known, implicit=True,
+        ):
+            return row
+        return None
 
 
 def _sort_span(row):

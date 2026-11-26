@@ -310,6 +310,16 @@ experiments:
     execution_report: docs/avito_text2filter.md
     notes: "80 unseen query families judged by GPT-6.2 Astra xhigh. Dev-selected verified-Qwen v3 at threshold 0.995 improves all four primary estimates relative to frozen v2 control. The top family contributes 21.10 pp to traffic-weighted exact-match difference. All three v3 variants have identical metrics at the shared threshold."
 
+  avito_text2filter_v4_20261126:
+    method: guarded catalog linking with frozen and refitted ruBERT
+    dataset: avito_usedcars_text_queries_20261119
+    script: scripts/avito/text2filter.py
+    status: done
+    finished: "2026-11-26"
+    metrics: results/current/metrics/avito_text2filter_v4_20261126.json
+    execution_report: docs/avito_text2filter.md
+    notes: "80 unseen query families with blinded Astra xhigh reference. On the common test 12 variants were evaluated. The dev-selected v4 with frozen v3 weights ties v3 in exact match and has lower filter recall. V4 refit has two exact-match losses and zero wins against v3 at the shared threshold."
+
 paper_targets:
   ur4rec_ml1m:
     source: "UR4Rec Table 6, DLCM backbone"

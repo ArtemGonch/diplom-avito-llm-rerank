@@ -75,7 +75,7 @@ def train(catalog, propose, args, read_rows):
     eligible = {"reviewed"}
     if args.linker == "v2":
         eligible.add("qwen_consensus")
-    if args.linker == "v3":
+    if args.linker in {"v3", "v4"}:
         eligible.add("audited_pairs")
     if any(row.get("status") not in eligible for row in pseudo):
         raise ValueError("Expected reviewed examples for this linker")
@@ -98,10 +98,11 @@ def train(catalog, propose, args, read_rows):
     if args.linker == "v1":
         reference = {label: reference[label] + weak[label] for label in (0, 1)}
         weak = {0: [], 1: []}
-    if args.linker == "v3":
+    distinct_weak = args.linker in {"v3", "v4"}
+    if distinct_weak:
         weak = {label: list(dict.fromkeys(weak[label])) for label in (0, 1)}
     for _ in range(args.steps):
-        batch = training_batch(rng, reference, weak, distinct_weak=args.linker == "v3")
+        batch = training_batch(rng, reference, weak, distinct_weak=distinct_weak)
         left, right, targets = zip(*batch, strict=True)
         inputs = tokenizer(list(left), list(right), padding=True, truncation=True,
                            max_length=128, return_tensors="pt").to(device)

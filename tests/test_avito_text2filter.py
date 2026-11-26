@@ -28,6 +28,9 @@ class Text2FilterTests(unittest.TestCase):
             ("110000", "Марка", "102", "Ferrari"),
             ("110000", "Марка", "103", "ГАЗ"),
             ("110000", "Марка", "104", "Peugeot"),
+            ("110000", "Марка", "105", "Land Rover"),
+            ("110000", "Марка", "106", "Suzuki"),
+            ("110000", "Марка", "107", "TENET"),
             ("110001", "Модель", "10", "Camry"),
             ("110001", "Модель", "11", "Honda Accord"),
             ("110001", "Модель", "12", "2114"),
@@ -45,9 +48,16 @@ class Text2FilterTests(unittest.TestCase):
             ("110001", "Модель", "115", "ГАЗель Next"),
             ("110001", "Модель", "116", "Land Cruiser"),
             ("110001", "Модель", "117", "3008"),
+            ("110001", "Модель", "118", "Freelander"),
+            ("110001", "Модель", "119", "Grand Vitara"),
+            ("110001", "Модель", "120", "Hilux Surf"),
+            ("110001", "Модель", "121", "T7"),
+            ("110001", "Модель", "122", "T7"),
+            ("110001", "Модель", "123", "Granta"),
             ("110010", "Комплектация", "101", "Sorento"),
             ("110002", "Год выпуска", "50001", "2018"),
             ("110003", "Тип кузова", "20", "Седан"),
+            ("110003", "Тип кузова", "21", "Минивэн"),
             ("110005", "Поколение", "30", "VII (2011—2014)"),
             ("110006", "Тип двигателя", "40", "Бензин"),
             ("110006", "Тип двигателя", "41", "Дизель"),
@@ -287,6 +297,74 @@ class Text2FilterTests(unittest.TestCase):
                 self.assertEqual(self.v3_options(query), {
                     (attr, value_id, evidence) for attr, value_id, evidence in self.model_options(query)
                 })
+
+    def v4_options(self, query):
+        baseline = self.catalog.baseline_v4(query, self.catalog.parse(query))
+        rows = baseline["filters"] + self.catalog.model_candidates_v4(query, baseline)
+        self.assert_evidence(query, rows + baseline["unresolved"])
+        return {
+            (row["attr_id"], row.get("value_id", (row.get("min"), row.get("max"))), row["evidence"])
+            for row in rows
+        }
+
+    def test_v4_accepts_punctuation_around_one_contextual_volume(self):
+        for query, literal in (
+            ("🚙 Toyota Camry 2.5, автомат", "2.5"),
+            ("Toyota Camry 2.5.", "2.5"),
+            ("Toyota Camry 2,5,автомат", "2,5"),
+            ("«Toyota Camry» «2.5», автомат", "2.5"),
+            ('Toyota Camry ("2.5").', "2.5"),
+            ("Toyota Camry 2018 ‘2’5’", "2’5"),
+            ("Toyota Camry 2.5 2018 года", "2.5"),
+        ):
+            with self.subTest(query=query):
+                self.assertIn(("110012", (2.5, 2.5), literal), self.v4_options(query))
+        self.assertIn(("110012", (1.6, 2.0), "1.6–2.0 л"), self.v4_options("Camry 1.6–2.0 л"))
+
+    def test_v4_rejects_other_quantities_and_untyped_sequences(self):
+        for tail in (
+            "1.6 и 2.0", "1.6 либо 2.0", "1.6/2.0", "1.6, 2.0", "1.6–2.0", "1.6‑2.0", "1.6 до 2.0",
+            "1.6.2", "1.6.2013", "1.6%", "1.6 процентов", "«1.6» процента", "1.6 л %", "1.6 литра и 2.0",
+            "1.6 и 2.0 л", "1.6 либо 2.0 литра",
+            "1.6 миль", "1.6 квт", "1.6 см³", "1.6 BYN", "1.6 евро", "1.6 млн", "1.6 €", "1.6 км",
+        ):
+            with self.subTest(tail=tail):
+                self.assertFalse(any(attr == "110012" for attr, _, _ in self.v4_options(f"Camry {tail}")))
+        self.assertIn(("110012", (1.6, 1.6), "1.6"), self.v3_options("Camry 1.6 и 2.0"))
+        self.assertIn(("110012", (1.6, 1.6), "1.6"), self.v3_options("Camry 1.6 процентов"))
+        for query in ("Toyota Land Cruiser 2008 процента", "Camry 2020%", "Camry % 2020", "до 100 тыс. %"):
+            with self.subTest(query=query):
+                self.assertFalse(any(isinstance(value, tuple) for _, value, _ in self.v4_options(query)))
+
+    def test_v4_respects_nested_negative_and_part_contexts(self):
+        for query in (
+            "Toyota 2.5", "Toyota Camry\n2.5", "не (Toyota Camry 2.5, автомат)",
+            "Toyota Camry (без двигателя 2.5, 2018)", "запчасти (Camry 2.5, автомат)",
+            "крыло для Toyota Camry, 2.5 автомат", "Toyota Camry без двигателя «2.5», автомат",
+        ):
+            with self.subTest(query=query):
+                self.assertFalse(any(attr == "110012" for attr, _, _ in self.v4_options(query)))
+        self.assertFalse(self.v4_options("не (Toyota Camry (2.5), автомат)"))
+        self.assertFalse(self.v4_options("(не Toyota Camry, 2.5 автомат)"))
+        self.assertIn(("110012", (2.5, 2.5), "2.5"), self.v4_options("Toyota Camry 2.5, без ДТП"))
+        self.assertIn(("164669", (2018, 2018), "2018 г"), self.v4_options("лампочки на Toyota Camry 2018 г"))
+
+    def test_v4_links_only_catalog_backed_aliases_without_selecting_dupes(self):
+        self.assertEqual(self.v4_options("🚙 land rover фриландер 2"), {
+            ("110000", "105", "land rover"), ("110001", "118", "фриландер"),
+        })
+        self.assertEqual(self.v4_options("грант витара"), {
+            ("110000", "106", "грант витара"), ("110001", "119", "грант витара"),
+        })
+        self.assertEqual(self.v4_options("toyota сюрф"), {
+            ("110000", "1", "toyota"), ("110001", "120", "сюрф"),
+        })
+        self.assertEqual(self.v4_options("тенет т 7"), {("110000", "107", "тенет")})
+        self.assertEqual(self.v4_options("минивэны на 7 мест"), {("110003", "21", "минивэны")})
+        for query in ("Honda фриландер", "Honda сюрф", "Honda грант витара", "не (грант витара)", "OMODA C5"):
+            with self.subTest(query=query):
+                self.assertFalse(any(attr == "110001" and value in {"17", "18", "118", "119", "120"}
+                                     for attr, value, _ in self.v4_options(query)))
 
 
 if __name__ == "__main__":
