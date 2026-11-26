@@ -343,7 +343,7 @@ experiments:
     finished: "2026-11-26"
     metrics: results/current/metrics/avito_text2filter_v4_20261126.json
     execution_report: docs/avito_text2filter.md
-    notes: "80 unseen query families with blinded Astra xhigh reference. On the common test 12 variants were evaluated. The dev-selected v4 with frozen v3 weights ties v3 in exact match and has lower filter recall. V4 refit has two exact-match losses and zero wins against v3 at the shared threshold."
+    notes: "80 unseen query families with blinded Astra xhigh reference. On the common test 12 variants were evaluated. The demo shows percentage-point deltas for the calibrated v3 against the v2 control. The dev-selected v4 with frozen v3 weights ties v3 in exact match and has lower filter recall. V4 refit has two exact-match losses and zero wins against v3 at the shared threshold."
 
 paper_targets:
   ur4rec_ml1m:

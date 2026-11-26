@@ -22,6 +22,7 @@
     "scope": "12 variants on 80 unseen UsedCars query families with blinded Astra annotations",
     "selected_variant": "v4_frozen_weights",
     "selected_threshold": 0.995,
+    "demo_comparison": {"baseline": "v2_control", "candidate": "v3_verified_qwen_calibrated"},
     "exact_matches_v3_v4_and_refit": [54, 54, 52]
   },
   "avito_text2filter_v3_20261126": {

@@ -241,3 +241,13 @@ class DemoPageTests(unittest.TestCase):
             self.assertEqual(config["replays"][query]["bert"]["unresolved"][0]["reason"], "unrecognized")
         self.assertEqual(config["benchmark"]["queries"], 80)
         self.assertEqual(config["benchmark"]["rows"][2]["raw_exact"], 54)
+        benchmark = config["benchmark"]
+        self.assertEqual(benchmark["comparison"], {
+            "baseline": "v2_control", "candidate": "v3_verified_qwen_calibrated",
+        })
+        rows = {row["method"]: row for row in benchmark["rows"]}
+        base = rows[benchmark["comparison"]["baseline"]]
+        candidate = rows[benchmark["comparison"]["candidate"]]
+        self.assertEqual((base["raw_exact"], candidate["raw_exact"]), (52, 54))
+        for key, expected in (("exact_filters", 2.70), ("filter_precision", 2.23), ("filter_recall", 3.00)):
+            self.assertEqual(round((candidate[key] - base[key]) * 100, 2), expected)

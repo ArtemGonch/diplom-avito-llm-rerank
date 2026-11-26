@@ -172,9 +172,10 @@ _DEMO_EXAMPLES = (
     "BMW 528i 2014 г до 1,5 млн",
     "не дизель, от 2020 года",
 )
+_DEMO_COMPARISON = {"baseline": "v2_control", "candidate": "v3_verified_qwen_calibrated"}
 _DEMO_METHODS = (
     ("rules", "Правила"),
-    ("v2_control", "BERT v2 · контроль"),
+    ("v2_control", "BERT v2 · бейзлайн"),
     ("v3_verified_qwen_calibrated", "BERT v3 · Astra + Qwen"),
     ("v4_frozen_weights", "v4 · веса v3"),
     ("v4_refit", "v4 · переобучение"),
@@ -193,7 +194,8 @@ def demo_page(catalog, *, student=None, student_label=None, offline=False):
         })
     config = {
         "examples": _DEMO_EXAMPLES, "student_label": student_label if student is not None else None,
-        "offline": offline, "benchmark": {"queries": result["design"]["test_rows"], "rows": bench},
+        "offline": offline,
+        "benchmark": {"queries": result["design"]["test_rows"], "rows": bench, "comparison": _DEMO_COMPARISON},
     }
     if offline:
         replays = {query: {"rules": catalog.parse(query)} for query in _DEMO_EXAMPLES}

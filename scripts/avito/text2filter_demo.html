@@ -59,6 +59,11 @@ mark.caution { background: var(--amber); color: var(--warn) }
 #warnings strong:not(:only-child) { color: var(--warn) }
 .benchmark > header { margin-bottom: 10px }
 .benchmark > header p { margin-top: 4px }
+.comparison { margin-bottom: 12px; padding: 14px clamp(12px,3vw,18px); background: var(--mint) }
+.comparison-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 9px 0 }
+.comparison-card { display: grid; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--white) }
+.comparison-value { color: var(--accent); font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums }
+.comparison-range, #comparison-count { color: var(--muted); font-size: 13px }
 .table-scroll { overflow-x: auto }
 table { width: 100%; border-collapse: collapse; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right }
 th, td { padding: 8px 10px; border-bottom: 1px solid var(--line) }
@@ -78,6 +83,8 @@ details p { margin-top: 7px }
   .field { flex-wrap: wrap }
   input { flex-basis: 190px }
   .exact-count { display: block; margin: 0 }
+  .comparison-grid { grid-template-columns: 1fr }
+  .comparison-card { grid-template-columns: 1fr auto; align-items: baseline }
 }
 </style>
 </head>
@@ -118,6 +125,11 @@ details p { margin-top: 7px }
       <h2 id="benchmark-title">Результаты на общем тесте</h2>
       <p id="benchmark-caption"></p>
     </header>
+    <div class="panel comparison" aria-labelledby="comparison-title">
+      <h3 id="comparison-title">BERT v3 против бейзлайна BERT v2</h3>
+      <div class="comparison-grid" id="comparison-cards"></div>
+      <p id="comparison-count"></p>
+    </div>
     <div class="panel">
       <div class="table-scroll" role="region" aria-label="Таблица метрик" tabindex="0">
         <table>
@@ -127,7 +139,7 @@ details p { margin-top: 7px }
       </div>
       <details>
         <summary>Как читать метрики</summary>
-        <p>Точный разбор требует совпадения всех фильтров. Точность показывает долю верных среди предложенных, полнота — долю найденных среди эталонных. Проценты взвешены по семействам. Число точных разборов показано без весов.</p>
+        <p>Точный разбор требует совпадения всех фильтров. Точность показывает долю верных среди предложенных, полнота — долю найденных среди эталонных. Проценты взвешены по семействам. Дельты в п.п. считаются до округления. Число точных разборов показано без весов.</p>
       </details>
     </div>
   </section>
@@ -144,6 +156,7 @@ const outputs = document.querySelector('.outputs');
 const modes = [...document.querySelectorAll('.mode')];
 const examples = document.querySelector('.examples');
 const exact = new Intl.NumberFormat('ru-RU', {style: 'percent', maximumFractionDigits: 2, minimumFractionDigits: 2});
+const points = new Intl.NumberFormat('ru-RU', {signDisplay: 'exceptZero', maximumFractionDigits: 2, minimumFractionDigits: 2});
 const number = new Intl.NumberFormat('ru-RU');
 const explanations = {
   ambiguous: 'Значение неоднозначно', negated: 'Условие задано с отрицанием',
@@ -286,21 +299,45 @@ form.addEventListener('submit', event => {event.preventDefault(); run();});
 field.readOnly = demo.offline;
 form.querySelector('button').hidden = demo.offline;
 field.value = demo.examples[0];
-document.querySelector('#benchmark-caption').textContent = demo.benchmark.queries + ' новых запросов UsedCars · эталонная разметка Astra';
-for (const row of demo.benchmark.rows) {
+const {queries, rows, comparison} = demo.benchmark;
+const baseline = rows.find(row => row.method === comparison.baseline);
+const candidate = rows.find(row => row.method === comparison.candidate);
+const benchmarkMetrics = [
+  ['exact_filters', 'Точный разбор'],
+  ['filter_precision', 'Точность фильтров'],
+  ['filter_recall', 'Полнота фильтров'],
+];
+document.querySelector('#benchmark-caption').textContent = queries + ' новых запросов UsedCars · эталонная разметка Astra';
+document.querySelector('#comparison-count').textContent =
+  'Полный разбор без весов: ' + baseline.raw_exact + ' → ' + candidate.raw_exact + ' из ' + queries;
+for (const [key, label] of benchmarkMetrics) {
+  const card = document.createElement('div');
+  card.className = 'comparison-card';
+  const title = document.createElement('span');
+  title.textContent = label;
+  const difference = document.createElement('strong');
+  difference.className = 'comparison-value';
+  difference.textContent = points.format((candidate[key] - baseline[key]) * 100) + ' п.п.';
+  const range = document.createElement('span');
+  range.className = 'comparison-range';
+  range.textContent = exact.format(baseline[key]) + ' → ' + exact.format(candidate[key]);
+  card.append(title, difference, range);
+  document.querySelector('#comparison-cards').append(card);
+}
+for (const row of rows) {
   const tr = document.createElement('tr');
-  tr.classList.toggle('highlight', row.method === 'v3_verified_qwen_calibrated');
+  tr.classList.toggle('highlight', row.method === comparison.candidate);
   const th = document.createElement('th');
   th.scope = 'row';
   th.textContent = row.label;
   tr.append(th);
-  for (const key of ['exact_filters', 'filter_precision', 'filter_recall']) {
+  for (const [key] of benchmarkMetrics) {
     const td = document.createElement('td');
     td.textContent = exact.format(row[key]);
     if (key === 'exact_filters') {
       const count = document.createElement('span');
       count.className = 'exact-count';
-      count.textContent = row.raw_exact + '/' + demo.benchmark.queries;
+      count.textContent = row.raw_exact + '/' + queries;
       td.append(count);
     }
     tr.append(td);
