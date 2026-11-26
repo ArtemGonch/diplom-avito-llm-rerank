@@ -36,7 +36,8 @@ datasets:
     storage: designated_private_google_drive
     git_tracked: false
     archive_bytes: 3794834688
-    expected_groups: 400000
+    groups: 400000
+    candidate_rows: 7666100
     task: offline_ranking_baseline_and_embeddings_cg
   ml1m:
     path: data/movielens-1m
@@ -287,12 +288,22 @@ experiments:
     notes: "Exact row and ten-target reconciliation with the existing offline test pilot. No new ranking quality claim."
 
   avito_bx_usedcars_notext_400k:
-    method: saved BX baseline and exact-cosine comparison inside the supplied candidate pool
+    method: saved BX baseline with producer and independent metric reconciliation
     dataset: bx_usedcars_notext_400k
     script: scripts/avito/evaluate_bx_baseline.py
+    status: done
+    finished: "2026-11-26"
+    metrics: results/current/metrics/avito_bx_usedcars_notext_400k_20261126.json
+    execution_report: docs/avito_bx_notext.md
+    notes: "All 400,000 groups structurally checked. Test contact NDCG 0.536431861702 on 6,372 eligible groups. All ten test means and denominators verified independently. Train has only target and uses negative downsampling."
+
+  avito_bx_embeddings_cg_notext:
+    method: exact cosine comparison inside the supplied candidate pool
+    dataset: bx_usedcars_notext_400k
+    script: scripts/avito/evaluate_bx_embedding_cg.py
     status: planned
     execution_report: docs/avito_bx_notext.md
-    notes: "Archive intake and metric runners validated independently on the old TEXT pilot and synthetic vectors. Full NOTEXT metrics await archive download and verified input schema."
+    notes: "The candidate pool is available. This archive contains no ready query and item embeddings. Candidate generation quality remains unevaluated."
 
   avito_text2filter_20261125:
     method: rules, grounded Qwen and compact BERT candidate validation

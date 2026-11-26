@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import random
 import sys
+from threading import Lock
 import time
 from zipfile import ZipFile
 
@@ -166,8 +167,48 @@ def training_pool(archive_path, manifest, limit):
             for i, q in enumerate(rng.sample(head, (limit + 1) // 2) + rng.sample(tail, limit // 2))]
 
 
-def serve(catalog, port):
-    page = (Path(__file__).with_name("text2filter_demo.html")).read_bytes()
+_DEMO_EXAMPLES = (
+    "Toyota Camry 2.5 автомат без ДТП",
+    "BMW 528i 2014 г до 1,5 млн",
+    "не дизель, от 2020 года",
+)
+_DEMO_METHODS = (
+    ("rules", "Правила"),
+    ("v2_control", "BERT v2 · контроль"),
+    ("v3_verified_qwen_calibrated", "BERT v3 · Astra + Qwen"),
+    ("v4_frozen_weights", "v4 · веса v3"),
+    ("v4_refit", "v4 · переобучение"),
+)
+
+
+def demo_page(catalog, *, student=None, student_label=None, offline=False):
+    aggregate = ROOT / "results/current/metrics/avito_text2filter_v4_20261126.json"
+    result = json.loads(aggregate.read_text(encoding="utf-8"))
+    bench = []
+    for method, label in _DEMO_METHODS:
+        metrics = result["metrics"][method]["families"]
+        bench.append({
+            "method": method, "label": label, "raw_exact": result["raw_exact"][method],
+            **{key: metrics[key] for key in ("exact_filters", "filter_precision", "filter_recall")},
+        })
+    config = {
+        "examples": _DEMO_EXAMPLES, "student_label": student_label if student is not None else None,
+        "offline": offline, "benchmark": {"queries": result["design"]["test_rows"], "rows": bench},
+    }
+    if offline:
+        replays = {query: {"rules": catalog.parse(query)} for query in _DEMO_EXAMPLES}
+        if student is not None:
+            for query, replay in replays.items():
+                replay["bert"] = student(query)
+        config["replays"] = replays
+    template = Path(__file__).with_name("text2filter_demo.html").read_text(encoding="utf-8")
+    payload = json.dumps(config, ensure_ascii=False, allow_nan=False).replace("<", r"\u003c")
+    return template.replace("__DEMO_CONFIGURATION__", payload, 1).encode()
+
+
+def serve(catalog, port, *, student=None, student_label=None):
+    page = demo_page(catalog, student=student, student_label=student_label)
+    student_lock = Lock()
 
     class DemoHandler(BaseHTTPRequestHandler):
         def respond(self, status, content_type, body):
@@ -185,7 +226,7 @@ def serve(catalog, port):
                 self.send_error(404)
 
         def do_POST(self):
-            if self.path != "/parse":
+            if self.path != "/parse" and (self.path != "/parse/bert" or student is None):
                 self.send_error(404)
                 return
             try:
@@ -198,7 +239,12 @@ def serve(catalog, port):
             except (ValueError, KeyError, TypeError):
                 self.send_error(400)
                 return
-            body = json.dumps(catalog.parse(query), ensure_ascii=False).encode()
+            if self.path == "/parse/bert":
+                with student_lock:
+                    result = student(query)
+            else:
+                result = catalog.parse(query)
+            body = json.dumps(result, ensure_ascii=False).encode()
             self.respond(200, "application/json; charset=utf-8", body)
 
         def log_message(self, *_args):
@@ -218,6 +264,9 @@ def main():
     p.add_argument("query")
     p = sub.add_parser("serve")
     p.add_argument("--port", type=int, default=8782)
+    p.add_argument("--student", type=Path, help="Optional local BERT checkpoint for the demo")
+    p.add_argument("--threshold", type=float, default=0.5)
+    p.add_argument("--export", type=Path, help="Write a standalone HTML with saved example outputs, then exit")
     p = sub.add_parser("packet")
     p.add_argument("--out", type=Path, required=True)
     p = sub.add_parser("predict")
@@ -266,7 +315,20 @@ def main():
         catalog = Catalog.from_zip(args.archive)
         propose = {"v1": proposals, "v2": proposals_v2, "v3": proposals_v3, "v4": proposals_v4}[args.linker]
         if args.command == "serve":
-            serve(catalog, args.port)
+            student = student_label = None
+            if args.student:
+                from avito_text2filter.student import student_runner
+                if not 0 <= args.threshold <= 1:
+                    parser.error("--threshold must be in [0, 1]")
+                student = student_runner(catalog, args.student, propose, assemble, args.threshold,
+                                         allow_linked=args.linker != "v1")
+                student_label = f"BERT {args.linker}"
+            if args.export:
+                page = demo_page(catalog, student=student, student_label=student_label, offline=True)
+                with args.export.open("xb") as file:
+                    file.write(page)
+            else:
+                serve(catalog, args.port, student=student, student_label=student_label)
             return
         if args.command == "parse":
             output = catalog.parse(args.query)

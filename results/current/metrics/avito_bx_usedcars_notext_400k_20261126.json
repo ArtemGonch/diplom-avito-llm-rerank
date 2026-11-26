@@ -1,0 +1,509 @@
+{
+  "protocol": "BX exponential NDCG on full observed groups in supplied NOTEXT evaluation pool",
+  "archive": {
+    "size": 3794834688,
+    "sha256": "183516ba3c89418395be212d8d9c5d87002b64af3ec069580baa75884d0d0d51",
+    "crc_verified": true
+  },
+  "scope": "Frozen Aviflow NOTEXT reference. Producer calibrated on test dates. Training uses negative downsampling by window.",
+  "primary_test_label": "target_contact_s_d7",
+  "train_label": "target",
+  "study": {
+    "serps": [
+      {
+        "split": "test",
+        "groups": 157358,
+        "unique_groups": 157358,
+        "expected_candidates": 4807032,
+        "first_search": "2026-10-23 00:00:00",
+        "last_search": "2026-10-25 23:59:59",
+        "first_history_from": "2026-07-23 00:00:00",
+        "missing_users": 11959,
+        "wrong_history_from": 0
+      },
+      {
+        "split": "train",
+        "groups": 242642,
+        "unique_groups": 242642,
+        "expected_candidates": 2859068,
+        "first_search": "2026-10-18 00:00:00",
+        "last_search": "2026-10-22 23:59:59",
+        "first_history_from": "2026-07-18 00:00:00",
+        "missing_users": 19022,
+        "wrong_history_from": 0
+      }
+    ],
+    "cross_split_groups": 0,
+    "history_types": [
+      {
+        "interaction_type": "btc",
+        "events": 35814865,
+        "first_event": "2026-07-18 00:01:35",
+        "last_event": "2026-10-25 23:59:35"
+      },
+      {
+        "interaction_type": "contact",
+        "events": 3073870,
+        "first_event": "2026-07-18 00:34:54",
+        "last_event": "2026-10-25 23:58:33"
+      },
+      {
+        "interaction_type": "dtb",
+        "events": 533624,
+        "first_event": "2026-07-18 06:36:03",
+        "last_event": "2026-10-25 23:52:29"
+      }
+    ],
+    "history_outside_available_user_windows": {
+      "without_user": 0,
+      "outside_time": 0,
+      "need_exact_union": 0
+    },
+    "candidates": {
+      "train": {
+        "groups": {
+          "groups": 242642,
+          "candidates": 2859068,
+          "group_size_mismatches": 0
+        },
+        "snapshot_keys": {
+          "joined_rows": 2859068,
+          "key_mismatches": 0,
+          "missing_snapshots": 0,
+          "dangling_snapshots": 0
+        }
+      },
+      "test": {
+        "groups": {
+          "groups": 157358,
+          "candidates": 4807032,
+          "group_size_mismatches": 0
+        },
+        "snapshot_keys": {
+          "joined_rows": 4807032,
+          "key_mismatches": 0,
+          "missing_snapshots": 0,
+          "dangling_snapshots": 0
+        }
+      }
+    }
+  },
+  "metrics": {
+    "train": {
+      "protocol": "BX exponential NDCG on full groups",
+      "primary_label": "target",
+      "discount_base": 0.8,
+      "first_rank": 1,
+      "idcg_epsilon": 1e-05,
+      "score_tie_break": "source_row_index ascending",
+      "rows": 2859068,
+      "groups": 242642,
+      "groups_with_baseline_score_ties": 8,
+      "targets": {
+        "target": {
+          "ndcg": 0.6037450123753544,
+          "eligible_groups": 242642,
+          "homogeneous_groups": 0,
+          "no_observed_labels_groups": 0,
+          "groups_with_positive_gain": 242642,
+          "eligible_groups_with_score_ties": 8,
+          "missing_rows": 0,
+          "positive_rows": 381902,
+          "distinct_observed_gains": 9,
+          "observed_gains": [
+            0.0,
+            0.01,
+            0.025,
+            0.03,
+            0.05,
+            0.1,
+            0.15,
+            0.2,
+            1.0
+          ]
+        }
+      },
+      "splits": {
+        "train": {
+          "rows": 2859068,
+          "groups": 242642,
+          "groups_with_baseline_score_ties": 8,
+          "targets": {
+            "target": {
+              "ndcg": 0.6037450123753544,
+              "eligible_groups": 242642,
+              "homogeneous_groups": 0,
+              "no_observed_labels_groups": 0,
+              "groups_with_positive_gain": 242642,
+              "eligible_groups_with_score_ties": 8,
+              "missing_rows": 0,
+              "positive_rows": 381902,
+              "distinct_observed_gains": 9,
+              "observed_gains": [
+                0.0,
+                0.01,
+                0.025,
+                0.03,
+                0.05,
+                0.1,
+                0.15,
+                0.2,
+                1.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "test": {
+      "protocol": "BX exponential NDCG on full groups",
+      "primary_label": "target_contact_s_d7",
+      "discount_base": 0.8,
+      "first_rank": 1,
+      "idcg_epsilon": 1e-05,
+      "score_tie_break": "source_row_index ascending",
+      "rows": 4807032,
+      "groups": 157358,
+      "groups_with_baseline_score_ties": 22,
+      "targets": {
+        "target": {
+          "ndcg": 0.41536312747119264,
+          "eligible_groups": 150060,
+          "homogeneous_groups": 7298,
+          "no_observed_labels_groups": 0,
+          "groups_with_positive_gain": 155076,
+          "eligible_groups_with_score_ties": 22,
+          "missing_rows": 0,
+          "positive_rows": 240680,
+          "distinct_observed_gains": 9,
+          "observed_gains": [
+            0.0,
+            0.01,
+            0.025,
+            0.03,
+            0.05,
+            0.1,
+            0.15,
+            0.2,
+            1.0
+          ]
+        },
+        "btc_s": {
+          "ndcg": 0.4498926859663941,
+          "eligible_groups": 116498,
+          "homogeneous_groups": 25543,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 122480,
+          "eligible_groups_with_score_ties": 19,
+          "missing_rows": 1410540,
+          "positive_rows": 173595,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "fav_s": {
+          "ndcg": 0.4308295504778985,
+          "eligible_groups": 84170,
+          "homogeneous_groups": 57871,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 87399,
+          "eligible_groups_with_score_ties": 18,
+          "missing_rows": 1410540,
+          "positive_rows": 124711,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "btc_wo_fav_s": {
+          "ndcg": 0.47927544317866494,
+          "eligible_groups": 45699,
+          "homogeneous_groups": 96342,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 48918,
+          "eligible_groups_with_score_ties": 1,
+          "missing_rows": 1410540,
+          "positive_rows": 61897,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "btc_s_d7": {
+          "ndcg": 0.4598219270514781,
+          "eligible_groups": 115779,
+          "homogeneous_groups": 26262,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 121823,
+          "eligible_groups_with_score_ties": 19,
+          "missing_rows": 1410540,
+          "positive_rows": 206146,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "fav_s_d7": {
+          "ndcg": 0.4369326480521503,
+          "eligible_groups": 86714,
+          "homogeneous_groups": 55327,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 90043,
+          "eligible_groups_with_score_ties": 18,
+          "missing_rows": 1410540,
+          "positive_rows": 147534,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "btc_wo_fav_s_d7": {
+          "ndcg": 0.4821179829238448,
+          "eligible_groups": 52274,
+          "homogeneous_groups": 89767,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 55657,
+          "eligible_groups_with_score_ties": 4,
+          "missing_rows": 1410540,
+          "positive_rows": 82771,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "contact_s": {
+          "ndcg": 0.48966915616639417,
+          "eligible_groups": 20282,
+          "homogeneous_groups": 121759,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 21869,
+          "eligible_groups_with_score_ties": 0,
+          "missing_rows": 1410540,
+          "positive_rows": 26680,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "contact_s_d7": {
+          "ndcg": 0.48571131552974195,
+          "eligible_groups": 26230,
+          "homogeneous_groups": 115811,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 28002,
+          "eligible_groups_with_score_ties": 2,
+          "missing_rows": 1410540,
+          "positive_rows": 39378,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        },
+        "target_contact_s_d7": {
+          "ndcg": 0.5364318617016952,
+          "eligible_groups": 6372,
+          "homogeneous_groups": 135669,
+          "no_observed_labels_groups": 15317,
+          "groups_with_positive_gain": 6852,
+          "eligible_groups_with_score_ties": 0,
+          "missing_rows": 1410540,
+          "positive_rows": 8102,
+          "distinct_observed_gains": 2,
+          "observed_gains": [
+            0.0,
+            1.0
+          ]
+        }
+      },
+      "splits": {
+        "test": {
+          "rows": 4807032,
+          "groups": 157358,
+          "groups_with_baseline_score_ties": 22,
+          "targets": {
+            "target": {
+              "ndcg": 0.41536312747119264,
+              "eligible_groups": 150060,
+              "homogeneous_groups": 7298,
+              "no_observed_labels_groups": 0,
+              "groups_with_positive_gain": 155076,
+              "eligible_groups_with_score_ties": 22,
+              "missing_rows": 0,
+              "positive_rows": 240680,
+              "distinct_observed_gains": 9,
+              "observed_gains": [
+                0.0,
+                0.01,
+                0.025,
+                0.03,
+                0.05,
+                0.1,
+                0.15,
+                0.2,
+                1.0
+              ]
+            },
+            "btc_s": {
+              "ndcg": 0.4498926859663941,
+              "eligible_groups": 116498,
+              "homogeneous_groups": 25543,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 122480,
+              "eligible_groups_with_score_ties": 19,
+              "missing_rows": 1410540,
+              "positive_rows": 173595,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "fav_s": {
+              "ndcg": 0.4308295504778985,
+              "eligible_groups": 84170,
+              "homogeneous_groups": 57871,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 87399,
+              "eligible_groups_with_score_ties": 18,
+              "missing_rows": 1410540,
+              "positive_rows": 124711,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "btc_wo_fav_s": {
+              "ndcg": 0.47927544317866494,
+              "eligible_groups": 45699,
+              "homogeneous_groups": 96342,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 48918,
+              "eligible_groups_with_score_ties": 1,
+              "missing_rows": 1410540,
+              "positive_rows": 61897,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "btc_s_d7": {
+              "ndcg": 0.4598219270514781,
+              "eligible_groups": 115779,
+              "homogeneous_groups": 26262,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 121823,
+              "eligible_groups_with_score_ties": 19,
+              "missing_rows": 1410540,
+              "positive_rows": 206146,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "fav_s_d7": {
+              "ndcg": 0.4369326480521503,
+              "eligible_groups": 86714,
+              "homogeneous_groups": 55327,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 90043,
+              "eligible_groups_with_score_ties": 18,
+              "missing_rows": 1410540,
+              "positive_rows": 147534,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "btc_wo_fav_s_d7": {
+              "ndcg": 0.4821179829238448,
+              "eligible_groups": 52274,
+              "homogeneous_groups": 89767,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 55657,
+              "eligible_groups_with_score_ties": 4,
+              "missing_rows": 1410540,
+              "positive_rows": 82771,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "contact_s": {
+              "ndcg": 0.48966915616639417,
+              "eligible_groups": 20282,
+              "homogeneous_groups": 121759,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 21869,
+              "eligible_groups_with_score_ties": 0,
+              "missing_rows": 1410540,
+              "positive_rows": 26680,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "contact_s_d7": {
+              "ndcg": 0.48571131552974195,
+              "eligible_groups": 26230,
+              "homogeneous_groups": 115811,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 28002,
+              "eligible_groups_with_score_ties": 2,
+              "missing_rows": 1410540,
+              "positive_rows": 39378,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            },
+            "target_contact_s_d7": {
+              "ndcg": 0.5364318617016952,
+              "eligible_groups": 6372,
+              "homogeneous_groups": 135669,
+              "no_observed_labels_groups": 15317,
+              "groups_with_positive_gain": 6852,
+              "eligible_groups_with_score_ties": 0,
+              "missing_rows": 1410540,
+              "positive_rows": 8102,
+              "distinct_observed_gains": 2,
+              "observed_gains": [
+                0.0,
+                1.0
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "producer_reconciliation": {
+    "targets_compared": 10,
+    "eligible_group_counts_match": true,
+    "max_abs_ndcg_difference": 6.944445019030354e-14
+  },
+  "independent_reconciliation": {
+    "implementation": "NumPy and PyArrow, separately authored and checked by GPT-6.2 Astra xhigh",
+    "compared_splits": [
+      "train",
+      "test"
+    ],
+    "max_abs_ndcg_difference": 5.551115123125783e-17
+  },
+  "provided_query_and_item_embeddings": false
+}

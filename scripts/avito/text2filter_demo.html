@@ -3,63 +3,181 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Разбор запроса · Авто</title>
+<title>Text2Filter · Avito Auto</title>
 <style>
-:root{color-scheme:light;--paper:#f6f7f2;--ink:#182720;--muted:#4e6357;--line:#cbd6cc;--accent:#075841;--white:#fff;--warn:#775010}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Geist",system-ui,sans-serif}
-main{max-width:920px;margin:auto;padding:clamp(28px,6vw,72px) 20px}
-header{padding-bottom:28px;border-bottom:1px solid var(--line)}
-h1{font-size:clamp(36px,8vw,72px);line-height:1.02;letter-spacing:-.055em;margin:0 0 14px}
-p{margin:0;color:var(--muted)}form{margin:27px 0}
-label{display:block;margin-bottom:7px;font-weight:650}
-.field{display:flex;gap:10px}input{flex:1;min-width:0;background:var(--white);border:1px solid #a7bbae;border-radius:10px;padding:13px 15px;color:var(--ink)}
-button,input{font:inherit}button{cursor:pointer}
-.primary{border:0;border-radius:10px;background:var(--accent);color:white;font-weight:660;padding:11px 17px}
-.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.example{border:1px solid var(--line);border-radius:20px;color:var(--accent);background:transparent;padding:5px 11px;font-size:13px}
-section{display:grid;grid-template-columns:1fr 1fr;gap:17px}
-article{border:1px solid var(--line);background:var(--white);border-radius:13px;padding:19px 20px}
-h2{margin:0;font-size:17px;letter-spacing:-.01em}ul{list-style:none;margin:10px 0 0;padding:0}
-li{padding:11px 0;border-bottom:1px solid var(--line);display:grid;gap:3px}li:last-child{border:0}
-li span{color:var(--muted);font-size:13px;overflow-wrap:anywhere}aside{min-height:25px;color:#97381e}
-#warnings strong{color:var(--warn)}code{font-family:ui-monospace,monospace}
-@media(max-width:600px){section{grid-template-columns:1fr}.field{display:grid}}
+:root {
+  color-scheme: light;
+  --paper: #f5f6f2;
+  --white: #fff;
+  --ink: #172923;
+  --muted: #4c665b;
+  --line: #cbd8d0;
+  --accent: #17664c;
+  --mint: #e0f2e8;
+  --amber: #fff1d9;
+  --warn: #835317;
+}
+* { box-sizing: border-box }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.48 "Geist", system-ui, sans-serif }
+main { max-width: 980px; margin: auto; padding: clamp(22px, 5vw, 52px) clamp(14px, 4vw, 36px) }
+h1,h2,h3,p { margin: 0 }
+h1 { font-size: clamp(38px, 8vw, 69px); font-weight: 740; line-height: 1; letter-spacing: -.065em }
+h2 { font-size: clamp(20px, 3vw, 27px); letter-spacing: -.035em }
+h3 { font-size: 15px }
+p { color: var(--muted) }
+header p { margin-top: 8px }
+section { margin-top: 22px }
+.panel { border: 1px solid var(--line); border-radius: 17px; background: var(--white); overflow: hidden }
+.controls { padding: clamp(14px, 3vw, 25px) }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 16px }
+.modes { display: inline-flex; background: var(--paper); border: 1px solid var(--line); padding: 3px; border-radius: 10px; gap: 2px }
+button, input { font: inherit }
+button { cursor: pointer }
+button:focus-visible,input:focus-visible,summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px }
+.mode, .example { border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); padding: 7px 10px }
+.mode[aria-pressed="true"] { background: var(--accent); color: white }
+label { display: block; font-weight: 650; margin: 0 0 5px }
+.field { display: flex; gap: 8px }
+input { flex: 1; min-width: 0; border-radius: 9px; border: 1px solid #93aa9c; padding: 11px 13px; color: var(--ink); background: var(--white) }
+input[readonly] { background: var(--paper) }
+.primary { border: 0; border-radius: 9px; background: var(--accent); color: white; padding: 10px 14px; font-weight: 650 }
+.examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px }
+.example { font-size: 12px; border-color: var(--line); padding: 5px 8px; text-align: left }
+.example[aria-pressed="true"] { color: var(--accent); background: var(--mint); border-color: #a7cebb }
+#mode-note, #error { margin-top: 10px; font-size: 13px }
+#error { color: #9d3122 }
+#evidence { border-top: 1px solid var(--line); padding: 13px clamp(14px, 3vw, 25px); overflow-wrap: anywhere; font-size: clamp(16px, 3vw, 21px); white-space: pre-wrap }
+mark { border-radius: 4px; color: inherit; background: var(--mint) }
+mark.caution { background: var(--amber); color: var(--warn) }
+.outputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line) }
+.outputs article { padding: 14px clamp(14px, 3vw, 25px); min-width: 0 }
+.outputs article + article { border-left: 1px solid var(--line) }
+.outputs ul { list-style: none; padding: 0; margin: 4px 0 0 }
+.outputs li { display: grid; gap: 2px; border-bottom: 1px solid var(--line); padding: 8px 0; overflow-wrap: anywhere }
+.outputs li:last-child { border: 0 }
+.outputs small { color: var(--muted); font-size: 12px }
+#warnings strong:not(:only-child) { color: var(--warn) }
+.benchmark > header { margin-bottom: 10px }
+.benchmark > header p { margin-top: 4px }
+.table-scroll { overflow-x: auto }
+table { width: 100%; border-collapse: collapse; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line) }
+th:first-child, td:first-child { text-align: left }
+thead th { color: var(--muted); font-size: 12px; font-weight: 650 }
+tbody th { font-size: 13px; font-weight: 590 }
+tbody tr:last-child :is(td,th) { border-bottom: 0 }
+.highlight { background: var(--mint) }
+.exact-count { display: inline-block; margin-left: 5px; color: var(--muted); font-size: 11px }
+details { padding: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px }
+summary { cursor: pointer; color: var(--accent) }
+details p { margin-top: 7px }
+[hidden] { display: none !important }
+@media (max-width: 520px) {
+  .outputs { grid-template-columns: 1fr }
+  .outputs article + article { border-left: 0; border-top: 1px solid var(--line) }
+  .field { flex-wrap: wrap }
+  input { flex-basis: 190px }
+  .exact-count { display: block; margin: 0 }
+}
 </style>
 </head>
 <body>
 <main>
-<header><h1>Разбор запроса</h1><p>Фильтры для поиска автомобилей с пробегом</p></header>
-<form>
-<label for="query">Поисковый запрос</label>
-<div class="field"><input id="query" maxlength="1000" value="автомат до 1,5 млн без ДТП" autocomplete="off"><button class="primary">Разобрать</button></div>
-<div class="examples" aria-label="Примеры запросов">
-<button type="button" class="example">автомат до 1,5 млн без ДТП</button>
-<button type="button" class="example">Toyota, пробег 50–100 тыс. км</button>
-<button type="button" class="example">не дизель, от 2020 года</button>
-</div>
-</form>
-<aside id="error" role="alert"></aside>
-<section aria-live="polite"><article><h2>Применимые фильтры</h2><ul id="filters"></ul></article><article><h2>Нужно проверить</h2><ul id="warnings"></ul></article></section>
+  <header>
+    <h1>Text2Filter</h1>
+    <p>Как поисковый запрос превращается в фильтры Avito Auto</p>
+  </header>
+  <section class="panel" aria-labelledby="demo-title">
+    <div class="controls">
+      <div class="toolbar">
+        <h2 id="demo-title">Разбор запроса</h2>
+        <div class="modes" role="group" aria-label="Способ разбора">
+          <button class="mode" type="button" data-mode="rules" aria-pressed="true">Правила</button>
+          <button class="mode" type="button" data-mode="bert" aria-pressed="false" hidden>BERT</button>
+        </div>
+      </div>
+      <form id="search-form">
+        <label for="query">Запрос</label>
+        <div class="field">
+          <input id="query" maxlength="1000" autocomplete="off" aria-describedby="mode-note" required>
+          <button class="primary" type="submit">Разобрать</button>
+        </div>
+      </form>
+      <div class="examples" aria-label="Примеры запросов"></div>
+      <p id="mode-note"></p>
+      <p id="error" role="alert" hidden></p>
+    </div>
+    <div id="evidence" aria-label="Размеченный запрос"></div>
+    <div class="outputs" aria-live="polite" aria-atomic="true">
+      <article><h3>Применимые фильтры</h3><ul id="filters"></ul></article>
+      <article><h3>Без фильтра</h3><ul id="warnings"></ul></article>
+    </div>
+  </section>
+  <section class="benchmark" aria-labelledby="benchmark-title">
+    <header>
+      <h2 id="benchmark-title">Результаты на общем тесте</h2>
+      <p id="benchmark-caption"></p>
+    </header>
+    <div class="panel">
+      <div class="table-scroll" role="region" aria-label="Таблица метрик" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">Вариант</th><th scope="col">Точный разбор</th><th scope="col">Точность</th><th scope="col">Полнота</th></tr></thead>
+          <tbody id="scores"></tbody>
+        </table>
+      </div>
+      <details>
+        <summary>Как читать метрики</summary>
+        <p>Точный разбор требует совпадения всех фильтров. Точность показывает долю верных среди предложенных, полнота — долю найденных среди эталонных. Проценты взвешены по семействам. Число точных разборов показано без весов.</p>
+      </details>
+    </div>
+  </section>
 </main>
+<script id="demo-data" type="application/json">__DEMO_CONFIGURATION__</script>
 <script>
-const form = document.querySelector('form');
+const demo = JSON.parse(document.querySelector('#demo-data').textContent);
+const form = document.querySelector('#search-form');
 const field = document.querySelector('#query');
 const error = document.querySelector('#error');
+const note = document.querySelector('#mode-note');
+const evidence = document.querySelector('#evidence');
+const outputs = document.querySelector('.outputs');
+const modes = [...document.querySelectorAll('.mode')];
+const examples = document.querySelector('.examples');
+const exact = new Intl.NumberFormat('ru-RU', {style: 'percent', maximumFractionDigits: 2, minimumFractionDigits: 2});
 const number = new Intl.NumberFormat('ru-RU');
 const explanations = {
-  ambiguous: 'Уточните значение', negated: 'Уточните исключение',
-  alternative: 'Уточните один вариант', conflict: 'Уточните противоречивые условия',
+  ambiguous: 'Значение неоднозначно', negated: 'Условие задано с отрицанием',
+  alternative: 'Перечислены альтернативы', conflict: 'Условия противоречат друг другу',
+  unsupported: 'Нет подходящего фильтра для этого условия',
+  invalid_range: 'Не удалось определить границы диапазона',
+  model_abstained: 'BERT оставил условие без фильтра',
+  unrecognized: 'Условие осталось неразобранным',
 };
 const units = {price:' ₽',2687:' км',110011:' л. с.',110012:' л'};
-function value(row) {
+let mode = demo.student_label ? 'bert' : 'rules';
+let activeRequest;
+
+function filterValue(row) {
   if (row.value_name !== undefined) return row.value_name;
   const unit = units[row.attr_id] || '';
-  const f = n => (row.attr_id === '164669' ? String(n) : number.format(n)) + unit;
-  if (row.min === row.max) return f(row.min);
-  if (row.min === null) return 'до ' + f(row.max);
-  if (row.max === null) return 'от ' + f(row.min);
-  return f(row.min) + ' – ' + f(row.max);
+  const format = n => (row.attr_id === '164669' ? String(n) : number.format(n)) + unit;
+  if (row.min === row.max) return format(row.min);
+  const lower = n => (row.min_inclusive === false ? 'больше ' : 'от ') + format(n);
+  const upper = n => (row.max_inclusive === false ? 'меньше ' : 'до ') + format(n);
+  if (row.min === null) return upper(row.max);
+  if (row.max === null) return lower(row.min);
+  if (row.min_inclusive === false || row.max_inclusive === false) {
+    return lower(row.min) + ' и ' + upper(row.max);
+  }
+  return format(row.min) + ' – ' + format(row.max);
 }
-function render(target, rows, formatter, empty) {
+
+function parts(row) {
+  return row.evidence_parts ?? [row];
+}
+
+function renderList(selector, rows, formatter, empty) {
+  const target = document.querySelector(selector);
   target.replaceChildren();
   if (!rows.length) {
     const item = document.createElement('li');
@@ -69,36 +187,127 @@ function render(target, rows, formatter, empty) {
   for (const row of rows) {
     const item = document.createElement('li');
     const title = document.createElement('strong');
-    const note = document.createElement('span');
-    [title.textContent, note.textContent] = formatter(row);
-    item.append(title, note);
+    const detail = document.createElement('small');
+    [title.textContent, detail.textContent] = formatter(row);
+    item.append(title, detail);
     target.append(item);
   }
 }
-let previous;
-async function submit() {
-  if (previous) previous.abort();
+
+function paint(query, result) {
+  const chars = Array.from(query);
+  const levels = chars.map(() => 0);
+  for (const [items, level] of [[result.filters, 1], [result.unresolved, 2]]) {
+    for (const row of items) {
+      for (const span of parts(row)) {
+        for (let i = Math.max(0, span.start); i < Math.min(span.end, chars.length); i++) levels[i] = level;
+      }
+    }
+  }
+  evidence.replaceChildren();
+  for (let start = 0; start < chars.length;) {
+    let stop = start + 1;
+    while (stop < chars.length && levels[stop] === levels[start]) stop++;
+    const fragment = chars.slice(start, stop).join('');
+    if (levels[start]) {
+      const mark = document.createElement('mark');
+      mark.classList.toggle('caution', levels[start] === 2);
+      mark.textContent = fragment;
+      evidence.append(mark);
+    } else {
+      evidence.append(document.createTextNode(fragment));
+    }
+    start = stop;
+  }
+  renderList('#filters', result.filters, row => [
+    row.attr_name + ' · ' + filterValue(row),
+    parts(row).map(span => '«' + chars.slice(span.start, span.end).join('') + '»').join(' · '),
+  ], 'Фильтры не найдены');
+  renderList('#warnings', result.unresolved, row => ['«' + row.evidence + '»', explanations[row.reason] || 'Проверьте условие в объявлении'], 'Нет отложенных условий');
+}
+
+async function run() {
+  if (activeRequest) activeRequest.abort();
   const controller = new AbortController();
-  previous = controller;
-  error.textContent = '';
+  activeRequest = controller;
+  const query = field.value;
+  const selected = mode;
+  error.hidden = true;
+  note.textContent = (demo.offline ? 'Сохранённый пример. ' : '') + (selected === 'bert'
+    ? 'BERT выбирает подтверждённые словарём фильтры. В эксперименте v3 Qwen помогала разметить обучающие данные.'
+    : 'Словарь и правила извлекают атрибуты и числовые диапазоны.');
+  for (const button of examples.children) button.setAttribute('aria-pressed', String(button.textContent === query));
   try {
-    const response = await fetch('/parse', {method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({query:field.value}), signal:controller.signal});
-    if (!response.ok) throw new Error();
-    const result = await response.json();
-    render(document.querySelector('#filters'), result.filters,
-      row => [row.attr_name + ' · ' + value(row), '«' + row.evidence + '»'], 'Фильтры не найдены');
-    render(document.querySelector('#warnings'), result.unresolved,
-      row => ['«' + row.evidence + '»', explanations[row.reason] || 'Проверьте условие в объявлении'], 'Все найденные условия разобраны');
-  } catch (e) {
-    if (e.name !== 'AbortError') error.textContent = 'Не удалось разобрать запрос. Повторите попытку.';
+    let result;
+    if (demo.offline) {
+      result = demo.replays[query][selected];
+    } else {
+      outputs.setAttribute('aria-busy', 'true');
+      evidence.textContent = query;
+      for (const list of outputs.querySelectorAll('ul')) list.replaceChildren();
+      const response = await fetch(selected === 'bert' ? '/parse/bert' : '/parse', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, signal: controller.signal,
+        body: JSON.stringify({query}),
+      });
+      if (!response.ok) throw Error();
+      result = await response.json();
+    }
+    if (!controller.signal.aborted) paint(query, result);
+  } catch (failure) {
+    if (!controller.signal.aborted) {
+      error.textContent = 'Не удалось разобрать запрос. Повторите попытку.';
+      error.hidden = false;
+    }
+  } finally {
+    if (activeRequest === controller) outputs.removeAttribute('aria-busy');
   }
 }
-form.addEventListener('submit', e => {e.preventDefault(); submit()});
-for (const button of document.querySelectorAll('.example')) {
-  button.addEventListener('click', () => {field.value = button.textContent; submit()});
+for (const button of modes) {
+  if (button.dataset.mode === 'bert' && demo.student_label) {
+    button.textContent = demo.student_label;
+    button.hidden = false;
+  }
+  button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
+  button.addEventListener('click', () => {
+    mode = button.dataset.mode;
+    for (const choice of modes) choice.setAttribute('aria-pressed', String(choice === button));
+    run();
+  });
 }
-submit();
+for (const query of demo.examples) {
+  const button = document.createElement('button');
+  button.className = 'example';
+  button.type = 'button';
+  button.textContent = query;
+  button.addEventListener('click', () => {field.value = query; run();});
+  examples.append(button);
+}
+form.addEventListener('submit', event => {event.preventDefault(); run();});
+field.readOnly = demo.offline;
+form.querySelector('button').hidden = demo.offline;
+field.value = demo.examples[0];
+document.querySelector('#benchmark-caption').textContent = demo.benchmark.queries + ' новых запросов UsedCars · эталонная разметка Astra';
+for (const row of demo.benchmark.rows) {
+  const tr = document.createElement('tr');
+  tr.classList.toggle('highlight', row.method === 'v3_verified_qwen_calibrated');
+  const th = document.createElement('th');
+  th.scope = 'row';
+  th.textContent = row.label;
+  tr.append(th);
+  for (const key of ['exact_filters', 'filter_precision', 'filter_recall']) {
+    const td = document.createElement('td');
+    td.textContent = exact.format(row[key]);
+    if (key === 'exact_filters') {
+      const count = document.createElement('span');
+      count.className = 'exact-count';
+      count.textContent = row.raw_exact + '/' + demo.benchmark.queries;
+      td.append(count);
+    }
+    tr.append(td);
+  }
+  document.querySelector('#scores').append(tr);
+}
+run();
 </script>
 </body>
 </html>

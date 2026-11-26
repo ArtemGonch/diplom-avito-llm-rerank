@@ -174,11 +174,10 @@ folder and distinguish upload success from verified access by a specific
 recipient. Do not commit Drive URLs, file IDs, account addresses, or
 permissions to the repository.
 
-For the current folder, the owner explicitly confirmed on 2026-09-10 that
-anyone with the link should retain `writer` access so Roma can return the
-overlay. Share the link only with Roma, report that anyone holding it can
-replace or delete files, and do not narrow this permission without a new
-explicit owner request.
+The September link-sharing setup was superseded. On 2026-11-26 the thesis
+folder and all its descendants had named access for Artem and Roma only.
+Verify effective permissions before delivering an updated bundle and
+preserve that access.
 
 When refreshing a delivered build, replace the existing HTML, ZIP, metrics,
 and instruction file in place instead of creating same-named duplicates, then

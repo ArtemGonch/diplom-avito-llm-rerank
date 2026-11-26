@@ -27,7 +27,7 @@ DISCOUNT = 0.8
 EPSILON = 1e-5
 ABS_TOLERANCE = 1e-12
 PILOT_SPLIT = "test"
-CANDIDATE_COLUMNS = ("serp_x", "source_row_index", "baseline_score", *TARGETS)
+RANKING_COLUMNS = ("serp_x", "source_row_index", "baseline_score")
 GROUP_COUNT_FIELDS = (
     "eligible_groups", "homogeneous_groups", "no_observed_labels_groups",
     "groups_with_positive_gain", "eligible_groups_with_score_ties",
@@ -240,7 +240,7 @@ def audit_preview(path):
     }
 
 
-def _candidate_rows(path, *, assigned_split=None):
+def _candidate_rows(path, *, assigned_split=None, targets=TARGETS):
     """Project the ranking inputs, retaining exact values and masking missing gains."""
     from pyarrow import parquet, types
 
@@ -253,7 +253,8 @@ def _candidate_rows(path, *, assigned_split=None):
     with parquet.ParquetFile(path) as source:
         schema = source.schema_arrow
         names = schema.names
-        if len(set(names)) != len(names) or not set(CANDIDATE_COLUMNS) <= set(names):
+        ranking_columns = (*RANKING_COLUMNS, *targets)
+        if len(set(names)) != len(names) or not set(ranking_columns) <= set(names):
             raise ValueError("Missing ranking columns or duplicate column names")
         embedded_split = "split" in names
         if not embedded_split and assigned_split is None:
@@ -270,12 +271,12 @@ def _candidate_rows(path, *, assigned_split=None):
             or not is_numeric(schema.field("baseline_score").type)
         ):
             raise ValueError("Invalid ranking key or baseline_score column type")
-        for label in TARGETS:
+        for label in targets:
             dtype = schema.field(label).type
             if not (is_numeric(dtype) or types.is_null(dtype)):
                 raise ValueError(f"Invalid numeric gain column type for {label}")
 
-        columns = ("split", *CANDIDATE_COLUMNS) if embedded_split else CANDIDATE_COLUMNS
+        columns = ("split", *ranking_columns) if embedded_split else ranking_columns
         for batch in source.iter_batches(columns=columns, batch_size=16_384):
             values = [column.to_pylist() for column in batch.columns]
             for row in zip(*values, strict=True):
@@ -296,18 +297,18 @@ def _candidate_rows(path, *, assigned_split=None):
 
 
 class _CandidateAudit:
-    def __init__(self):
+    def __init__(self, targets):
         self.rows = self.groups = self.tied_groups = 0
-        self.counts = {label: Counter() for label in TARGETS}
-        self.gains = {label: set() for label in TARGETS}
-        self.sums = dict.fromkeys(TARGETS, 0.0)
-        self.corrections = dict.fromkeys(TARGETS, 0.0)
+        self.counts = {label: Counter() for label in targets}
+        self.gains = {label: set() for label in targets}
+        self.sums = dict.fromkeys(targets, 0.0)
+        self.corrections = dict.fromkeys(targets, 0.0)
 
     def add(self, size, tied, group_stats):
         self.rows += size
         self.groups += 1
         self.tied_groups += tied
-        for label, (ndcg, counts, gains) in zip(TARGETS, group_stats, strict=True):
+        for label, (ndcg, counts, gains) in zip(self.counts, group_stats, strict=True):
             self.counts[label].update(counts)
             self.gains[label].update(gains)
             if ndcg is not None:
@@ -336,15 +337,15 @@ class _CandidateAudit:
         }
 
 
-def _candidate_metrics(db):
-    overall = _CandidateAudit()
+def _candidate_metrics(db, targets):
+    overall = _CandidateAudit(targets)
     splits = {}
     rows = db.execute("""
         SELECT split, serp, payload FROM candidates
         ORDER BY split, serp, source_row_index
     """)
     for split, split_rows in groupby(rows, key=lambda row: row[0]):
-        split_audit = _CandidateAudit()
+        split_audit = _CandidateAudit(targets)
         for _, group_rows in groupby(split_rows, key=lambda row: row[1]):
             group = [json.loads(payload) for _, _, payload in group_rows]
             scores, *labels = zip(*group)
@@ -407,8 +408,14 @@ def _check_candidate_preview(db, result, original):
     }
 
 
-def audit_candidates(paths=(), *, split_paths=(), original=None):
+def audit_candidates(paths=(), *, split_paths=(), original=None, targets=TARGETS):
     """Audit normalized Parquet shards, optionally checking an original test preview."""
+    targets = tuple(targets)
+    if not targets or len(set(targets)) != len(targets) or not set(targets) <= set(TARGETS):
+        raise ValueError("Select at least one unique supported target")
+    if original is not None and targets != TARGETS:
+        raise ValueError("Original preview reconciliation requires all ten targets in their default order")
+
     with TemporaryDirectory(prefix="bx-candidates-") as directory:
         with closing(sqlite3.connect(Path(directory) / "ranking.sqlite3")) as db, db:
             db.execute("PRAGMA temp_store = FILE")
@@ -419,7 +426,7 @@ def audit_candidates(paths=(), *, split_paths=(), original=None):
                 ) WITHOUT ROWID
             """)
             for split, path in chain(((None, path) for path in paths), split_paths):
-                rows = _candidate_rows(path, assigned_split=split)
+                rows = _candidate_rows(path, assigned_split=split, targets=targets)
                 try:
                     db.executemany("INSERT INTO candidates VALUES (?, ?, ?, ?)", (
                         (row_split, serp, index, json.dumps(values, allow_nan=False))
@@ -428,14 +435,14 @@ def audit_candidates(paths=(), *, split_paths=(), original=None):
                 except sqlite3.IntegrityError as error:
                     raise ValueError("Duplicate (split, source_row_index) candidate key") from error
             db.execute("CREATE INDEX groups_in_order ON candidates (split, serp, source_row_index)")
-            result = _candidate_metrics(db)
+            result = _candidate_metrics(db, targets)
             if not result["rows"]:
                 raise ValueError("No candidate rows")
             if original is not None:
                 result["reconciliation"] = _check_candidate_preview(db, result, original)
     return {
         "protocol": PROTOCOL,
-        "primary_label": PRIMARY_LABEL,
+        "primary_label": PRIMARY_LABEL if PRIMARY_LABEL in targets else targets[0],
         "discount_base": DISCOUNT,
         "first_rank": 1,
         "idcg_epsilon": EPSILON,
@@ -453,7 +460,7 @@ def list_archive_members(path):
         ]
 
 
-def audit_candidate_archive(path, members=(), *, split_members=(), original=None):
+def audit_candidate_archive(path, members=(), *, split_members=(), original=None, targets=TARGETS):
     """Read only explicitly selected Parquet members and retain their source split."""
     requested = [*((None, name) for name in members), *split_members]
     names = [name for _, name in requested]
@@ -475,4 +482,4 @@ def audit_candidate_archive(path, members=(), *, split_members=(), original=None
                 paths.append(destination)
             else:
                 split_paths.append((split, destination))
-        return audit_candidates(paths, split_paths=split_paths, original=original)
+        return audit_candidates(paths, split_paths=split_paths, original=original, targets=targets)

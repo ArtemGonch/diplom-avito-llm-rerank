@@ -1,4 +1,5 @@
 import io
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -215,3 +216,28 @@ class V4ProposalTests(unittest.TestCase):
         baseline, options = propose(Catalog(), q)
         self.assertFalse(options)
         self.assertEqual(baseline["unresolved"][0]["reason"], "unsupported")
+
+
+class DemoPageTests(unittest.TestCase):
+    def test_portable_demo_embeds_results_from_both_supplied_parsers(self):
+        import runpy
+
+        class Catalog:
+            def parse(self, query):
+                return {"filters": [], "unresolved": [{"evidence": query, "reason": "unsupported"}]}
+
+        def student(query):
+            return {"filters": [], "unresolved": [{"evidence": query, "reason": "unrecognized"}]}
+
+        script = Path(__file__).resolve().parents[1] / "scripts/avito/text2filter.py"
+        build = runpy.run_path(str(script))["demo_page"]
+        html = build(Catalog(), student=student, student_label="</script>", offline=True).decode()
+        start = '<script id="demo-data" type="application/json">'
+        config = json.loads(html.split(start, 1)[1].split("</script>", 1)[0])
+        self.assertEqual(config["student_label"], "</script>")
+        self.assertTrue(config["offline"])
+        for query in config["examples"]:
+            self.assertEqual(config["replays"][query]["rules"]["unresolved"][0]["reason"], "unsupported")
+            self.assertEqual(config["replays"][query]["bert"]["unresolved"][0]["reason"], "unrecognized")
+        self.assertEqual(config["benchmark"]["queries"], 80)
+        self.assertEqual(config["benchmark"]["rows"][2]["raw_exact"], 54)

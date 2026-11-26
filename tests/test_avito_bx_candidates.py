@@ -112,6 +112,25 @@ class BXCandidateTests(unittest.TestCase):
             audit_candidates(split_paths=[("test", implicit)]),
         )
 
+    def test_partial_label_split_uses_only_explicit_targets(self):
+        def keep_only_target(columns):
+            for label in TARGETS:
+                if label != "target":
+                    del columns[label]
+
+        path = self.write("train_target", [
+            ("train", "g", 1, 3, {"target": 0}),
+            ("train", "g", 2, 2, {"target": 1}),
+        ], mutate=keep_only_target)
+        with self.assertRaisesRegex(ValueError, "Missing ranking columns"):
+            audit_candidates([path])
+        actual = audit_candidates([path], targets=("target",))
+        self.assertEqual(list(actual["targets"]), ["target"])
+        self.assertEqual(actual["primary_label"], "target")
+        self.assertAlmostEqual(actual["targets"]["target"]["ndcg"], 0.8**2 / (0.8 + 1e-5))
+        with self.assertRaisesRegex(ValueError, "unique supported target"):
+            audit_candidates([path], targets=("target", "target"))
+
     def test_archive_reads_only_selected_candidates_and_checks_explicit_split(self):
         rows = [("test", "g", 1, 25, {PRIMARY_LABEL: 0}),
                 ("test", "g", 2, 10, {PRIMARY_LABEL: 1})]

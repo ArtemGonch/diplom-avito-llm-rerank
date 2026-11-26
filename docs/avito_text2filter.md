@@ -15,8 +15,21 @@ python scripts/avito/text2filter.py --archive "$QUERIES_ZIP" serve --port 8782
 python scripts/avito/text2filter.py --archive "$QUERIES_ZIP" packet --out reports/text2filter_annotation
 ```
 
-Демо доступно по `http://127.0.0.1:8782/`. Входы, ответы моделей, веса и ручные
-оценки остаются в игнорируемых каталогах. Примеры в интерфейсе синтетические.
+Демо доступно по `http://127.0.0.1:8782/`. Оно показывает применимые
+фильтры, их фрагменты в тексте, условия вне фильтров и таблицу общего
+теста N4. По умолчанию доступны правила. Для сравнения с BERT v3
+подставьте локальный чекпойнт с проверенными парами Qwen.
+
+```bash
+python scripts/avito/text2filter.py --archive "$QUERIES_ZIP" --linker v3 serve \
+  --student "$BERT_V3" --threshold 0.995 --port 8782
+python scripts/avito/text2filter.py --archive "$QUERIES_ZIP" --linker v3 serve \
+  --student "$BERT_V3" --threshold 0.995 --export "$DEMO_HTML"
+```
+
+Автономный HTML работает без сервера на трёх заранее разобранных
+синтетических примерах. Свой запрос можно ввести в живом демо.
+Входы эксперимента, построчные ответы, веса и эталоны остаются вне Git.
 
 Для небольшой локальной выборки можно запустить Qwen3-4B-4bit через MLX на
 Apple Silicon. Модель получает до 20 вариантов, подтверждённых словарём или

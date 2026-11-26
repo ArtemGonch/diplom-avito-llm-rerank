@@ -1,9 +1,19 @@
 {
   "generated": "2026-11-26",
   "avito_bx_usedcars_notext_400k": {
+    "status": "done",
+    "path": "metrics/avito_bx_usedcars_notext_400k_20261126.json",
+    "execution_report": "docs/avito_bx_notext.md",
+    "scope": "Full NOTEXT baseline metric reconciliation, including all ten test targets",
+    "groups": 400000,
+    "candidate_rows": 7666100,
+    "primary_test_ndcg": 0.5364318617016952,
+    "primary_test_eligible_groups": 6372
+  },
+  "avito_bx_embeddings_cg_notext": {
     "status": "planned",
     "execution_report": "docs/avito_bx_notext.md",
-    "scope": "ZIP input and fixed-pool embedding evaluation readiness. Full NOTEXT metrics pending download and input validation."
+    "scope": "Fixed-pool evaluation harness available. No ready query or item embeddings in the 400k archive."
   },
   "avito_text2filter_v4_20261126": {
     "status": "done",
