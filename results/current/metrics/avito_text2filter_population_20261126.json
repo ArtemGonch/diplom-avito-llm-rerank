@@ -1,0 +1,108 @@
+{
+  "scope": "Output behavior across the complete supplied text export, without reference filters",
+  "population": {
+    "texts": 70323,
+    "search_events": 1370084
+  },
+  "input_sha256": "540493dc05dc2f1708a133acd100e17739c2cab53c000881c88cf448ddb1e7ab",
+  "configuration": {
+    "v2_control": {
+      "threshold": 0.5,
+      "model_sha256": "6846a2b2bc612bb0421da241c6f7a6edab78ad7b7e2c8f32e816b4fcc42c27e2"
+    },
+    "v3_verified_qwen_calibrated": {
+      "threshold": 0.995,
+      "model_sha256": "93410a1d02d566f52320865eb52efd581267b42d3fae90dcbccd4c14ddf49679"
+    }
+  },
+  "coverage": {
+    "rules": {
+      "texts": {
+        "with_filter": 36754,
+        "with_unresolved": 63097,
+        "filter_without_unresolved": 7075,
+        "no_filter_or_unresolved": 151
+      },
+      "search_events": {
+        "with_filter": 481177,
+        "with_unresolved": 865649,
+        "filter_without_unresolved": 277085,
+        "no_filter_or_unresolved": 227350
+      }
+    },
+    "v2_control": {
+      "texts": {
+        "with_filter": 40052,
+        "with_unresolved": 60774,
+        "filter_without_unresolved": 9398,
+        "no_filter_or_unresolved": 151
+      },
+      "search_events": {
+        "with_filter": 511027,
+        "with_unresolved": 843707,
+        "filter_without_unresolved": 299027,
+        "no_filter_or_unresolved": 227350
+      }
+    },
+    "v3_verified_qwen_calibrated": {
+      "texts": {
+        "with_filter": 40439,
+        "with_unresolved": 58927,
+        "filter_without_unresolved": 11245,
+        "no_filter_or_unresolved": 151
+      },
+      "search_events": {
+        "with_filter": 549538,
+        "with_unresolved": 810495,
+        "filter_without_unresolved": 332239,
+        "no_filter_or_unresolved": 227350
+      }
+    }
+  },
+  "v2_to_v3": {
+    "texts": {
+      "filter_set_changed": 4640,
+      "v3_gained_a_filter_when_v2_empty": 734,
+      "v3_empty_when_v2_had_filter": 347
+    },
+    "search_events": {
+      "filter_set_changed": 89691,
+      "v3_gained_a_filter_when_v2_empty": 42311,
+      "v3_empty_when_v2_had_filter": 3800
+    }
+  },
+  "unresolved_reasons_by_search_events": {
+    "rules": {
+      "unrecognized": 795853,
+      "unsupported": 44911,
+      "ambiguous": 87240,
+      "negated": 5141,
+      "unqualified": 8087,
+      "alternative": 1678,
+      "conflict": 3418,
+      "invalid_range": 863
+    },
+    "v2_control": {
+      "unrecognized": 777367,
+      "unsupported": 44911,
+      "ambiguous": 66570,
+      "negated": 5141,
+      "unqualified": 3734,
+      "alternative": 1678,
+      "model_abstained": 1037,
+      "conflict": 3418,
+      "invalid_range": 863
+    },
+    "v3_verified_qwen_calibrated": {
+      "unrecognized": 739955,
+      "unsupported": 44911,
+      "ambiguous": 66220,
+      "negated": 5141,
+      "unqualified": 4817,
+      "alternative": 1678,
+      "model_abstained": 4224,
+      "conflict": 3418,
+      "invalid_range": 863
+    }
+  }
+}

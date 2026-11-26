@@ -1,5 +1,13 @@
 {
   "generated": "2026-11-26",
+  "avito_text2filter_population_20261126": {
+    "status": "done",
+    "path": "metrics/avito_text2filter_population_20261126.json",
+    "execution_report": "docs/avito_text2filter.md",
+    "scope": "Coverage on the complete text export without reference filters",
+    "unique_texts": 70323,
+    "search_events": 1370084
+  },
   "avito_bx_usedcars_notext_400k": {
     "status": "done",
     "path": "metrics/avito_bx_usedcars_notext_400k_20261126.json",
